@@ -2,18 +2,18 @@
 
 ## Goal
 
-Create an API that will be used by all the mobile apps created for Moment. 
-This API will provide access to all the necessary informations.
+Créer une API qui sera utilisée par les applications mobiles. Cette API donnera accès à toutes les informations dont les application ont besoin.
 
 
 
 ### Requirements
 
-[Flask](http://flask.pocoo.org/) : used to create the server and handle all the http requests. To install it, simply run this line code 
+[Flask](http://flask.pocoo.org/) : microframework utilisé pour créer le serveur. Permet de prendre en charge les requetes http facilement. 
+Pour installer ce microframework :
 
 	easy_install Flask
 
-[FlaskSQLAlchemy](http://packages.python.org/Flask-SQLAlchemy/) : Extension of Flask that adds support of [SQLAlchemy](http://www.sqlalchemy.org/) which is a Python SQL toolkit. In order to install run this command line :
+[FlaskSQLAlchemy](http://packages.python.org/Flask-SQLAlchemy/) : Extension de Flask qui ajoute le support de [SQLAlchemy](http://www.sqlalchemy.org/) qui est un touil SQL Python. Pour l'installer :
 
 	easy_install Flask-SQLAlchemy
 
