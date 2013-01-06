@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 from flask import request, abort, redirect, url_for
 from api import app, db, login_manager
 import json
@@ -7,8 +8,9 @@ from bcrypt import hashpw, gensalt
 from flask.ext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin, AnonymousUser,
                             confirm_login, fresh_login_required)
-from api.models import User
+from api.models import User, Moment, Invitation
 from itsdangerous import URLSafeSerializer
+import controller
 
 
 
@@ -82,7 +84,7 @@ def load_token(token):
 @app.route('/')
 @login_required
 def index():
-	user = User.query.filter(User.username == 'adriendulong').first()
+	user = User.query.filter(User.email == current_user.email).first()
 	if user is None:
 		return current_user.email
 	else:
@@ -95,42 +97,74 @@ def index():
 ##################################################################
 # Methode acceptées : POST
 # Paramètres obligatoires : 
+#	password, email, firstname, lastname
+# Autres paramètres possibles :
+#	phone, facebookId, secondEmail, secondPhone
 
 @app.route('/register', methods=["POST"])
 def register():
-	#On verifie que tous les champs sont renseignes
-	if request.method == "POST" and "username" in request.form and "password" in request.form and "email" in request.form and "age" in request.form :
+
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+
+	#On verifie que tous les champs obligatoires sont renseignés (email, password, firstname, lastname)
+	if request.method == "POST" and "password" in request.form and "email" in request.form and "firstname" in request.form and "lastname" in request.form :
 
 		#On recupere toutes les variable
-		username = request.form["username"]
 		password = request.form["password"]
 		hashpwd = hashpw(password, gensalt())
 		email = request.form["email"]
+		firstname = request.form["firstname"]
+		lastname = request.form["lastname"]
 
 		#On verifie que age soit bien au format int
+		'''
 		try:
 			age = int(request.form["age"])
 		except ValueError:
 			abort(400)
+		'''
 
-		#On cree l'utilisateur
-		user = User(username, email, age, hashpwd)
+		
 
-		#On l ajoute en base
-		db.session.add(user)
-		db.session.commit()
+		# Si un utilisateur avec cette adresse mail existe on ne peut pas créer un compte
+		if controller.user_exist(email):
+			print "does exist"
+			reponse["error"] = "already exist"
+			return json.dumps(reponse), 405
+		else:
+			#On cree l'utilisateur
+			user = User(email, firstname, lastname, hashpwd)
 
-		reponse = {}
-		reponse["username"] = username
-		reponse["password"] = password
-		reponse["hashpwd"] = hashpwd
-		reponse["email"] = email
-		reponse["age"] = age
+			#Pour les champs non obligatoires, si ils y sont on les recupere
+			if "phone" in request.form:
+				phone = request.form["phone"]
+				user.phone = phone
+			if "facebookId" in request.form:
+				facebookId = request.form["facebookId"]
+				user.facebookId = facebookId
+			if "secondEmail" in request.form:
+				secondEmail = request.form["secondEmail"]
+				user.secondEmail = secondEmail
+			if "secondPhone" in request.form:
+				secondPhone = request.form["secondPhone"]
+				user.secondPhone = secondPhone
 
-		return json.dumps(reponse)
+			#On l ajoute en base
+			db.session.add(user)
+			db.session.commit()
+
+			reponse["email"] = email
+			reponse["password"] = password
+			reponse["hashpwd"] = hashpwd
+			reponse["firstname"] = firstname
+			reponse["lastname"] = lastname
+
+			return json.dumps(reponse)
 
 	else:
-		abort(400)
+		reponse["error"] = "mandatory value missing"
+		return json.dumps(reponse), 405
 
 
 
@@ -139,10 +173,17 @@ def register():
 ######################################################
 ########  Requete pour Logger un  user ###############
 #######################################################
-
+# Methode acceptées : POST
+# Paramètres obligatoires : 
+#	password, email
+# Autres paramètres possibles :
+#	
 
 @app.route('/login', methods=["POST"])
 def login():
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+
 	#On verifie que tous les champs sont renseignes
 	if request.method == "POST" and "email" in request.form and "password" in request.form:
 		email = request.form["email"]
@@ -153,20 +194,100 @@ def login():
 
 		# Si l'utilisateur n'existe pas
 		if user is None:
-			return "User does not exist"
+			reponse["error"] = "user does not exist"
+			return json.dumps(reponse), 401
 		else:
 			# On verifie que le password hashé correspond bien à celui en base
 			if hashpw(password, user.pwd) == user.pwd:
 				login_user(user)
-				return "Ok"
+				reponse["success"] = "Logged"
+				return json.dumps(reponse), 200
 			else:
-				return "wrong password"
+				reponse["error"] = "wrong password"
+				return json.dumps(reponse), 401
 
 	else:
-		abort(400)
+		reponse["error"] = "mandatory value missing"
+		return json.dumps(reponse), 405
+
+
+######################################################
+########  Requete pour céer un moment ###############
+#######################################################
+# Methode acceptées : POST
+# Paramètres obligatoires : 
+#	name, address, startDate (YYYY-MM-DD), endDate (YYYY-MM-DD)
+# Autres paramètres possibles :
+#	placeInformations, startTime, endTime, description, hashtag, facebookId
+
+@app.route('/newmoment', methods=["POST"])
+def new_moment():
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+
+	#On verifie que tous les champs sont renseignes
+	if request.method == "POST" and "name" in request.form and "address" in request.form and "startDate" in request.form and "endDate" in request.form:
+		##
+		# Recupération des valeurs obligatoires transmises
+		##
+		name = request.form["name"]
+		address = request.form["address"]
+
+		#On recupere et met en forme la date (doit être au format "YYYY-MM-DD")
+		startDateTemp = request.form["startDate"].split("-")
+		startDate = datetime.date(int(startDateTemp[0]), int(startDateTemp[1]), int(startDateTemp[2]))
+
+		endDateTemp = request.form["endDate"].split("-")
+		endDate = datetime.date(int(endDateTemp[0]), int(endDateTemp[1]), int(endDateTemp[2]))
 
 
 
+		#On créé un nouveau moment
+		moment = Moment(name, address, startDate, endDate)
+
+		##
+		# Recuperation des autres valeurs (non obligatoires)
+		##
+		if "placeInformations" in request.form:
+			placeInformations = request.form["placeInformations"]
+			moment.placeInformations = placeInformations
+		if "startTime" in request.form:
+			startTime = request.form["startTime"]
+			moment.startTime = startTime
+		if "endTime" in request.form:
+			endTime = request.form["endTime"]
+			moment.endTime = endTime
+		if "description" in request.form:
+			description = request.form["description"]
+			moment.description = description
+		if "hashtag" in request.form:
+			hashtag = request.form["hashtag"]
+			moment.hashtag = hashtag
+		if "facebookId" in request.form:
+			facebookId = request.form["facebookId"]
+			moment.facebookId = facebookId
+
+
+		# On recupere en base le user qui créé ce Moment
+		user = User.query.filter(User.email == current_user.email).first()
+
+		#On créé l'invitation qui le lie à ce Moment
+		# Il est owner, donc state à 0
+		invitation = Invitation(0, user)
+
+		#On ratache cette invitations aux guests du nouveau Moment
+		moment.guests.append(invitation)
+
+		#On enregistre en base
+		db.session.add(moment)
+		db.session.commit()
+
+		reponse["success"] = "Moment created and the owner is %s" % user.email
+		return json.dumps(reponse), 200
+
+	else:
+		reponse["error"] = "mandatory value missing"
+		return json.dumps(reponse), 405
 
 
 
