@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
 from api import db
+import datetime
+import os
+import variables
 
 
 ##########################################
@@ -67,6 +71,7 @@ class User(db.Model):
     secondEmail = db.Column(db.String(80))
     secondPhone = db.Column(db.String(20))
     lastConnection = db.Column(db.DateTime)
+    profile_picture = db.Column(db.String(120))
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -95,10 +100,19 @@ class User(db.Model):
         self.firstname = firstname
         self.lastname = lastname
         self.pwd = pwd
+        self.creationDateUser = datetime.date.today()
+
 
     def __repr__(self):
         return '<User %r>' % self.email
 
+
+    #Fonction qui renvoit les nb_moments futurs du user 
+    def get_moments(self, nb_moments):
+
+        moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.email== self.email).limit(nb_moments).all()
+
+        return moments
 
 
 ###########################################
@@ -134,9 +148,44 @@ class Moment(db.Model):
         self.endDate = endDate
 
     def __repr__(self):
-        return '<Moment name :%r, start date :>' % (self.name, self.startDate) 
+        return '<Moment name :%r, start date :>' % (self.name)
+
+    def moment_to_send(self):
+
+        #On construit le Moment tel qu'on va le renvoyer à l'app
+        moment = {}
+        moment["name"] = self.name
+        moment["address"] = self.address
+        moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
+        moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
+        
+        if self.description is not None:
+            moment["description"] = self.description
+
+        if self.placeInformations is not None:
+            moment["placeInformations"] = self.placeInformations
+        
+        if self.hashtag is not None:
+            moment["hashtag"] = self.hashtag
+
+        if self.facebookId is not None:
+            moment["facebookId"] = self.facebookId
+
+        if self.startTime is not None:
+            moment["startTime"] = "%s:%s:%s" %(self.startTime.hour, self.startTime.minute, self.startTime.second)
+
+        if self.endTime is not None:
+            moment["endTime"] = "%s:%s:%s" %(self.endTime.hour, self.endTime.minute, self.endTime.second)
+
+        return moment
 
 
+    def create_paths(self):
+        # On créé tous les dossiers necessaires à ce Moment
+        path_moment = "%s%s" % (variables.MOMENT_PATH , self.id)
+        os.mkdir(path_moment)
+        os.mkdir(path_moment+"/photos")
+        os.mkdir(path_moment+"/cover")
 
 
 

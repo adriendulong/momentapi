@@ -11,6 +11,8 @@ from flask.ext.login import (LoginManager, current_user, login_required,
 from api.models import User, Moment, Invitation
 from itsdangerous import URLSafeSerializer
 import controller
+import variables
+import fonctions
 
 
 
@@ -117,16 +119,6 @@ def register():
 		firstname = request.form["firstname"]
 		lastname = request.form["lastname"]
 
-		#On verifie que age soit bien au format int
-		'''
-		try:
-			age = int(request.form["age"])
-		except ValueError:
-			abort(400)
-		'''
-
-		
-
 		# Si un utilisateur avec cette adresse mail existe on ne peut pas créer un compte
 		if controller.user_exist(email):
 			print "does exist"
@@ -153,14 +145,30 @@ def register():
 			#On l ajoute en base
 			db.session.add(user)
 			db.session.commit()
+			
+			#Maintenant qu'on a l'id on enregistre la photo de profil
+			
+			if "photo" in request.files:
+				f = request.files["photo"]
+				#On enregistre la photo et son chemin en base
+				name_picture = "%s" % user.id
+				path_photo = fonctions.add_profile_picture(f, name_picture, user.id)
+				user.profile_picture = variables.SERVER_PATH + path_photo
+
+			#else:
+			#	print "Pas de photo"
+
+			#On logge le user. On lui renvoit ainsi le token qu'il doit utiliser
+			login_user(user)
 
 			reponse["email"] = email
 			reponse["password"] = password
 			reponse["hashpwd"] = hashpwd
 			reponse["firstname"] = firstname
 			reponse["lastname"] = lastname
+			reponse["profile_picture"] = user.profile_picture
 
-			return json.dumps(reponse)
+			return json.dumps(reponse), 200
 
 	else:
 		reponse["error"] = "mandatory value missing"
@@ -201,6 +209,16 @@ def login():
 			if hashpw(password, user.pwd) == user.pwd:
 				login_user(user)
 				reponse["success"] = "Logged"
+
+				# On recupere les n prochains moments de ce user
+				moments = controller.get_moments_of_user(user.email, 10)
+
+				# On construit le tableau de moments que l'on va renvoyer
+				reponse["moments"] = []
+				for moment in moments:
+					# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
+					reponse["moments"].append(moment.moment_to_send())
+
 				return json.dumps(reponse), 200
 			else:
 				reponse["error"] = "wrong password"
@@ -209,6 +227,9 @@ def login():
 	else:
 		reponse["error"] = "mandatory value missing"
 		return json.dumps(reponse), 405
+
+
+
 
 
 ######################################################
@@ -282,12 +303,48 @@ def new_moment():
 		db.session.add(moment)
 		db.session.commit()
 
+		#On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
+		moment.create_paths()
+
 		reponse["success"] = "Moment created and the owner is %s" % user.email
 		return json.dumps(reponse), 200
 
 	else:
 		reponse["error"] = "mandatory value missing"
 		return json.dumps(reponse), 405
+
+
+
+
+
+
+
+
+#####################################################################
+########  Requete pour récupérer les moments d'un user ###############
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/moments', methods=["GET"])
+def moments():
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+
+	user = User.query.filter_by(email = current_user.email).first()
+	moments_of_user = user.get_moments(10)
+
+	# On construit le tableau de moments que l'on va renvoyer
+	reponse["moments"] = []
+	for moment in moments_of_user:
+		# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
+		reponse["moments"].append(moment.moment_to_send())
+
+	reponse["success"] = "OK"
+
+	return json.dumps(reponse), 200
+
 
 
 
