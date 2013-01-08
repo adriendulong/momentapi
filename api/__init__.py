@@ -6,9 +6,19 @@ from flask.ext.login import (LoginManager, current_user, login_required,
 
 
 
+#Class pour quand sur le serveur, car l'app est sous un dossier
+class WebFactionMiddleware(object):
+    def __init__(self, app):
+        self.app = app
+    def __call__(self, environ, start_response):
+        environ['SCRIPT_NAME'] = '/momentapi'
+        return self.app(environ, start_response)
+
+
 app = Flask(__name__)
 app.config.from_object('config')
 app.secret_key = "momentisLifefrom33" 
+#app.wsgi_app = WebFactionMiddleware(app.wsgi_app)
 db = SQLAlchemy(app)
 
 

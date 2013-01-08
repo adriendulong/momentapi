@@ -3,7 +3,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 #appmoment
 USER_DB = "adulong"
-#909c3c2f
+#Jar.12626
 PASSWORD_DB = "adulong"
 
 NAME_DB = "appmoment"
