@@ -153,7 +153,7 @@ def register():
 				#On enregistre la photo et son chemin en base
 				name_picture = "%s" % user.id
 				path_photo = fonctions.add_profile_picture(f, name_picture, user.id)
-				user.profile_picture = variables.SERVER_PATH + path_photo
+				user.profile_picture = app.root_path + path_photo
 
 			#else:
 			#	print "Pas de photo"
