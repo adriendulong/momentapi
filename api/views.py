@@ -296,7 +296,7 @@ def new_moment():
 
 		#On créé l'invitation qui le lie à ce Moment
 		# Il est owner, donc state à 0
-		invitation = Invitation(0, user)
+		invitation = Invitation(0, user) 
 
 		#On ratache cette invitations aux guests du nouveau Moment
 		moment.guests.append(invitation)
