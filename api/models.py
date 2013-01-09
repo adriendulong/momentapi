@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from api import db
+from api import db, app
 import datetime
 import os
-import variables
+import constants
 
 
 ##########################################
@@ -71,7 +71,8 @@ class User(db.Model):
     secondEmail = db.Column(db.String(80))
     secondPhone = db.Column(db.String(20))
     lastConnection = db.Column(db.DateTime)
-    profile_picture = db.Column(db.String(120))
+    profile_picture_url = db.Column(db.String(120))
+    profile_picture_path = db.Column(db.String(120))
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -113,6 +114,35 @@ class User(db.Model):
         moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.email== self.email).limit(nb_moments).all()
 
         return moments
+
+
+    #Renvoie le chemin vers le dossiers de ce user, Créé si il n'existe pas
+    def get_user_dir(self):
+        #On verifie que le dossier existe
+        path_user = "%s/%s" % (constants.PROFILE_PATH, self.id)
+        if os.path.exists(app.root_path + path_user):
+            return path_user
+        #Sinon on le créé
+        else:
+            os.mkdir(app.root_path + path_user)
+            return path_user
+
+
+    #Fonction qui rajoute une image de profile
+    def add_profile_picture(self, f, name):
+        #On recupere le path du user
+        user_path = self.get_user_dir()
+
+        # On vérifie que le chemin pour enregistrer sa photo de profil existe
+        if os.path.exists(app.root_path + user_path+"/profile_pictures"):
+            f.save(app.root_path + user_path+"/profile_pictures/"+name+".png")
+            return user_path+"/profile_pictures/"+name+".png"
+        #sinon on créé le chemin en question
+        else:
+            os.mkdir(app.root_path + user_path+"/profile_pictures")
+            f.save(app.root_path + user_path+"/profile_pictures/"+name+".png")
+            return user_path+"/profile_pictures/"+name+".png"
+
 
 
 ###########################################
@@ -182,7 +212,7 @@ class Moment(db.Model):
 
     def create_paths(self):
         # On créé tous les dossiers necessaires à ce Moment
-        path_moment = "%s%s" % (variables.MOMENT_PATH , self.id)
+        path_moment = "%s%s/%s" % (app.root_path, variables.MOMENT_PATH , self.id)
         os.mkdir(path_moment)
         os.mkdir(path_moment+"/photos")
         os.mkdir(path_moment+"/cover")

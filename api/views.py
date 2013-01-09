@@ -11,7 +11,7 @@ from flask.ext.login import (LoginManager, current_user, login_required,
 from api.models import User, Moment, Invitation
 from itsdangerous import URLSafeSerializer
 import controller
-import variables
+import constants
 import fonctions
 
 
@@ -86,7 +86,7 @@ def load_token(token):
 @app.route('/')
 @login_required
 def index():
-	#print app.config.get("SERVER_NAME")
+	print app.config.get("SERVER_NAME")
 	user = User.query.filter(User.email == current_user.email).first()
 	if user is None:
 		return current_user.email
@@ -153,8 +153,9 @@ def register():
 				f = request.files["photo"]
 				#On enregistre la photo et son chemin en base
 				name_picture = "%s" % user.id
-				path_photo = fonctions.add_profile_picture(f, name_picture, user.id)
-				user.profile_picture = app.root_path + path_photo
+				path_photo = user.add_profile_picture(f, name_picture)
+				user.profile_picture_url = "%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+				user.profile_picture_path = "%s%s" % (app.root_path, path_photo)
 
 			#else:
 			#	print "Pas de photo"
@@ -167,7 +168,7 @@ def register():
 			reponse["hashpwd"] = hashpwd
 			reponse["firstname"] = firstname
 			reponse["lastname"] = lastname
-			reponse["profile_picture"] = user.profile_picture
+			reponse["profile_picture_url"] = user.profile_picture_url
 
 			return json.dumps(reponse), 200
 
