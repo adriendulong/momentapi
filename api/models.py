@@ -212,7 +212,7 @@ class Moment(db.Model):
 
     def create_paths(self):
         # On créé tous les dossiers necessaires à ce Moment
-        path_moment = "%s%s/%s" % (app.root_path, variables.MOMENT_PATH , self.id)
+        path_moment = "%s%s/%s" % (app.root_path, constants.MOMENT_PATH , self.id)
         os.mkdir(path_moment)
         os.mkdir(path_moment+"/photos")
         os.mkdir(path_moment+"/cover")
