@@ -275,11 +275,11 @@ def new_moment():
 			placeInformations = request.form["placeInformations"]
 			moment.placeInformations = placeInformations
 		if "startTime" in request.form:
-			startTime = request.form["startTime"]
-			moment.startTime = startTime
+			startTimeTemp = request.form["startTime"].split(":")
+			moment.startTime = datetime.time(int(startTimeTemp[0]), int(startTimeTemp[1]))
 		if "endTime" in request.form:
-			endTime = request.form["endTime"]
-			moment.endTime = endTime
+			endTimeTemp = request.form["endTime"].split(":")
+			moment.endTime = datetime.time(int(endTimeTemp[0]), int(endTimeTemp[1]))
 		if "description" in request.form:
 			description = request.form["description"]
 			moment.description = description
