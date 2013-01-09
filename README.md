@@ -22,4 +22,19 @@ Pour installer ce microframework :
 
 Le projet contient un fichier `config.py` dans lequel sont spécifié toutes les variables de configuration. Variables qui changeront en fonction de l'environnement (de dev, ou prod)
 
+### Modifications entre Dev et Prod
+
+- `runserver.py`: En prod laisser uniquement la ligne
+	
+		from api import app as application
+
+- `__init__.py`: Décommenter la ligne suivante
+
+	
+		app.wsgi_app = WebFactionMiddleware(app.wsgi_app)
+
+- `__init__.py`: Modifier la ligne suivante en mettant `config.ProductionConfig`
+
+		app.config.from_object('config.DevelopmentConfig')
+
 

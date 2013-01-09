@@ -16,7 +16,7 @@ class WebFactionMiddleware(object):
 
 
 app = Flask(__name__)
-app.config.from_object('config')
+app.config.from_object('config.DevelopmentConfig')
 app.secret_key = "momentisLifefrom33" 
 #app.wsgi_app = WebFactionMiddleware(app.wsgi_app)
 db = SQLAlchemy(app)
@@ -30,7 +30,7 @@ login_manager.login_view = "login"
 login_manager.login_message = u"Please log in to access this page."
 login_manager.refresh_view = "reauth"
 
-login_manager.setup_app(app)
+login_manager.init_app(app)
 
 
 
