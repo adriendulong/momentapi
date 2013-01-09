@@ -22,3 +22,6 @@ class ProductionConfig(Config):
 	NAME_DB = "appmoment"
 	#Emplacement de la database
 	SQLALCHEMY_DATABASE_URI = 'mysql://'+USER_DB+':'+PASSWORD_DB+'@localhost/'+NAME_DB
+	SERVER_NAME = "http://api.appmoment.fr"
+
+	SERVER_NAME = "api.appmoment.fr"

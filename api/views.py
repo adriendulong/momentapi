@@ -86,7 +86,7 @@ def load_token(token):
 @app.route('/')
 @login_required
 def index():
-	print url_for('static', filename='data/users/1/profile_pictures/1.png')
+	#print app.config.get("SERVER_NAME")
 	user = User.query.filter(User.email == current_user.email).first()
 	if user is None:
 		return current_user.email
@@ -329,6 +329,7 @@ def new_moment():
 #	
 
 @app.route('/moments', methods=["GET"])
+@login_required
 def moments():
 	#On créé la réponse qui sera envoyé
 	reponse = {}

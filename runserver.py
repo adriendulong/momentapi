@@ -17,4 +17,4 @@ if not os.path.exists("api/static/data/moments"):
 	os.mkdir("api/static/data/moments")
 '''
 
-app.run(debug=True)
+app.run(app.config.get('SERVER_NAME'), app.config.get('SERVER_PORT'))
