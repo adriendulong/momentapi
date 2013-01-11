@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from flask import request, abort, redirect, url_for
+from flask import request, abort, redirect, url_for, jsonify
 from api import app, db, login_manager
 import json
 from bcrypt import hashpw, gensalt
@@ -124,7 +124,7 @@ def register():
 		if controller.user_exist(email):
 			print "does exist"
 			reponse["error"] = "already exist"
-			return json.dumps(reponse), 405
+			return jsonify(reponse), 405
 		else:
 			#On cree l'utilisateur
 			user = User(email, firstname, lastname, hashpwd)
@@ -163,18 +163,18 @@ def register():
 			#On logge le user. On lui renvoit ainsi le token qu'il doit utiliser
 			login_user(user)
 
-			reponse["email"] = email
-			reponse["password"] = password
+			reponse["id"] = user.id
+			'''reponse["password"] = password
 			reponse["hashpwd"] = hashpwd
 			reponse["firstname"] = firstname
 			reponse["lastname"] = lastname
-			reponse["profile_picture_url"] = user.profile_picture_url
+			reponse["profile_picture_url"] = user.profile_picture_url'''
 
-			return json.dumps(reponse), 200
+			return jsonify(reponse), 200
 
 	else:
 		reponse["error"] = "mandatory value missing"
-		return json.dumps(reponse), 405
+		return jsonify(reponse), 405
 
 
 
@@ -205,7 +205,7 @@ def login():
 		# Si l'utilisateur n'existe pas
 		if user is None:
 			reponse["error"] = "user does not exist"
-			return json.dumps(reponse), 401
+			return jsonify(reponse), 401
 		else:
 			# On verifie que le password hashé correspond bien à celui en base
 			if hashpw(password, user.pwd) == user.pwd:
@@ -215,20 +215,25 @@ def login():
 				# On recupere les n prochains moments de ce user
 				moments = controller.get_moments_of_user(user.email, 10)
 
+				'''
 				# On construit le tableau de moments que l'on va renvoyer
 				reponse["moments"] = []
 				for moment in moments:
 					# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
 					reponse["moments"].append(moment.moment_to_send())
+				'''
+				reponse["id"] = user.id
 
-				return json.dumps(reponse), 200
+				return jsonify(reponse), 200
 			else:
 				reponse["error"] = "wrong password"
-				return json.dumps(reponse), 401
+
+
+				return jsonify(reponse), 401
 
 	else:
 		reponse["error"] = "mandatory value missing"
-		return json.dumps(reponse), 405
+		return jsonify(reponse), 405
 
 
 
@@ -346,7 +351,79 @@ def moments():
 
 	reponse["success"] = "OK"
 
-	return json.dumps(reponse), 200
+	return jsonify(reponse), 200
+
+
+#####################################################################
+################  Ajouter des invités à un Moment ###################
+######################################################################
+# Methode acceptées : POST
+# Paramètres obligatoires : 
+#	- idMoment, array de User 
+
+@app.route('/newguests', methods=["POST"])
+def new_guests():
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	print request.json["idMoment"]
+
+	if "idMoment" in request.json and "users" in request.json:
+		print "ok"
+
+		#On vérifie que le user qui envoit ces invitations est autorisé à inviter
+		# A faire lorsque j'aurai mis en place si le Moment est ouvert (invitation de tout le monde ou pas)
+
+
+		# On recupere le Moment en question
+		moment = Moment.query.get(int(request.json["idMoment"]))
+		print moment.name
+
+		# On recupere les users fournis dans la requete
+		users = request.json["users"]
+		print len(users)
+
+		for user in users:
+			print "hello"
+			if "email" in user:
+				print user["email"]
+			elif "facebookId" in user:
+				print user["facebookId"]
+
+
+		return "ok"
+
+
+	else:
+		reponse["error"] = "mandatory value missing"
+		return json.dumps(reponse), 405
+
+
+
+
+#####################################################################
+########  Requete pour récupérer les infos d'un user ###############
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/user', methods=["GET"])
+@login_required
+def user():
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+
+	user = User.query.get(current_user.id)
+
+	reponse["id"] = user.id
+	reponse["firstname"] = user.firstname
+	reponse["lastname"] = user.lastname
+	reponse["email"] = user.email
+	reponse["profile_picture_url"] = user.profile_picture_url
+
+	return jsonify(reponse), 200
+
+
 
 
 
