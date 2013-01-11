@@ -156,6 +156,9 @@ def register():
 				path_photo = user.add_profile_picture(f, name_picture)
 				user.profile_picture_url = "%s%s" % (app.config.get("SERVER_NAME"), path_photo)
 				user.profile_picture_path = "%s%s" % (app.root_path, path_photo)
+				#On enregistre en base
+				db.session.commit()
+
 
 			#else:
 			#	print "Pas de photo"
@@ -164,11 +167,6 @@ def register():
 			login_user(user)
 
 			reponse["id"] = user.id
-			'''reponse["password"] = password
-			reponse["hashpwd"] = hashpwd
-			reponse["firstname"] = firstname
-			reponse["lastname"] = lastname
-			reponse["profile_picture_url"] = user.profile_picture_url'''
 
 			return jsonify(reponse), 200
 
