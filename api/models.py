@@ -184,6 +184,7 @@ class Moment(db.Model):
 
         #On construit le Moment tel qu'on va le renvoyer à l'app
         moment = {}
+        moment["id"] = self.id
         moment["name"] = self.name
         moment["address"] = self.address
         moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)

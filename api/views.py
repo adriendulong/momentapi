@@ -311,12 +311,12 @@ def new_moment():
 		#On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
 		moment.create_paths()
 
-		reponse["success"] = "Moment created and the owner is %s" % user.email
-		return json.dumps(reponse), 200
+		reponse = moment.moment_to_send()
+		return jsonify(reponse), 200
 
 	else:
 		reponse["error"] = "mandatory value missing"
-		return json.dumps(reponse), 405
+		return jsonify(reponse), 405
 
 
 
