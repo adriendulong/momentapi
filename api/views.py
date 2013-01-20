@@ -111,7 +111,6 @@ def register():
 
 	#On créé la réponse qui sera envoyé
 	reponse = {}
-	request.form["photo"]
 
 	#On verifie que tous les champs obligatoires sont renseignés (email, password, firstname, lastname)
 	if request.method == "POST" and "password" in request.form and "email" in request.form and "firstname" in request.form and "lastname" in request.form :
