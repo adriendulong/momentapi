@@ -13,6 +13,8 @@ from itsdangerous import URLSafeSerializer
 import controller
 import constants
 import fonctions
+import user.userConstants as userConstants
+import fonctions
 
 
 
@@ -109,6 +111,7 @@ def register():
 
 	#On créé la réponse qui sera envoyé
 	reponse = {}
+	request.form["photo"]
 
 	#On verifie que tous les champs obligatoires sont renseignés (email, password, firstname, lastname)
 	if request.method == "POST" and "password" in request.form and "email" in request.form and "firstname" in request.form and "lastname" in request.form :
@@ -150,11 +153,12 @@ def register():
 			#Maintenant qu'on a l'id on enregistre la photo de profil
 			
 			if "photo" in request.files:
+				print "photo OKK"
 				f = request.files["photo"]
 				#On enregistre la photo et son chemin en base
 				name_picture = "%s" % user.id
 				path_photo = user.add_profile_picture(f, name_picture)
-				user.profile_picture_url = "%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+				user.profile_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
 				user.profile_picture_path = "%s%s" % (app.root_path, path_photo)
 				#On enregistre en base
 				db.session.commit()
@@ -247,9 +251,11 @@ def login():
 #	placeInformations, startTime, endTime, description, hashtag, facebookId
 
 @app.route('/newmoment', methods=["POST"])
+@login_required
 def new_moment():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
+	print request.form["name"]
 
 	#On verifie que tous les champs sont renseignes
 	if request.method == "POST" and "name" in request.form and "address" in request.form and "startDate" in request.form and "endDate" in request.form:
@@ -260,11 +266,9 @@ def new_moment():
 		address = request.form["address"]
 
 		#On recupere et met en forme la date (doit être au format "YYYY-MM-DD")
-		startDateTemp = request.form["startDate"].split("-")
-		startDate = datetime.date(int(startDateTemp[0]), int(startDateTemp[1]), int(startDateTemp[2]))
+		startDate = fonctions.cast_date(request.form["startDate"])
 
-		endDateTemp = request.form["endDate"].split("-")
-		endDate = datetime.date(int(endDateTemp[0]), int(endDateTemp[1]), int(endDateTemp[2]))
+		endDate = fonctions.cast_date(request.form["endDate"])
 
 
 
@@ -278,11 +282,9 @@ def new_moment():
 			placeInformations = request.form["placeInformations"]
 			moment.placeInformations = placeInformations
 		if "startTime" in request.form:
-			startTimeTemp = request.form["startTime"].split(":")
-			moment.startTime = datetime.time(int(startTimeTemp[0]), int(startTimeTemp[1]))
+			moment.startTime = fonctions.cast_time(request.form["startTime"])
 		if "endTime" in request.form:
-			endTimeTemp = request.form["endTime"].split(":")
-			moment.endTime = datetime.time(int(endTimeTemp[0]), int(endTimeTemp[1]))
+			moment.endTime = fonctions.cast_time(request.form["endTime"])
 		if "description" in request.form:
 			description = request.form["description"]
 			moment.description = description
@@ -299,7 +301,7 @@ def new_moment():
 
 		#On créé l'invitation qui le lie à ce Moment
 		# Il est owner, donc state à 0
-		invitation = Invitation(0, user) 
+		invitation = Invitation(userConstants.OWNER, user) 
 
 		#On ratache cette invitations aux guests du nouveau Moment
 		moment.guests.append(invitation)
@@ -310,6 +312,17 @@ def new_moment():
 
 		#On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
 		moment.create_paths()
+
+		if "photo" in request.files:
+				print "photo OKK"
+				f = request.files["photo"]
+				#On enregistre la photo et son chemin en base
+				name_picture = "cover"
+				path_photo = moment.add_cover_photo(f, name_picture)
+				moment.cover_picture_url = "%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+				moment.cover_picture_path = "%s%s" % (app.root_path, path_photo)
+				#On enregistre en base
+				db.session.commit()
 
 		reponse = moment.moment_to_send()
 		return jsonify(reponse), 200
@@ -353,53 +366,142 @@ def moments():
 
 
 #####################################################################
+########  Requetes pour récupérer ou modifier un moment ###############
+######################################################################
+# Methode acceptées : GET, POST
+# Paramètres obligatoires :
+# 	- Aucune 
+#	
+
+@app.route('/moment/<int:id>', methods=["GET", "POST"])
+@login_required
+def moment(id):
+	#On créé la réponse qui sera envoyé
+	print id
+	reponse = {}
+
+	# Si c est une requete POST on modofie le moment
+	if request.method == "POST":
+		# On recupere le moment
+		moment = Moment.query.get(id)
+
+		#Si un moment avec cet id existe
+		if moment is not None:
+
+			# Si le user peut modifier le moment
+			if moment.can_be_modified_by(current_user.id):
+				#On voit quelles valeurs sont présentes et on modifie le moment en fonction
+				if "name" in request.form:
+					moment.name = request.form["name"]
+					reponse["name"] = moment.name
+				if "address" in request.form:
+					moment.address = request.form["address"]
+					reponse["address"] = moment.address
+				if "startDate" in request.form:
+					moment.startDate = fonctions.cast_date(request.form["startDate"])
+					reponse["startDate"] = fonctions.date_to_string(moment.startDate)
+				if "endDate" in request.form:
+					moment.endDate = fonctions.cast_date(request.form["endDate"])
+					reponse["endDate"] = fonctions.date_to_string(moment.endDate)
+				if "startTime" in request.form:
+					moment.startTime = fonctions.cast_time(request.form["startTime"])
+					reponse["startTime"] = fonctions.time_to_string(moment.startTime)
+				if "endTime" in request.form:
+					moment.endTime = fonctions.cast_time(request.form["endTime"])
+					reponse["endTime"] = fonctions.time_to_string(moment.endTime)
+
+				#On enregistre
+				db.session.commit()
+
+				return jsonify(reponse), 200
+
+			else:
+				reponse["error"] = "Not Authorized"
+				return jsonify(reponse), 401
+
+		else:
+			reponse["error"] = "Moment doesn't exist"
+			return jsonify(reponse), 400
+		
+
+	# Sinon on recupere le moment
+	elif request.method == "GET":
+		moment = Moment.query.get(id)
+
+		#Si le moment existe
+		if moment is not None:
+			if moment.is_in_guests(current_user.id):
+				reponse = moment.moment_to_send()
+			else:
+				reponse["error"] = "Not Authorized"
+				return jsonify(reponse), 401
+			
+
+	return jsonify(reponse), 200
+
+
+#####################################################################
 ################  Ajouter des invités à un Moment ###################
 ######################################################################
 # Methode acceptées : POST
 # Paramètres obligatoires : 
 #	- idMoment, array de User 
 
-@app.route('/newguests', methods=["POST"])
-def new_guests():
+@app.route('/newguests/<int:idMoment>', methods=["POST"])
+@login_required
+def new_guests(idMoment):
 	#On créé la réponse qui sera envoyé
 	reponse = {}
-	print request.json["idMoment"]
+	print idMoment
 
-	if "idMoment" in request.json and "users" in request.json:
-		print "ok"
+	# Compteur d'invités rajoutés
+	count = 0
 
+	if "users" in request.json:
 		#On vérifie que le user qui envoit ces invitations est autorisé à inviter
 		# A faire lorsque j'aurai mis en place si le Moment est ouvert (invitation de tout le monde ou pas)
 
 
 		# On recupere le Moment en question
-		moment = Moment.query.get(int(request.json["idMoment"]))
-		print moment.name
+		moment = Moment.query.get(idMoment)
 
-		# On recupere les users fournis dans la requete
-		users = request.json["users"]
-		print len(users)
+		if moment.can_add_guest(current_user.id):
 
-		for user in users:
-			print "hello"
-			if "email" in user:
-				print user["email"]
-			elif "facebookId" in user:
-				print user["facebookId"]
+			# On recupere les users fournis dans la requete
+			users = request.json["users"]
+			print len(users)
+
+			#On parcourt la liste des users envoyés
+			for user in users:
+				#Si l'id est fourni normalement il existe dans Moment
+				# On va donc le chercher et le rajouté en invité
+				if "id" in user:
+					# On le rajoute et si ça s'est bien passé on incrémente le compteur
+					if moment.add_guest(user["id"], userConstants.UNKNOWN):
+						count += 1
+						print user["id"]
 
 
-		return "ok"
+			#On enregistre en base
+			db.session.commit()
+			
+			reponse["nb_user_added"] = count
+			return jsonify(reponse), 200
+
+		else:
+			reponse["error"] = "Not Aothorized"
+			return jsonify(reponse), 401
 
 
 	else:
 		reponse["error"] = "mandatory value missing"
-		return json.dumps(reponse), 405
+		return jsonify(reponse), 405
 
 
 
 
 #####################################################################
-########  Requete pour récupérer les infos d'un user ###############
+########  Requete pour récupérer les infos d'un user connecté ###############
 ######################################################################
 # Methode acceptées : GET
 # Paramètres obligatoires : 
@@ -413,11 +515,27 @@ def user():
 
 	user = User.query.get(current_user.id)
 
-	reponse["id"] = user.id
-	reponse["firstname"] = user.firstname
-	reponse["lastname"] = user.lastname
-	reponse["email"] = user.email
-	reponse["profile_picture_url"] = user.profile_picture_url
+	reponse = user.user_to_send()
+
+	return jsonify(reponse), 200
+
+
+#####################################################################
+########  Requete pour récupérer les infos d'un user selon son id ###############
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/user/<int:id>', methods=["GET"])
+@login_required
+def user_id(id):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+
+	user = User.query.get(id)
+
+	reponse = user.user_to_send()
 
 	return jsonify(reponse), 200
 

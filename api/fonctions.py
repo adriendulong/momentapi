@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import variables
+import datetime
 
 ##
 # Fonction qui renvoit la path du dossier d'un user, ou le créé si il n'existe pas
@@ -38,5 +39,56 @@ def add_profile_picture(f, name, id_user):
 		os.mkdir(user_path+"/profile_pictures")
 		f.save(user_path+"/profile_pictures/"+name+".png")
 		return user_path+"/profile_pictures/"+name+".png"
+
+
+##
+#
+# Depuis une date en string du format : YYYY-MM-DD, on transforme en objet datetime.date
+#
+##
+
+def cast_date(date):
+	dateTemp = date.split("-")
+	dateTransformed = datetime.date(int(dateTemp[0]), int(dateTemp[1]), int(dateTemp[2]))
+
+	return dateTransformed
+
+
+##
+#
+# Fonction qui transforme une date (datetime.date) en String (YYYY-MM-DD)
+#
+##
+
+def date_to_string(date):
+	dateString = "%s-%s-%s" %(date.year, date.month, date.day)
+
+	return dateString
+
+
+
+##
+#
+# Depuis une heure en string du format : HH:MM, on transforme en objet datetime.time
+#
+##
+
+def cast_time(time):
+	timeTemp = time.split(":")
+	timeTransformed = datetime.time(int(timeTemp[0]), int(timeTemp[1]))
+	
+	return timeTransformed
+
+
+##
+#
+# Fonction qui transforme une heure (datetime.time) en String (HH:MM)
+#
+##
+
+def time_to_string(time):
+	timeString = "%s:%s:%s" %(time.hour, time.minute, time.second)
+
+	return timeString
 
 
