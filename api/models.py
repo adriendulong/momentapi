@@ -262,10 +262,11 @@ class Moment(db.Model):
 
     def add_cover_photo(self, f, name):
         path_moment = "%s%s/%s" % (app.root_path, constants.MOMENT_PATH , self.id)
+        path_url = "%s/%s" % (constants.MOMENT_PATH , self.id)
 
         f.save(path_moment + "/cover/"+name+".png")
 
-        return path_moment + "/cover/"+name+".png"
+        return path_url + "/cover/"+name+".png"
 
 
 
