@@ -218,10 +218,11 @@ class Moment(db.Model):
     def __repr__(self):
         return '<Moment name :%r, start date :>' % (self.name)
 
-    def moment_to_send(self):
+    def moment_to_send(self, user_id):
 
         #On construit le Moment tel qu'on va le renvoyer à l'app
         moment = {}
+        moment["user_state"] = self.get_user_state(user_id)
         moment["id"] = self.id
         moment["name"] = self.name
         moment["address"] = self.address
@@ -245,6 +246,9 @@ class Moment(db.Model):
 
         if self.endTime is not None:
             moment["endTime"] = "%s:%s:%s" %(self.endTime.hour, self.endTime.minute, self.endTime.second)
+
+        if self.cover_picture_url is not None:
+            moment["cover_photo_url"] = self.cover_picture_url
 
 
         #On recupere le Owner
@@ -338,6 +342,35 @@ class Moment(db.Model):
                         return False
 
             return False
+
+
+    # Fonction qui renvoit l'état de ce user (user_id) pour ce moment
+    def get_user_state(self, user_id):
+
+        for guest in self.guests:
+            # On retrouve le user et on vérifie qu'il est owner ou admin
+            if guest.user.id == user_id:
+                return guest.state
+
+
+
+    #Fonction qui vient modifier le "state" d'un user pour ce moment
+    def modify_user_state(self, user, state):
+
+        for guest in self.guests:
+            # On retrouve le user et on vérifie qu'il est owner ou admin
+            if guest.user == user:
+                guest.state = state
+                db.session.commit()
+
+
+    #Fonction qui renvoit le user qui est le owner de ce moment
+    def get_owner(self):
+
+        for guest in self.guests:
+            if guest.state == userConstants.OWNER:
+                return guest.user
+
 
 
 

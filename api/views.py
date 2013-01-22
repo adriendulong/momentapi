@@ -323,7 +323,7 @@ def new_moment():
 				#On enregistre en base
 				db.session.commit()
 
-		reponse = moment.moment_to_send()
+		reponse = moment.moment_to_send(user.id)
 		return jsonify(reponse), 200
 
 	else:
@@ -350,14 +350,14 @@ def moments():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 
-	user = User.query.filter_by(email = current_user.email).first()
+	user = User.query.get(current_user.id)
 	moments_of_user = user.get_moments(10)
 
 	# On construit le tableau de moments que l'on va renvoyer
 	reponse["moments"] = []
 	for moment in moments_of_user:
 		# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
-		reponse["moments"].append(moment.moment_to_send())
+		reponse["moments"].append(moment.moment_to_send(current_user.id))
 
 	reponse["success"] = "OK"
 
@@ -429,8 +429,9 @@ def moment(id):
 
 		#Si le moment existe
 		if moment is not None:
+			#Si le user fait partie des invité (sinon pas accès à ce moment)
 			if moment.is_in_guests(current_user.id):
-				reponse = moment.moment_to_send()
+				reponse = moment.moment_to_send(current_user.id)
 			else:
 				reponse["error"] = "Not Authorized"
 				return jsonify(reponse), 401
@@ -538,6 +539,105 @@ def user_id(id):
 
 	return jsonify(reponse), 200
 
+
+
+
+#######################################################################################
+########  Requete pour modifier le state d'un User pour un moment donné ###############
+######################################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/state/<int:moment_id>/<int:state>', methods=["GET"])
+@login_required
+def modifiy_state(moment_id, state):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+
+	user = User.query.get(current_user.id)
+	moment = Moment.query.get(moment_id)
+
+	if moment is not None:
+		#On verifie que le user est bien dans les invités
+		if moment.is_in_guests(current_user.id):
+			# On ne modifie que si il n'est pas ADMIN ou OWNER
+			if moment.get_user_state(current_user.id) != userConstants.ADMIN and moment.get_user_state(current_user.id) != userConstants.OWNER:
+				#On essaye de modifier son état
+				if state == userConstants.COMING or state == userConstants.NOT_COMING or state == userConstants.UNKNOWN:
+					moment.modify_user_state(user, state)
+					reponse["new_state"] = state
+
+				else:
+					reponse["error"] = "This state is not valid. State possibles : 2 = Coming, 3 = Not coming, 4 = Unknown"
+					return jsonify(reponse), 405
+			else:
+				reponse["error"] = "Not Authorized : you can't modify the Admin or Owner state thanks to this request"
+				return jsonify(reponse), 401
+
+		else:
+			reponse["error"] = "Not Authorized : the user is not a guest of this moment"
+			return jsonify(reponse), 401
+
+
+	else:
+		reponse["error"] = "This moment does not exist"
+		return jsonify(reponse), 405
+
+	return jsonify(reponse), 200
+
+
+
+
+
+##########################################################
+###############  Ajouter un user en Admin ###############
+########################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/admin/<int:moment_id>/<int:user_id>', methods=["GET"])
+@login_required
+def add_admin(moment_id, user_id):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+
+	user = User.query.get(user_id)
+	moment = Moment.query.get(moment_id)
+
+	if moment is not None:
+		#On verifie que le user qui fait cette requete est soit ADMIN soit OWNER
+		if moment.get_user_state(current_user.id) == userConstants.ADMIN or moment.get_user_state(current_user.id) == userConstants.OWNER:
+			#On verifie que le user existe bien
+			if user is not None:
+				#On vérifie que le user est déjà parmis les invités
+				if moment.is_in_guests(user_id):
+					#On verifie que le user n'est pas déjà owner
+					if user != moment.get_owner():
+						#Le user devient ADMIN
+						moment.modify_user_state(user, userConstants.ADMIN)
+						reponse["success"] = "The user %s %s is now the admin of this moment" % (user.firstname, user.lastname)
+					else:
+						reponse["error"] = "This user is already the owner of this moment"
+						return jsonify(reponse), 405
+				else:
+					reponse["error"] = "Not Authorized : the user is not a guest of this moment"
+					return jsonify(reponse), 401
+
+			else:
+				reponse["error"] = "The user does not exist"
+				return jsonify(reponse), 405
+	
+		else:
+			reponse["error"] = "Not Authorized : only owner or admins of the moment can add an Admin to it"
+			return jsonify(reponse), 401
+
+	else:
+		reponse["error"] = "This moment does not exist"
+		return jsonify(reponse), 405
+
+	return jsonify(reponse), 200
 
 
 
