@@ -152,7 +152,6 @@ def register():
 			#Maintenant qu'on a l'id on enregistre la photo de profil
 			
 			if "photo" in request.files:
-				print "photo OKK"
 				f = request.files["photo"]
 				#On enregistre la photo et son chemin en base
 				name_picture = "%s" % user.id
@@ -254,7 +253,6 @@ def login():
 def new_moment():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
-	print request.form["name"]
 
 	#On verifie que tous les champs sont renseignes
 	if request.method == "POST" and "name" in request.form and "address" in request.form and "startDate" in request.form and "endDate" in request.form:
@@ -313,7 +311,6 @@ def new_moment():
 		moment.create_paths()
 
 		if "photo" in request.files:
-				print "photo OKK"
 				f = request.files["photo"]
 				#On enregistre la photo et son chemin en base
 				name_picture = "cover"
