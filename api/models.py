@@ -127,7 +127,7 @@ class User(db.Model):
         user["firstname"] = self.firstname
         user["lastname"] = self.lastname
         user["email"] = self.email
-        user["profile_picture_url"] = self.profile_picture_path
+        user["profile_picture_url"] = self.profile_picture_url
 
         #Autres valeurs
 
