@@ -104,6 +104,13 @@ class User(db.Model):
         self.pwd = pwd
         self.creationDateUser = datetime.date.today()
 
+    def __cmp__(self, other):
+        if self.id < other.id:  # compare name value (should be unique)
+          return -1
+        elif self.id > other.id:
+          return 1
+        else: return 0 
+
 
     def __repr__(self):
         return '<User %r>' % self.email
@@ -113,6 +120,105 @@ class User(db.Model):
     def get_moments(self, nb_moments):
 
         moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.email== self.email).limit(nb_moments).all()
+
+        return moments
+
+
+
+
+    #Fonction qui renvoit les nb_moments sup à date
+    def get_moments_sup_date(self, nb_moments, date, equal):
+
+        if equal:
+            moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate >= date).order_by(Moment.startDate.asc()).limit(nb_moments).all()
+
+            #Si on a recupéré des moments
+            if len(moments) > 0:
+
+                last_moment = moments[len(moments)-1]
+
+                #Si il y en a on recupere aussi les moments de la derniere journée
+                moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.asc()).all()
+
+                for moment in moments_day:
+                    isPresent = False
+                    for moment_futur in moments:
+                        if moment == moment_futur:
+                            isPresent = True
+
+                    if not isPresent:
+                        moments.append(moment)
+
+            
+        else:
+            moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate > date).order_by(Moment.startDate.asc()).limit(nb_moments).all()
+
+            #Si on a recupéré des moments
+            if len(moments) > 0:
+
+                last_moment = moments[len(moments)-1]
+
+                #Si il y en a on recupere aussi les moments de la derniere journée
+                moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.asc()).all()
+
+                for moment in moments_day:
+                    isPresent = False
+                    for moment_futur in moments:
+                        if moment == moment_futur:
+                            isPresent = True
+
+                    if not isPresent:
+                        moments.append(moment)
+
+        return moments
+
+
+
+
+
+    #Fonction qui renvoit les nb_moments inf à date
+    def get_moments_inf_date(self, nb_moments, date, equal):
+
+        if equal:
+            moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate <= date).order_by(Moment.startDate.asc()).limit(nb_moments).all()
+
+            #Si on a recupéré des moments
+            if len(moments) > 0:
+
+                last_moment = moments[0]
+
+                #Si il y en a on recupere aussi les moments de la derniere journée
+                moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.asc()).all()
+
+                for moment in moments_day:
+                    isPresent = False
+                    for moment_past in moments:
+                        if moment == moment_past:
+                            isPresent = True
+
+                    if not isPresent:
+                        moments.append(moment)
+
+
+        else:
+            moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate < date).order_by(Moment.startDate.asc()).limit(nb_moments).all()
+
+            #Si on a recupéré des moments
+            if len(moments) > 0:
+
+                last_moment = moments[0]
+
+                #Si il y en a on recupere aussi les moments de la derniere journée
+                moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.asc()).all()
+
+                for moment in moments_day:
+                    isPresent = False
+                    for moment_past in moments:
+                        if moment == moment_past:
+                            isPresent = True
+
+                    if not isPresent:
+                        moments.append(moment)
 
         return moments
 

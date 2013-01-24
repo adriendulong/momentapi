@@ -14,7 +14,6 @@ import controller
 import constants
 import fonctions
 import user.userConstants as userConstants
-import fonctions
 
 
 
@@ -348,17 +347,71 @@ def moments():
 	reponse = {}
 
 	user = User.query.get(current_user.id)
-	moments_of_user = user.get_moments(10)
+	moments_of_user_futur = user.get_moments_sup_date(10, datetime.date.today(), True)
+	moments_of_user_past = user.get_moments_inf_date(10, datetime.date.today(), False)
 
 	# On construit le tableau de moments que l'on va renvoyer
 	reponse["moments"] = []
-	for moment in moments_of_user:
+	for moment in moments_of_user_past:
 		# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
 		reponse["moments"].append(moment.moment_to_send(current_user.id))
+
+	for moment in moments_of_user_futur:
+		# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
+		reponse["moments"].append(moment.moment_to_send(current_user.id))	
 
 	reponse["success"] = "OK"
 
 	return jsonify(reponse), 200
+
+
+
+##################################################################################
+########  Requete pour récupérer les moments sup ou inf à une date ###############
+##################################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+# - Date : YYYY-MM-DD
+#	
+
+@app.route('/momentsafter/<date>', methods=["GET"])
+@login_required
+def moments_after_date(date):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	nb_moment = 10
+
+	dateRef = fonctions.cast_date(date)
+	user = User.query.get(current_user.id)
+	moments = []
+	moments_to_send = []
+
+	if dateRef is not None:
+
+		# Si on demande des moments superieur à une date future
+		if dateRef > datetime.date.today():
+			moments = user.get_moments_sup_date(nb_moment, dateRef, True)
+			reponse["success"] = "These are the %s moments after the %s" % (len(moments), date)
+			for moment in moments:
+				moments_to_send.append(moment.moment_to_send(user.id))
+
+		else:
+			moments = user.get_moments_inf_date(nb_moment, dateRef, True)
+			reponse["success"] = "These are the %s moments before the %s" % (len(moments), date)
+			for moment in moments:
+				moments_to_send.append(moment.moment_to_send(user.id))
+		
+
+
+		reponse["moments"] = moments_to_send
+
+
+		return jsonify(reponse), 200
+
+	else:
+
+		reponse["error"] = "The date is in the wrong format"
+		return jsonify(reponse), 405
 
 
 #####################################################################
@@ -637,6 +690,55 @@ def add_admin(moment_id, user_id):
 	return jsonify(reponse), 200
 
 
+
+
+
+
+#####################################################################
+############ Recupérer les user présents dans Moment ###################
+######################################################################
+# Methode acceptées : POST
+# Paramètres obligatoires : 
+#	- array de User avec soit un email, soit un facebookId, soit un phone et aussi soit un secondEmail
+
+@app.route('/usersmoment', methods=["POST"])
+@login_required
+def users_in_moment():
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	reponse["moment_users"] = []
+
+	#On liste les User déjà récupéré pour pas en mettre plusieurs fois
+	idFound = []
+
+	if "users" in request.json:
+		user = request.json["users"]
+
+		#On parcours la liste
+		for user in users:
+			#Si l'email est fourni
+			if "email" in user:
+				moment_user = User.query.filter_by(email = user["email"])
+
+			#Si on a le facebook Id
+			if "facebookId" in user and moment_user is None:
+				moment_user = User.query.filter_by(facebookId = user["facebookId"])
+
+			#Si on a le numero de tel
+			if "phone" in user and moment_user is None:
+				moment_user = User.query.filter_by(phone = user["phone"])
+
+			#Si on a toujours pas de user et qu'on a le secondEmail
+			if "secondEmail" in user and moment_user is None:
+				moment_user = User.query.filter_by(secondEmail = user["secondEmail"])
+
+			if moment_user is not None:
+				reponse["moment_users"].append(moment_user.user_to_send())
+
+
+	else:
+		reponse["error"] = "mandatory value missing"
+		return jsonify(reponse), 405
 
 
 

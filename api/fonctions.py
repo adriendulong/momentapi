@@ -49,9 +49,13 @@ def add_profile_picture(f, name, id_user):
 
 def cast_date(date):
 	dateTemp = date.split("-")
-	dateTransformed = datetime.date(int(dateTemp[0]), int(dateTemp[1]), int(dateTemp[2]))
-
-	return dateTransformed
+	
+	if len(dateTemp) == 3:
+		dateTransformed = datetime.date(int(dateTemp[0]), int(dateTemp[1]), int(dateTemp[2]))
+		return dateTransformed
+	else:
+		return None
+	
 
 
 ##
