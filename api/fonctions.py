@@ -2,6 +2,10 @@
 import os
 import variables
 import datetime
+import string
+import random
+import models
+
 
 ##
 # Fonction qui renvoit la path du dossier d'un user, ou le créé si il n'existe pas
@@ -94,5 +98,26 @@ def time_to_string(time):
 	timeString = "%s:%s:%s" %(time.hour, time.minute, time.second)
 
 	return timeString
+
+
+##
+# Fonction qui renvoit un identifiant unique de 5 lettres
+#
+##
+
+def random_identifier():
+	letters = string.letters
+	identifier = ""
+
+	for i in range (0,6):
+		identifier += random.choice(letters[0:26])
+
+	return identifier.upper()
+
+
+
+
+
+
 
 

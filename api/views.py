@@ -8,7 +8,7 @@ from bcrypt import hashpw, gensalt
 from flask.ext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin, AnonymousUser,
                             confirm_login, fresh_login_required)
-from api.models import User, Moment, Invitation
+from api.models import User, Moment, Invitation, Prospect
 from itsdangerous import URLSafeSerializer
 import controller
 import constants
@@ -122,30 +122,84 @@ def register():
 		lastname = request.form["lastname"]
 
 		# Si un utilisateur avec cette adresse mail existe on ne peut pas créer un compte
-		if controller.user_exist(email):
+		if controller.user_exist_email(email):
 			print "does exist"
 			reponse["error"] = "already exist"
 			return jsonify(reponse), 405
+
+		#Sinon nouvel utilisateur
 		else:
+
+			#On se créé un dictionnaire avec toutes les données
+			potential_prospect = {}
+			potential_prospect["email"] = email
+			if "phone" in request.form:
+				potential_prospect["phone"] = request.form["phone"]
+			if "facebookId" in request.form:
+				potential_prospect["facebookId"] = request.form["facebookId"]
+
+
+
+			#Quoi qu'il arrive on créé le user
 			#On cree l'utilisateur
 			user = User(email, firstname, lastname, hashpwd)
 
-			#Pour les champs non obligatoires, si ils y sont on les recupere
-			if "phone" in request.form:
-				phone = request.form["phone"]
-				user.phone = phone
-			if "facebookId" in request.form:
-				facebookId = request.form["facebookId"]
-				user.facebookId = facebookId
-			if "secondEmail" in request.form:
-				secondEmail = request.form["secondEmail"]
-				user.secondEmail = secondEmail
-			if "secondPhone" in request.form:
-				secondPhone = request.form["secondPhone"]
-				user.secondPhone = secondPhone
+			#On l'enregistre en base pour avoir un id
+			db.session.add(user)
+			db.session.commit()
+
+			#On recupere le prospect si il existe
+			prospect = controller.get_prospect(potential_prospect)
+
+			#On a pas trouvé de prospect, on recupere les autres infos
+			if prospect is None:
+				#On essaye de remplir les autres champs
+				#Pour les champs non obligatoires, si ils y sont on les recupere
+				if "phone" in request.form:
+					phone = request.form["phone"]
+					user.phone = phone
+				if "facebookId" in request.form:
+					facebookId = request.form["facebookId"]
+					user.facebookId = facebookId
+
+
+			#Il existe un prospect donc il faut tout matcher
+			else:
+				#Matcher les moments
+				prospect.match_moments(user)
+
+				#Si on a pas certains champs dans l'inscirption on peut les recuperer du prospect
+				if "phone" in request.form:
+					phone = request.form["phone"]
+					user.phone = phone
+				elif prospect.phone is not None:
+					user.phone = prospect.phone
+
+				if "facebookId" in request.form:
+					facebookId = request.form["facebookId"]
+					user.facebookId = facebookId
+				elif prospect.facebookId is not None:
+					user.facebookId = prospect.facebookId
+
+				if prospect.secondEmail is not None:
+					user.secondEmail = prospect.secondEmail
+
+				if prospect.secondPhone is not None:
+					user.secondPhone = prospect.secondPhone
+
+				if prospect.profile_picture_url is not None:
+					user.profile_picture_url = prospect.profile_picture_url
+
+
+				#On supprime le prospect
+				db.session.delete(prospect)
+
+
+			
+
+			
 
 			#On l ajoute en base
-			db.session.add(user)
 			db.session.commit()
 			
 			#Maintenant qu'on a l'id on enregistre la photo de profil
@@ -159,10 +213,6 @@ def register():
 				user.profile_picture_path = "%s%s" % (app.root_path, path_photo)
 				#On enregistre en base
 				db.session.commit()
-
-
-			#else:
-			#	print "Pas de photo"
 
 			#On logge le user. On lui renvoit ainsi le token qu'il doit utiliser
 			login_user(user)
@@ -508,10 +558,6 @@ def new_guests(idMoment):
 	count = 0
 
 	if "users" in request.json:
-		#On vérifie que le user qui envoit ces invitations est autorisé à inviter
-		# A faire lorsque j'aurai mis en place si le Moment est ouvert (invitation de tout le monde ou pas)
-
-
 		# On recupere le Moment en question
 		moment = Moment.query.get(idMoment)
 
@@ -523,6 +569,7 @@ def new_guests(idMoment):
 
 			#On parcourt la liste des users envoyés
 			for user in users:
+
 				#Si l'id est fourni normalement il existe dans Moment
 				# On va donc le chercher et le rajouté en invité
 				if "id" in user:
@@ -530,6 +577,33 @@ def new_guests(idMoment):
 					if moment.add_guest(user["id"], userConstants.UNKNOWN):
 						count += 1
 						print user["id"]
+
+
+				#Sinon c'est un prospect
+				else:
+					#On verifie que le user n'existe pas quand meme
+					if not controller.user_exist(user):
+						prospect = controller.get_prospect(user)
+
+						#Pas de prospect
+						if prospect is None:
+							##
+							prospect = Prospect()
+							prospect.init_from_dict(user)
+							moment.prospects.append(prospect)
+							count += 1
+
+						#Le prospect existe
+						else:
+							prospect.update(user)
+							moment.add_prospect(prospect)
+							count += 1
+
+					#Si il esicte on le recupere
+					else:
+						moment_user = controller.user_from_dict(user)
+						moment.add_guest(moment_user.id, userConstants.UNKNOWN)
+						count += 1
 
 
 			#On enregistre en base
@@ -614,7 +688,7 @@ def modifiy_state(moment_id, state):
 			# On ne modifie que si il n'est pas ADMIN ou OWNER
 			if moment.get_user_state(current_user.id) != userConstants.ADMIN and moment.get_user_state(current_user.id) != userConstants.OWNER:
 				#On essaye de modifier son état
-				if state == userConstants.COMING or state == userConstants.NOT_COMING or state == userConstants.UNKNOWN:
+				if state == userConstants.COMING or state == userConstants.NOT_COMING or state == userConstants.MAYBE:
 					moment.modify_user_state(user, state)
 					reponse["new_state"] = state
 
@@ -712,28 +786,32 @@ def users_in_moment():
 	idFound = []
 
 	if "users" in request.json:
-		user = request.json["users"]
+		users = request.json["users"]
 
 		#On parcours la liste
 		for user in users:
+			moment_user = None
+
 			#Si l'email est fourni
 			if "email" in user:
-				moment_user = User.query.filter_by(email = user["email"])
+				moment_user = User.query.filter_by(email = user["email"]).first()
 
 			#Si on a le facebook Id
 			if "facebookId" in user and moment_user is None:
-				moment_user = User.query.filter_by(facebookId = user["facebookId"])
+				moment_user = User.query.filter_by(facebookId = user["facebookId"]).first()
 
 			#Si on a le numero de tel
 			if "phone" in user and moment_user is None:
-				moment_user = User.query.filter_by(phone = user["phone"])
+				moment_user = User.query.filter_by(phone = user["phone"]).first()
 
 			#Si on a toujours pas de user et qu'on a le secondEmail
 			if "secondEmail" in user and moment_user is None:
-				moment_user = User.query.filter_by(secondEmail = user["secondEmail"])
+				moment_user = User.query.filter_by(secondEmail = user["secondEmail"]).first()
 
 			if moment_user is not None:
 				reponse["moment_users"].append(moment_user.user_to_send())
+
+		return jsonify(reponse), 200
 
 
 	else:

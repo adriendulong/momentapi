@@ -4,18 +4,21 @@ import user.userConstants as userConstants
 import datetime
 import os
 import constants
+import fonctions
 
 
 ##########################################
 ######### HELPER TABLES INVITATION #######
 ##########################################
 
-"""
-no_reply_invitations = db.Table('no_reply_invitations',
+
+invitations_prospects = db.Table('invitations_prospect',
     db.Column('moment_id', db.Integer, db.ForeignKey('moment.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
+    db.Column('prospect_id', db.Integer, db.ForeignKey('prospect.id'))
 )
 
+
+"""
 moment_owners = db.Table('moment_owners',
     db.Column('moment_id', db.Integer, db.ForeignKey('moment.id')),
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
@@ -233,11 +236,12 @@ class User(db.Model):
         user["firstname"] = self.firstname
         user["lastname"] = self.lastname
         user["email"] = self.email
-        user["profile_picture_url"] = self.profile_picture_url
+        if self.profile_picture_url is not None:
+            user["profile_picture_url"] = self.profile_picture_url
 
         #Autres valeurs
-
-        user["facebookId"] = self.facebookId
+        if self.facebookId is not None:
+            user["facebookId"] = self.facebookId
 
         return user
 
@@ -305,13 +309,10 @@ class Moment(db.Model):
     cover_picture_url = db.Column(db.String(120))
     cover_picture_path = db.Column(db.String(120))
 
-    #no_reply_users = db.relationship('User', secondary=no_reply_invitations, backref='moments_no_reply')
-    #coming_users = db.relationship('User', secondary=coming_users, backref='moments_replied_coming')
-    #not_coming_users = db.relationship('User', secondary=not_coming_users, backref='moments_replied_not_coming')
-    #maybe_users = db.relationship('User', secondary=maybe_users, backref='moments_replied_maybe')
-    #owners = db.relationship('User', secondary=moment_owners, backref='moments_is_owner')
-
     guests = db.relationship("Invitation", backref="moment")
+    prospects = db.relationship("Prospect",
+                    secondary=invitations_prospects,
+                    backref="invitations")
 
     def __init__(self, name, address, startDate, endDate):
         self.name = name
@@ -361,6 +362,11 @@ class Moment(db.Model):
         for guest in self.guests:
             if guest.state == 0:
                 moment["owner"] = guest.user.user_to_send()
+
+        # Les invités
+        moment["guests_number"] = len(self.guests) + len(self.prospects)
+        moment["guests_coming"] = self.nb_guest_coming()
+        moment["guests_not_coming"] = self.nb_guest_not_coming()
 
 
         return moment
@@ -433,6 +439,26 @@ class Moment(db.Model):
             return False
 
 
+    # Fonction qui rajoute un user en invité à partir d'un objet user
+    # Renvoit True si rajouté correctement 
+    # False sinon
+    def add_guest_user(self, user, state):
+
+        if user is not None:
+            #Si il n'est pas déjà invité
+            if not self.is_in_guests(user.id):
+                invitation = Invitation(state, user)
+                self.guests.append(invitation)
+
+                return True
+            else:
+                return False
+
+        else:
+            return False
+
+
+
     #Fonction qui dit si ce user peut ajouter des invites
     def can_add_guest(self, user_id):
 
@@ -477,6 +503,221 @@ class Moment(db.Model):
         for guest in self.guests:
             if guest.state == userConstants.OWNER:
                 return guest.user
+
+
+    #Nb d'invités qui viennent au moment
+    def nb_guest_coming(self):
+        count = 0
+
+        #Nombre de gens qui viennent
+        for guest in self.guests:
+            if guest.state == userConstants.COMING:
+                count += 1
+
+        #On rajoute le owner
+        count += 1
+
+        #On rajoute le nb d'admin
+        count += self.nb_admin()
+
+        return count
+
+
+    #Nb d'invités ne venant pas au moment
+    def nb_guest_not_coming(self):
+        count = 0
+
+        for guest in self.guests:
+            if guest.state == userConstants.NOT_COMING:
+                count += 1
+
+        return count
+
+
+    #Nb d'admin
+    def nb_admin(self):
+        count = 0
+
+        for guest in self.guests:
+            if guest.state == userConstants.ADMIN:
+                count += 1
+
+        return count
+
+
+    def in_prospects(self, prospect):
+
+        for p in self.prospects:
+            if p.id == prospect.id:
+                return True
+
+        return False
+
+    #Ajout un prospect
+    def add_prospect(self, prospect):
+
+        if not self.in_prospects(prospect):
+            self.prospects.append(prospect)
+
+    #Fonction qui retire un prospect
+    def remove_prospect(self, prospect):
+
+        for p in self.prospects:
+            if p.id == prospect.id:
+                self.prospects.remove(prospect)
+
+
+
+
+
+
+
+################################
+##### Un prospect ###########
+################################
+
+class Prospect(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True)
+    firstname = db.Column(db.String(80))
+    lastname = db.Column(db.String(80))
+    phone = db.Column(db.String(20))
+    facebookId = db.Column(db.Integer)
+    creationDateUser = db.Column(db.Date)
+    secondEmail = db.Column(db.String(80))
+    secondPhone = db.Column(db.String(20))
+    profile_picture_url = db.Column(db.String(120))
+    unique_code = db.Column(db.String(10))
+
+
+    def get_id(self):
+        return unicode(self.id)
+
+    def __init__(self):
+        self.creationDateUser = datetime.date.today()
+
+        while True:
+            #On genere un id unique
+            identifier = fonctions.random_identifier()
+
+            prospect = Prospect.query.filter_by(unique_code = identifier).first()
+
+            if prospect is None:
+                self.unique_code = identifier
+                break
+
+    def init_from_dict(self, user):
+
+        if "email" in user:
+            self.email = user["email"]
+
+        if "facebookId" in user:
+            self.facebookId = user["facebookId"]
+
+        if "phone" in user:
+            self.phone = user["phone"]
+
+        if "secondEmail" in user:
+            self.secondEmail = user["secondEmail"]
+
+        if "secondPhone" in user:
+            self.secondPhone = user["secondPhone"]
+
+        if "picture_profile_url" in user:
+            self.profile_picture_url = user["picture_profile_url"]
+
+        if "firstname" in user:
+            self.firstname = user["firstname"]
+
+        if "lastname" in user:
+            self.lastname = user["lastname"]
+
+        if "photo_url" in user:
+            self.profile_picture_url = user["photo_url"]
+
+
+
+
+    #On update les champs 
+    def update(self, user):
+
+        #Si le mail n'est pas remplie
+        if self.email is None:
+
+            #Si l'email est fourni
+            if "email" in user:
+                self.email = user["email"]
+
+
+        #Si le secondEmail n'est pas rempli 
+        if self.secondEmail is None:
+
+            #Si le premier email n'est pas le meme que celui enregistré
+            if "email" in user:
+                if user["email"] != self.email:
+                    self.secondEmail = user["email"]
+
+            elif "secondEmail" in user:
+                self.secondEmail = user["secondEmail"]
+
+        #Si le facebookId n'est pas rempli
+        if self.facebookId is None:
+
+            if "facebookId" in user:
+                self.facebookId = user["facebookId"]
+
+
+        #Si le phone n'est pas rempli
+        if self.phone is None:
+
+            #Si le phone est fourni
+            if "phone" in user:
+                self.phone = user["phone"]
+
+         #Si le secondPhone n'est pas rempli 
+        if self.secondPhone is None:
+
+            #Si le premier email n'est pas le meme que celui enregistré
+            if "phone" in user:
+                if user["phone"] != self.phone:
+                    self.secondPhone = user["phone"]
+
+            elif "secondPhone" in user:
+                self.secondPhone = user["secondPhone"]
+
+        if self.firstname is None:
+
+            if "firstname" in user:
+                self.firstname = user["firstname"]
+
+
+        if self.lastname is None:
+
+            if "lastname" in user:
+                self.lastname = user["lastname"]
+
+        if self.profile_picture_url is None:
+
+            if "photo_url" in user:
+                self.profile_picture_url = user["photo_url"]
+
+
+
+    #Fonction qui match tous les moments de ce prospect :
+    # - Ajoute le nouveau user à ces moments (comme invité)
+    # - Enleve ce prospect des prospects invité à ces moments
+    def match_moments(self, user):
+
+        #On parcourt toutes les invitations
+        for moment in self.invitations:
+
+            #On ajoute le user dans les invite
+            moment.add_guest_user(user, userConstants.UNKNOWN)
+
+            #On supprime ce Prospect des prospects
+            moment.remove_prospect(self)
+
+
 
 
 
