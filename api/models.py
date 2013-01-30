@@ -41,21 +41,24 @@ maybe_users = db.Table('not_coming_users',
 """
 
 
+
+
 ################################
 ##### Une invitation ###########
 ################################
 
-class Invitation(db.Model):
-    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), primary_key=True)
+class Favoris(db.Model):
+    id = db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    favoris_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
 
-    # 0 = Owner, 1 = Going, 2 = Maybe, 3 = Not Going
-    state = db.Column(db.Integer)
-    user = db.relationship("User", backref="invitations")
+    
+    score = db.Column(db.Integer)
 
-    def __init__(self, state, user):
-        self.state = state
-        self.user = user
+    def __init__(self, user):
+        self.score = 0
+        self.favoris_id = user.id
+
 
 
 ################################
@@ -77,6 +80,13 @@ class User(db.Model):
     lastConnection = db.Column(db.DateTime)
     profile_picture_url = db.Column(db.String(120))
     profile_picture_path = db.Column(db.String(120))
+
+    #Les favoris du user
+    favoris = db.relationship("Favoris", backref='has_favoris',
+                             primaryjoin=id==Favoris.user_id)
+
+    is_favoris = db.relationship("Favoris", backref='the_favoris',
+                             primaryjoin=id==Favoris.favoris_id)
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -274,10 +284,43 @@ class User(db.Model):
             return user_path+"/profile_pictures/"+name+".png"
 
 
+    #fonctions qui créé un favoris si il n'existe pas, ou increment son score si il existe
+    def increment_favoris(self, user, score):
+        
+        #On regarde si c'est déjà un favoris
+        for favoris_user in self.favoris:
+            #Si on le trouve on augmente son score
+            if favoris_user.favoris_id == user.id:
+                favoris_user.score += score
+                return True
+
+
+        #Sinon on en créé un nouveau 
+        new_fav = Favoris(user)
+        new_fav.score += score
+        self.favoris.append(new_fav)
+
+        return True
 
 
 
 
+
+################################
+##### Une invitation ###########
+################################
+
+class Invitation(db.Model):
+    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+
+    # 0 = Owner, 1 = Going, 2 = Maybe, 3 = Not Going
+    state = db.Column(db.Integer)
+    user = db.relationship("User", backref="invitations")
+
+    def __init__(self, state, user):
+        self.state = state
+        self.user = user
 
 
 
@@ -442,13 +485,24 @@ class Moment(db.Model):
     # Fonction qui rajoute un user en invité à partir d'un objet user
     # Renvoit True si rajouté correctement 
     # False sinon
-    def add_guest_user(self, user, state):
+    def add_guest_user(self, user, user_inviting, state):
 
         if user is not None:
             #Si il n'est pas déjà invité
             if not self.is_in_guests(user.id):
                 invitation = Invitation(state, user)
                 self.guests.append(invitation)
+
+
+                #ON increment egalement leur compteur favoris respectif
+                if user_inviting is not None:
+                    user_inviting.increment_favoris(user, userConstants.AJOUT)
+                    user.increment_favoris(user_inviting, userConstants.INVITE)
+
+                #On increment le compteur pour chaque invité egalement
+                for guest in self.guests:
+                    if guest.user.id != user.id and guest.user.id != user_inviting.id:
+                        guest.user.increment_favoris(user, userConstants.MOMENT)
 
                 return True
             else:
@@ -558,6 +612,9 @@ class Moment(db.Model):
 
         if not self.in_prospects(prospect):
             self.prospects.append(prospect)
+            return True
+
+        else: return False
 
     #Fonction qui retire un prospect
     def remove_prospect(self, prospect):
@@ -712,7 +769,8 @@ class Prospect(db.Model):
         for moment in self.invitations:
 
             #On ajoute le user dans les invite
-            moment.add_guest_user(user, userConstants.UNKNOWN)
+            #Et on met egalement à jour les favoris
+            moment.add_guest_user(user, moment.get_owner(), userConstants.UNKNOWN)
 
             #On supprime ce Prospect des prospects
             moment.remove_prospect(self)

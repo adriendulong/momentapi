@@ -561,60 +561,72 @@ def new_guests(idMoment):
 		# On recupere le Moment en question
 		moment = Moment.query.get(idMoment)
 
-		if moment.can_add_guest(current_user.id):
-
-			# On recupere les users fournis dans la requete
-			users = request.json["users"]
-			print len(users)
-
-			#On parcourt la liste des users envoyés
-			for user in users:
-
-				#Si l'id est fourni normalement il existe dans Moment
-				# On va donc le chercher et le rajouté en invité
-				if "id" in user:
-					# On le rajoute et si ça s'est bien passé on incrémente le compteur
-					if moment.add_guest(user["id"], userConstants.UNKNOWN):
-						count += 1
-						print user["id"]
+		if moment is not None:
 
 
-				#Sinon c'est un prospect
-				else:
-					#On verifie que le user n'existe pas quand meme
-					if not controller.user_exist(user):
-						prospect = controller.get_prospect(user)
+			if moment.can_add_guest(current_user.id):
 
-						#Pas de prospect
-						if prospect is None:
-							##
-							prospect = Prospect()
-							prospect.init_from_dict(user)
-							moment.prospects.append(prospect)
-							count += 1
+				# On recupere les users fournis dans la requete
+				users = request.json["users"]
+				print len(users)
 
-						#Le prospect existe
-						else:
-							prospect.update(user)
-							moment.add_prospect(prospect)
-							count += 1
+				#On parcourt la liste des users envoyés
+				for user in users:
 
-					#Si il esicte on le recupere
+					#Si l'id est fourni normalement il existe dans Moment
+					# On va donc le chercher et le rajouté en invité
+					if "id" in user:
+						user_to_add = User.query.get(user["id"])
+
+						#On verfie que le user existe pour le rajouter
+						if user_to_add is not None:
+							# On le rajoute et si ça s'est bien passé on incrémente le compteur
+							if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
+								count += 1
+								print user["id"]
+
+
+					#Sinon c'est un prospect
 					else:
-						moment_user = controller.user_from_dict(user)
-						moment.add_guest(moment_user.id, userConstants.UNKNOWN)
-						count += 1
+						#On verifie que le user n'existe pas quand meme
+						if not controller.user_exist(user):
+							prospect = controller.get_prospect(user)
+
+							#Pas de prospect
+							if prospect is None:
+								##
+								prospect = Prospect()
+								prospect.init_from_dict(user)
+								moment.prospects.append(prospect)
+								count += 1
+
+							#Le prospect existe
+							else:
+								prospect.update(user)
+								if moment.add_prospect(prospect):
+									count += 1
+
+						#Si il esicte on le recupere
+						else:
+							moment_user = controller.user_from_dict(user)
+							if moment.add_guest_user(moment_user, current_user, userConstants.UNKNOWN):
+								count += 1
 
 
-			#On enregistre en base
-			db.session.commit()
-			
-			reponse["nb_user_added"] = count
-			return jsonify(reponse), 200
+				#On enregistre en base
+				db.session.commit()
+				
+				reponse["nb_user_added"] = count
+				return jsonify(reponse), 200
+
+			else:
+				reponse["error"] = "Not Aothorized"
+				return jsonify(reponse), 401
+
 
 		else:
-			reponse["error"] = "Not Aothorized"
-			return jsonify(reponse), 401
+			reponse["error"] = "This Moment does not exist"
+			return jsonify(reponse), 405
 
 
 	else:
@@ -817,6 +829,32 @@ def users_in_moment():
 	else:
 		reponse["error"] = "mandatory value missing"
 		return jsonify(reponse), 405
+
+
+
+
+######################################################################################
+########  Requete pour récupérer les user favoris d'un user authentifié ###############
+#####################################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/favoris', methods=["GET"])
+@login_required
+def favoris():
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	reponse["favoris"] = []
+
+	#On parcourt les favoris du user
+	for fav in current_user.favoris:
+		#Si le favoris a le score suffisant
+		if fav.score > 5:
+			reponse["favoris"].append(fav.the_favoris.user_to_send())
+
+	return jsonify(reponse), 200
+
 
 
 
