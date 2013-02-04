@@ -663,6 +663,28 @@ class Prospect(db.Model):
                 self.unique_code = identifier
                 break
 
+    def prospect_to_send(self):
+        prospect = {}
+
+        if self.email is not None:
+            prospect["email"] = self.email
+        if self.firstname is not None:
+            prospect["firstname"] = self.firstname
+        if self.lastname is not None:
+            prospect["lastname"] = self.lastname
+        if self.phone is not None:
+            prospect["phone"] = self.phone
+        if self.facebookId is not None:
+            prospect["facebookId"] = self.facebookId
+        if self.secondEmail is not None:
+            prospect["secondEmail"] = self.secondEmail
+        if self.secondPhone is not None:
+            prospect["secondPhone"] = self.secondPhone
+        if self.profile_picture_url is not None:
+            prospect["profile_picture_url"] = self.profile_picture_url
+
+        return prospect
+
     def init_from_dict(self, user):
 
         if "email" in user:

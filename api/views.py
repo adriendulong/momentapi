@@ -572,45 +572,47 @@ def new_guests(idMoment):
 
 				#On parcourt la liste des users envoyés
 				for user in users:
+					#On verifie qu'on a des infos sur le user
+					if "id" in user or "email" in user or "phone" in user or "facebookId" in user:
 
-					#Si l'id est fourni normalement il existe dans Moment
-					# On va donc le chercher et le rajouté en invité
-					if "id" in user:
-						user_to_add = User.query.get(user["id"])
+						#Si l'id est fourni normalement il existe dans Moment
+						# On va donc le chercher et le rajouté en invité
+						if "id" in user:
+							user_to_add = User.query.get(user["id"])
 
-						#On verfie que le user existe pour le rajouter
-						if user_to_add is not None:
-							# On le rajoute et si ça s'est bien passé on incrémente le compteur
-							if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
-								count += 1
-								print user["id"]
+							#On verfie que le user existe pour le rajouter
+							if user_to_add is not None:
+								# On le rajoute et si ça s'est bien passé on incrémente le compteur
+								if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
+									count += 1
+									print user["id"]
 
 
-					#Sinon c'est un prospect
-					else:
-						#On verifie que le user n'existe pas quand meme
-						if not controller.user_exist(user):
-							prospect = controller.get_prospect(user)
+						#Sinon c'est un prospect
+						else:
+							#On verifie que le user n'existe pas quand meme
+							if not controller.user_exist(user):
+								prospect = controller.get_prospect(user)
 
-							#Pas de prospect
-							if prospect is None:
-								##
-								prospect = Prospect()
-								prospect.init_from_dict(user)
-								moment.prospects.append(prospect)
-								count += 1
-
-							#Le prospect existe
-							else:
-								prospect.update(user)
-								if moment.add_prospect(prospect):
+								#Pas de prospect
+								if prospect is None:
+									##
+									prospect = Prospect()
+									prospect.init_from_dict(user)
+									moment.prospects.append(prospect)
 									count += 1
 
-						#Si il esicte on le recupere
-						else:
-							moment_user = controller.user_from_dict(user)
-							if moment.add_guest_user(moment_user, current_user, userConstants.UNKNOWN):
-								count += 1
+								#Le prospect existe
+								else:
+									prospect.update(user)
+									if moment.add_prospect(prospect):
+										count += 1
+
+							#Si il esicte on le recupere
+							else:
+								moment_user = controller.user_from_dict(user)
+								if moment.add_guest_user(moment_user, current_user, userConstants.UNKNOWN):
+									count += 1
 
 
 				#On enregistre en base
@@ -854,6 +856,57 @@ def favoris():
 			reponse["favoris"].append(fav.the_favoris.user_to_send())
 
 	return jsonify(reponse), 200
+
+
+
+
+######################################################################################
+########  Requete pour récupérer les invités à un moment (classé par state) ###############
+#####################################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/guests/<int:id_moment>', methods=["GET"])
+@login_required
+def guests_moment(id_moment):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	reponse["owner"] = []
+	reponse["admin"] = []
+	reponse["coming"] = []
+	reponse["not_coming"] = []
+	reponse["maybe"] = []
+	reponse["unknown"] = []
+
+	moment = Moment.query.get(id_moment)
+
+	if moment is not None:
+		#On parcourt tous les invités
+		for guest in moment.guests:
+			if guest.state == userConstants.OWNER:
+				reponse["owner"].append(guest.user.user_to_send())
+			elif guest.state == userConstants.ADMIN:
+				reponse["admin"].append(guest.user.user_to_send())
+			elif guest.state == userConstants.COMING:
+				reponse["coming"].append(guest.user.user_to_send())
+			elif guest.state == userConstants.NOT_COMING:
+				reponse["not_coming"].append(guest.user.user_to_send())
+			elif guest.state == userConstants.MAYBE:
+				reponse["maybe"].append(guest.user.user_to_send())
+			elif guest.state == userConstants.UNKNOWN:
+				reponse["unknown"].append(guest.user.user_to_send())
+
+		for prospect in moment.prospects:
+			reponse["unknown"].append(prospect.prospect_to_send())
+
+		return jsonify(reponse), 200
+
+	#Ce moment n'existe pas
+	else:
+		reponse = {}
+		reponse["error"] = "This Moment does not exist"
+		return jsonify(reponse), 405
 
 
 
