@@ -855,7 +855,7 @@ class Photo(db.Model):
         im = Image.open(self.path_original)
         im.thumbnail(constants.SIZE_THUMBNAIL, Image.ANTIALIAS)
         thumbnail_name = "%s.thumbnail" % (self.id)
-        im.save(app.root_path+moment.get_moment_path()+"/photos/thumbnail/"+thumbnail_name, "JPEG")
+        im.save(app.root_path+moment.get_moment_path()+"/photos/thumbnail/"+photo_name, "JPEG")
 
         self.path_thumbnail = app.root_path+moment.get_moment_path()+"/photos/thumbnail/"+photo_name
         self.url_thumbnail = "http://%s%s" % (app.config.get("SERVER_NAME"), moment.get_moment_path()+"/photos/thumbnail/"+photo_name)
