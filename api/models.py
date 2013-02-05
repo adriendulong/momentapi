@@ -5,6 +5,7 @@ import datetime
 import os
 import constants
 import fonctions
+from PIL import Image
 
 
 ##########################################
@@ -17,6 +18,11 @@ invitations_prospects = db.Table('invitations_prospect',
     db.Column('prospect_id', db.Integer, db.ForeignKey('prospect.id'))
 )
 
+
+likes_table = db.Table('likes', 
+    db.Column('photo_id', db.Integer, db.ForeignKey('photo.id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
+)
 
 """
 moment_owners = db.Table('moment_owners',
@@ -87,6 +93,7 @@ class User(db.Model):
 
     is_favoris = db.relationship("Favoris", backref='the_favoris',
                              primaryjoin=id==Favoris.favoris_id)
+    photos = db.relationship("Photo", backref="user")
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -356,6 +363,7 @@ class Moment(db.Model):
     prospects = db.relationship("Prospect",
                     secondary=invitations_prospects,
                     backref="invitations")
+    photos = db.relationship("Photo", backref="moment")
 
     def __init__(self, name, address, startDate, endDate):
         self.name = name
@@ -457,7 +465,14 @@ class Moment(db.Model):
         if not os.path.exists(path_moment):
             os.mkdir(path_moment)
             os.mkdir(path_moment+"/photos")
+            os.mkdir(path_moment+"/photos/original")
+            os.mkdir(path_moment+"/photos/thumbnail")
             os.mkdir(path_moment+"/cover")
+
+    def get_moment_path(self):
+
+        path_moment = "%s/%s" % (constants.MOMENT_PATH , self.id)
+        return path_moment
 
 
 
@@ -800,6 +815,81 @@ class Prospect(db.Model):
 
 
 
+
+################################
+##### Une photo ###########
+################################
+
+class Photo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    path_original = db.Column(db.String(120))
+    url_original = db.Column(db.String(120))
+    path_thumbnail = db.Column(db.String(120))
+    url_thumbnail = db.Column(db.String(120))
+    creation_datetime = db.Column(db.DateTime, default = datetime.datetime.now())
+    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    likes = db.relationship("User",
+                    secondary=likes_table,
+                    backref="photos_liked")
+        
+
+    def save_photo(self, f, moment, user):
+
+        photo_name = "%s.jpg" %(self.id)
+
+        im_original = Image.open(f)
+        im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
+        im_original.save(app.root_path+moment.get_moment_path()+"/photos/original/"+photo_name, "JPEG")
+
+        #On enregistre la photo
+        #f.save(app.root_path+moment.get_moment_path()+"/photos/original/"+photo_name)
+
+        self.path_original = app.root_path+moment.get_moment_path()+"/photos/original/"+photo_name
+        self.url_original = "http://%s%s" % (app.config.get("SERVER_NAME"), moment.get_moment_path()+"/photos/original/"+photo_name)
+
+        moment.photos.append(self)
+        user.photos.append(self)
+
+        #On créé le thumbnail
+        im = Image.open(self.path_original)
+        im.thumbnail(constants.SIZE_THUMBNAIL, Image.ANTIALIAS)
+        thumbnail_name = "%s.thumbnail" % (self.id)
+        im.save(app.root_path+moment.get_moment_path()+"/photos/thumbnail/"+thumbnail_name, "JPEG")
+
+        self.path_thumbnail = app.root_path+moment.get_moment_path()+"/photos/thumbnail/"+photo_name
+        self.url_thumbnail = "http://%s%s" % (app.config.get("SERVER_NAME"), moment.get_moment_path()+"/photos/thumbnail/"+photo_name)
+
+
+
+        db.session.commit()
+
+
+    def photo_to_send(self):
+        photo = {}
+
+        photo["id"] = self.id
+        photo["url_original"] = self.url_original
+        photo["url_thumbnail"] = self.url_thumbnail
+        photo["taken_by"] = self.user.user_to_send()
+        photo["nb_like"] = len(self.likes)
+
+        return photo
+
+
+    #Fonction qui rajoute un like du user "user"
+    def like(self, user):
+        #On verifie que le user a pas déjà liké la photo
+        for like in self.likes:
+            #Si il existe on l'enleve (toggle)
+            if like.id == user.id:
+                self.likes.remove(like)
+                db.session.commit()
+                return True
+
+        self.likes.append(user)
+        db.session.commit()
+        return True
 
 
 

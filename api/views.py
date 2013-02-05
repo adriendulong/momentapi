@@ -8,7 +8,7 @@ from bcrypt import hashpw, gensalt
 from flask.ext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin, AnonymousUser,
                             confirm_login, fresh_login_required)
-from api.models import User, Moment, Invitation, Prospect
+from api.models import User, Moment, Invitation, Prospect, Photo
 from itsdangerous import URLSafeSerializer
 import controller
 import constants
@@ -907,6 +907,111 @@ def guests_moment(id_moment):
 		reponse = {}
 		reponse["error"] = "This Moment does not exist"
 		return jsonify(reponse), 405
+
+
+
+
+#####################################################################
+############ Poster une nouvelle photo sur un Moment ###################
+######################################################################
+# Methode acceptées : POST
+# Paramètres obligatoires : 
+#	- Une photo
+
+@app.route('/addphoto/<int:moment_id>', methods=["POST"])
+@login_required
+def new_photos(moment_id):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	
+	#On recupere le moment en question
+	moment = Moment.query.get(moment_id)
+
+	if "photo" in request.files:
+		photo = Photo()
+
+		#On enregistre en base l'objet photo
+		db.session.add(photo)
+		db.session.commit()
+
+		#Puis on enregistre en disque la photo
+		photo.save_photo(request.files["photo"], moment, current_user)
+
+		reponse["success"] = photo.photo_to_send()
+
+		return jsonify(reponse), 200
+
+	else:
+		reponse["error"] = "no photo received"
+		return jsonify(reponse), 405
+
+
+#####################################################################
+############ Retourne la liste des photos prises pour un moment ###################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/photosmoment/<int:moment_id>', methods=["GET"])
+@login_required
+def photos_moment(moment_id):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	
+	#On recupere le moment en question
+	moment = Moment.query.get(moment_id)
+
+	if moment is not None:
+		#On verifie que le user est bien parmis les invites pour acceder aux photos
+		if moment.is_in_guests(current_user.id):
+			reponse["photos"] = []
+			for photo in moment.photos:
+				reponse["photos"].append(photo.photo_to_send())
+
+			return jsonify(reponse), 200
+
+		else:
+			reponse["error"] = "This user does not have access to this Moment"
+			return jsonify(reponse), 401
+
+	else:
+		reponse["error"] = "This moment does not exist"
+		return jsonify(reponse), 405
+
+
+#####################################################################
+############ Like une photo ou dislike si déjà liké ######
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/like/<int:photo_id>', methods=["GET"])
+@login_required
+def like_photo(photo_id):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	
+	photo = Photo.query.get(photo_id)
+
+	if photo is not None:
+		#On verifie que le user fait partie des invités
+		if photo.moment.is_in_guests(current_user.id):
+			photo.like(current_user)
+			reponse["success"] = "Photo liked"
+			reponse["nb_likes"] = len(photo.likes)
+			return jsonify(reponse), 200
+
+		else:
+			reponse["error"] = "The user is not authorized to like this photo"
+			return jsonify(reponse), 401
+
+	else:
+		reponse["error"] = "This photo does not exist"
+		return jsonify(reponse), 405
+
+
 
 
 
