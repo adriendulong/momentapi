@@ -1055,7 +1055,7 @@ class Device(db.Model):
         self.os_version = os_version
 
 
-    def notify_simple(self, moment, type_id titre, message):
+    def notify_simple(self, moment, type_id, titre, message):
         #C'est un Android
         if self.os==1:
 
