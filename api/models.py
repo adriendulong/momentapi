@@ -1062,7 +1062,7 @@ class Device(db.Model):
             thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
         #C'est un iPhone
         if self.os == 0:
-            thread.start_new_thread(fonctions.send_ios_notif, (self.notif_id, titre,))
+            thread.start_new_thread(fonctions.send_ios_notif, (self.notif_id, message,))
             
 
 
