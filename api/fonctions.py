@@ -5,7 +5,15 @@ import datetime
 import string
 import random
 import models
+import ssl
+import json
+import socket
+import struct
+import binascii
 from gcm import GCM
+from apns import APNs, Payload
+from api import apns
+
 
 
 ##
@@ -122,6 +130,37 @@ def send_message_device(reg_id, titre, message):
 
 	# Plaintext request
 	gcm.plaintext_request(registration_id=reg_id, data=data)
+
+#Push notification to iOS
+def send_ios_notif(reg_id, message):
+	PAYLOAD = {
+			'aps': {
+			   	'alert': message,
+		    	'sound': 'default'
+		}
+	}
+
+	payload = json.dumps(PAYLOAD)
+
+	print os.getcwd()
+
+	# Your certificate file
+	cert = "api/pushCertificates/cert.pem"
+	# APNS development server
+	apns_address = ('gateway.sandbox.push.apple.com', 2195)
+
+	# Use a socket to connect to APNS over SSL
+	s = socket.socket()
+	sock = ssl.wrap_socket(s, ssl_version=ssl.PROTOCOL_SSLv3, certfile=cert)
+	sock.connect(apns_address)
+
+	# Generate a notification packet
+	token = binascii.unhexlify(reg_id)
+	fmt = '!cH32sH{0:d}s'.format(len(payload))
+	cmd = '\x00'
+	message = struct.pack(fmt, cmd, len(token), token, len(payload), payload)
+	sock.write(message)
+	sock.close()
 
 
 

@@ -3,6 +3,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin, AnonymousUser,
                             confirm_login, fresh_login_required)
+from apns import APNs, Payload
 
 
 
@@ -20,6 +21,9 @@ app.config.from_object('config.DevelopmentConfig')
 app.secret_key = "momentisLifefrom33" 
 #app.wsgi_app = WebFactionMiddleware(app.wsgi_app)
 db = SQLAlchemy(app)
+
+#Notif push iOs
+apns = APNs(use_sandbox=True, cert_file='pushCertificates/MomentCert.pem', key_file='pushCertificates/MomentKey.pem')
 
 
 #Flask Login
