@@ -22,9 +22,6 @@ app.secret_key = "momentisLifefrom33"
 #app.wsgi_app = WebFactionMiddleware(app.wsgi_app)
 db = SQLAlchemy(app)
 
-#Notif push iOs
-apns = APNs(use_sandbox=True, cert_file='pushCertificates/MomentCert.pem', key_file='pushCertificates/MomentKey.pem')
-
 
 #Flask Login
 login_manager = LoginManager()

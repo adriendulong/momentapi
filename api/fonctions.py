@@ -12,7 +12,8 @@ import struct
 import binascii
 from gcm import GCM
 from apns import APNs, Payload
-from api import apns
+from api import app
+
 
 
 
@@ -145,7 +146,7 @@ def send_ios_notif(reg_id, message):
 	print os.getcwd()
 
 	# Your certificate file
-	cert = "api/pushCertificates/cert.pem"
+	cert = app.root_path+"/pushCertificates/cert.pem"
 	# APNS development server
 	apns_address = ('gateway.sandbox.push.apple.com', 2195)
 
