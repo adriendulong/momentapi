@@ -206,12 +206,12 @@ def register():
 
 
 			#On rajoute ce device si il n'est pas déjà associé
-		if "device_id" in request.form:
-			device = user.add_device(request.form["device_id"], request.form["os"], request.form["os_version"], request.form["model"])
+			if "device_id" in request.form:
+				device = user.add_device(request.form["device_id"], request.form["os"], request.form["os_version"], request.form["model"])
 
-			#Si on a déjà l'id de notif 
-			if "notif_id" in request.form:
-				device.notif_id = request.form["notif_id"]
+				#Si on a déjà l'id de notif 
+				if "notif_id" in request.form:
+					device.notif_id = request.form["notif_id"]
 
 			
 
