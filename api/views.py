@@ -5,10 +5,11 @@ from flask import request, abort, redirect, url_for, jsonify
 from api import app, db, login_manager
 import json
 from bcrypt import hashpw, gensalt
+from flask import session
 from flask.ext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin, AnonymousUser,
                             confirm_login, fresh_login_required)
-from api.models import User, Moment, Invitation, Prospect, Photo
+from api.models import User, Moment, Invitation, Prospect, Photo, Device, Chat
 from itsdangerous import URLSafeSerializer
 import controller
 import constants
@@ -111,6 +112,15 @@ def register():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 
+	if "model" in request.form:
+		print request.form["model"]
+	if "os" in request.form:
+		print request.form["os"]
+	if "os_version" in request.form:
+		print request.form["os_version"]
+	if "reg_id" in request.form:
+		print request.form["reg_id"]
+
 	#On verifie que tous les champs obligatoires sont renseignés (email, password, firstname, lastname)
 	if request.method == "POST" and "password" in request.form and "email" in request.form and "firstname" in request.form and "lastname" in request.form :
 
@@ -195,7 +205,13 @@ def register():
 				db.session.delete(prospect)
 
 
-			
+			#On rajoute ce device si il n'est pas déjà associé
+		if "device_id" in request.form:
+			device = user.add_device(request.form["device_id"], request.form["os"], request.form["os_version"], request.form["model"])
+
+			#Si on a déjà l'id de notif 
+			if "notif_id" in request.form:
+				device.notif_id = request.form["notif_id"]
 
 			
 
@@ -215,7 +231,8 @@ def register():
 				db.session.commit()
 
 			#On logge le user. On lui renvoit ainsi le token qu'il doit utiliser
-			login_user(user)
+			if login_user(user):
+				session.permanent = True
 
 			reponse["id"] = user.id
 
@@ -243,6 +260,19 @@ def login():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 
+	if "model" in request.form:
+		print request.form["model"]
+	if "os" in request.form:
+		print request.form["os"]
+	if "os_version" in request.form:
+		print request.form["os_version"]
+	if "notif_id" in request.form:
+		print request.form["notif_id"]
+	if "device_id" in request.form:
+		print request.form["device_id"]
+	if "lang" in request.form:
+		print request.form["lang"]
+
 	#On verifie que tous les champs sont renseignes
 	if request.method == "POST" and "email" in request.form and "password" in request.form:
 		email = request.form["email"]
@@ -258,8 +288,24 @@ def login():
 		else:
 			# On verifie que le password hashé correspond bien à celui en base
 			if hashpw(password, user.pwd) == user.pwd:
-				login_user(user)
-				reponse["success"] = "Logged"
+				#On verifie si on nous fournie une langue afin de la modifier
+				if "lang" in request.form:
+					user.lang = request.form["lang"]
+					db.session.commit()
+
+				#On rajoute ce device si il n'est pas déjà associé
+				if "device_id" in request.form:
+					device = user.add_device(request.form["device_id"], request.form["os"], request.form["os_version"], request.form["model"])
+
+					#Si on a déjà l'id de notif 
+					if "notif_id" in request.form:
+						device.notif_id = request.form["notif_id"]
+						db.session.commit()
+
+
+				if login_user(user):
+					session.permanent = True
+					reponse["success"] = "Logged"
 
 				# On recupere les n prochains moments de ce user
 				moments = controller.get_moments_of_user(user.email, 10)
@@ -1010,6 +1056,143 @@ def like_photo(photo_id):
 	else:
 		reponse["error"] = "This photo does not exist"
 		return jsonify(reponse), 405
+
+
+
+#####################################################################
+############ Post un chat du user loggé ############################
+######################################################################
+# Methode acceptées : POST
+# Paramètres obligatoires : 
+# - Dans l'url : id_moment
+#  - Dans le corp : message
+#	
+
+@app.route('/newchat/<int:moment_id>', methods=["POST"])
+@login_required
+def new_chat(moment_id):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	print request.form["message"]
+	
+	moment = Moment.query.get(moment_id)
+
+	#Si le moment existe
+	if moment is not None:
+		#On verifie que le user fait partie des invités
+		if moment.is_in_guests(current_user.id):
+			#Si un message est envoyé
+			if "message" in request.form:
+				#On créé un nouveau chat lié au user en question et au Moment
+				chat = Chat(request.form["message"], current_user, moment)
+				db.session.add(chat)
+				db.session.commit()
+
+				reponse["success"] = "message added to the chat"
+				return jsonify(reponse), 200
+
+			else:
+				reponse["error"] = "Mandatory value missing"
+				return jsonify(reponse), 405
+
+		else:
+			reponse["error"] = "The user is not a guest of this moment"
+			return jsonify(reponse), 401
+
+		
+
+	else:
+		reponse["error"] = "This moment does not exist"
+		return jsonify(reponse), 405
+
+
+#####################################################################
+############ Post un chat du user loggé ############################
+######################################################################
+# Methode acceptées : POST
+# Paramètres obligatoires : 
+# - Dans l'url : id_moment
+#  - Dans le corp : message
+#	
+
+@app.route('/lastchats/<int:moment_id>', methods=["GET"])
+@app.route('/lastchats/<int:moment_id>/<int:nb_page>', methods=["GET"])
+@login_required
+def last_chats(moment_id, nb_page = 1):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	
+	moment = Moment.query.get(moment_id)
+
+	if moment is not None:
+		#On verifie que le user fait partie des invités
+		if moment.is_in_guests(current_user.id):
+			#On recupere les chats de ce Moment, au format pagination
+			print nb_page
+			chatsPagination = Chat.query.filter_by(moment_id=moment_id).paginate(nb_page, 2, False)
+
+			#Si il y a des pages suivantes
+			if chatsPagination.has_next:
+				reponse["next_page"] = chatsPagination.next_num
+			#Si il y a une page precedente
+			if chatsPagination.has_prev:
+				reponse["prev_page"] = chatsPagination.prev_num
+
+			#On construit le tableau des messages
+			reponse["chats"] = []
+			for chat in chatsPagination.items:
+				reponse["chats"].append(chat.chat_to_send())
+
+			return jsonify(reponse), 200
+
+
+
+		else:
+			reponse["error"] = "The user is not a guest of this moment"
+			return jsonify(reponse), 401
+
+	else:
+		reponse["error"] = "This moment does not exist"
+		return jsonify(reponse), 405
+
+
+
+#####################################################################
+############ Recuperer les notifications d'un user #################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/notifications', methods=["GET"])
+@login_required
+def notifications():
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	reponse["invitations"] = []
+	reponse["new_photos"] = []
+	reponse["new_chats"] = []
+	reponse["modif_moment"] = []
+	
+	for notification in current_user.notifications:
+		#Les invitations
+		if notification.type_notif == userConstants.INVITATION:
+			reponse["invitations"].append(notification.notif_to_send())
+
+		#Les nouveaux chats
+		if notification.type_notif == userConstants.NEW_CHAT:
+			reponse["new_chats"].append(notification.notif_to_send())
+
+		#Les nouvelles photos
+		if notification.type_notif == userConstants.NEW_PHOTO:
+			reponse["new_photos"].append(notification.notif_to_send())
+
+		#Les modifications
+		if notification.type_notif == userConstants.MODIF:
+			reponse["modif_moment"].append(notification.notif_to_send())
+
+	return jsonify(reponse), 200
+
 
 
 

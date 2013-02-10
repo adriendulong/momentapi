@@ -5,6 +5,7 @@ import datetime
 import string
 import random
 import models
+from gcm import GCM
 
 
 ##
@@ -113,6 +114,16 @@ def random_identifier():
 		identifier += random.choice(letters[0:26])
 
 	return identifier.upper()
+
+
+def send_message_device(reg_id, titre, message):
+	gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
+	data = {'titre': titre, 'message': message}
+
+	# Plaintext request
+	gcm.plaintext_request(registration_id=reg_id, data=data)
+
+
 
 
 

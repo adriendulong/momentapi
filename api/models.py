@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: cp1252 -*-
 from api import db, app
 import user.userConstants as userConstants
 import datetime
@@ -6,6 +6,9 @@ import os
 import constants
 import fonctions
 from PIL import Image
+from gcm import GCM
+import thread
+from sqlalchemy import and_, UniqueConstraint
 
 
 ##########################################
@@ -67,6 +70,9 @@ class Favoris(db.Model):
 
 
 
+
+
+
 ################################
 ##### Un utilisateur ###########
 ################################
@@ -86,6 +92,7 @@ class User(db.Model):
     lastConnection = db.Column(db.DateTime)
     profile_picture_url = db.Column(db.String(120))
     profile_picture_path = db.Column(db.String(120))
+    lang = db.Column(db.String(40))
 
     #Les favoris du user
     favoris = db.relationship("Favoris", backref='has_favoris',
@@ -94,6 +101,9 @@ class User(db.Model):
     is_favoris = db.relationship("Favoris", backref='the_favoris',
                              primaryjoin=id==Favoris.favoris_id)
     photos = db.relationship("Photo", backref="user")
+    devices = db.relationship("Device", backref="user")
+    chats = db.relationship("Chat", backref="user")
+    notifications = db.relationship("Notification", backref="user")
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -310,6 +320,113 @@ class User(db.Model):
         return True
 
 
+    #Fonction qui verifie que le device n'est pas dejà associé à ce user, et le créé sinon
+    def add_device(self, device_id, os, os_version, model):
+        for device in self.devices:
+            if device.device_id == device_id:
+                device.os = os
+                device.os_version = os_version
+                device.model = model
+                return device
+
+        #On verifie qu'il existe pas déjà un device avec ce meme device_id
+        sameDevice = Device.query.filter(Device.device_id == device_id).first()
+        #Si il en existe un ça veut dire qu'on la pas effacer quand quelqu'un s'est deconnecté, alors on l'efface maintenant
+        if sameDevice is not None:
+            db.session.delete(sameDevice)
+
+        deviceTemp = Device(device_id, model, os, os_version)
+        db.session.add(deviceTemp)
+        self.devices.append(deviceTemp)
+        db.session.commit()
+        return deviceTemp
+
+
+
+
+
+
+    ##
+    # NOTIFICATIONS
+    ##
+
+    def notify_new_moment(self, moment):
+        #On place une notifiation en base (pour le volet)
+        notification = Notification(moment, self, userConstants.INVITATION)
+
+        #On enregistre en base
+        db.session.add(notification)
+        db.session.commit()
+
+        ##
+        ## PUSH NOTIF
+        ##
+
+        title = "Nouvelle invitation"
+        contenu = unicode('vous invite à participer à','utf-8')
+        message = "%s %s '%s'" % (moment.get_owner().firstname, contenu, moment.name)
+
+        for device in self.devices:
+            device.notify_simple(title, message.encode('utf-8'))
+
+    def notify_new_chat(self, moment, chat):
+        #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
+        notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_CHAT)).first()
+
+        if notif is None:
+            print "NEW CHAT"
+            notification = Notification(moment, self, userConstants.NEW_CHAT)
+            #On enregistre en base
+            db.session.add(notification)
+            db.session.commit()
+
+        
+
+        ##
+        ## PUSH NOTIF
+        ##
+
+        #Titre de la notif
+        title = "Nouveau Message de %s" % (chat.user.firstname)
+
+        for device in self.devices:
+            device.notify_simple(title, chat.message.encode('utf-8'))
+
+
+
+
+
+    ##
+    ## Notification nouvelle photo
+    ##
+
+    def notify_new_photo(self, moment, photo):
+        #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
+        notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_PHOTO)).first()
+
+        if notif is None:
+            print "NEW PHOTO"
+            notification = Notification(moment, self, userConstants.NEW_PHOTO)
+            #On enregistre en base
+            db.session.add(notification)
+            db.session.commit()
+
+        
+
+        ##
+        ## PUSH NOTIF
+        ##
+
+        #Titre de la notif
+        title = "Nouvelle photo"
+        contenu = unicode('Nouvelle photo ajoutée à','utf-8')
+        message = "%s '%s'" % (contenu, moment.name)
+
+        for device in self.devices:
+            device.notify_simple(title, message.encode("utf-8"))
+
+
+
 
 
 
@@ -364,6 +481,7 @@ class Moment(db.Model):
                     secondary=invitations_prospects,
                     backref="invitations")
     photos = db.relationship("Photo", backref="moment")
+    chats = db.relationship("Chat", backref="moment")
 
     def __init__(self, name, address, startDate, endDate):
         self.name = name
@@ -508,6 +626,10 @@ class Moment(db.Model):
                 invitation = Invitation(state, user)
                 self.guests.append(invitation)
 
+                #On le notifie (dans un thread different pour pas ralentir la requete)
+                user.notify_new_moment(self)
+                
+
 
                 #ON increment egalement leur compteur favoris respectif
                 if user_inviting is not None:
@@ -637,6 +759,22 @@ class Moment(db.Model):
         for p in self.prospects:
             if p.id == prospect.id:
                 self.prospects.remove(prospect)
+
+
+    #Fonction qui prend en charge de notifier tout le monde qu'il y a un nouveau message
+    def notify_users_new_chat(self, chat):
+        for guest in self.guests:
+            #On envoit pas la notif à celui qui a envoyé le message
+            if guest.user.id != chat.user.id:
+                guest.user.notify_new_chat(self, chat)
+
+
+    def notify_users_new_photo(self, photo):
+        for guest in self.guests:
+            #On envoit pas la notif à celui qui a envoyé le message
+            if guest.user.id != photo.user.id:
+                guest.user.notify_new_photo(self, photo)
+
 
 
 
@@ -864,6 +1002,9 @@ class Photo(db.Model):
 
         db.session.commit()
 
+        # Le Moment s'occupe de notifier tous les invités qu'une nouvelle photo a été ajoutée
+        moment.notify_users_new_photo(self)
+
 
     def photo_to_send(self):
         photo = {}
@@ -890,6 +1031,100 @@ class Photo(db.Model):
         self.likes.append(user)
         db.session.commit()
         return True
+
+
+
+
+################################
+##### Un Device ###########
+################################
+
+class Device(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.String(200))
+    notif_id = db.Column(db.Text)
+    model = db.Column(db.String(100))
+    os = db.Column(db.Integer)
+    os_version = db.Column(db.String(200))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, device_id, model, os, os_version):
+        self.device_id = device_id
+        self.model = model
+        self.os = os
+        self.os_version = os_version
+
+
+    def notify_simple(self, titre, message):
+        #C'est un Android
+        if self.os==1:
+
+            thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
+            
+
+
+
+
+
+################################
+##### Un Chat ###########
+################################
+
+class Chat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.Text)
+    time = db.Column(db.DateTime, default = datetime.datetime.now())
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'))
+
+    def __init__(self, message, user, moment):
+        self.message = message
+        user.chats.append(self)
+        moment.chats.append(self)
+
+        #On notifie tous les gens invités à ce moment que quelqu'un a ecrit un message
+        moment.notify_users_new_chat(self)
+
+
+    def chat_to_send(self):
+        chat = {}
+        chat["message"] = self.message
+        chat["time"] = self.time.strftime("%s")
+        chat["user"] = self.user.user_to_send()
+
+        return chat
+
+
+
+
+################################
+##### Une Notification ###########
+################################
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type_notif = db.Column(db.Integer, nullable=False)
+    time = db.Column(db.DateTime, default = datetime.datetime.now())
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), nullable=False)
+    moment = db.relationship("Moment")
+    __table_args__ = (UniqueConstraint('moment_id', 'user_id', 'type_notif', name='_type_moment_user_uc'),
+                     )
+
+    def __init__(self, moment, user, type_notif):
+        self.type_notif = type_notif
+        self.moment = moment
+        self.user = user
+
+    def notif_to_send(self):
+        notif = {}
+        notif["time"] = self.time.strftime("%s")
+        notif["moment_id"] = self.moment_id
+        notif["type"] = self.type_notif
+
+        return notif
+
+
 
 
 

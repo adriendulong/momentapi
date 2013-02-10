@@ -13,3 +13,17 @@ MAYBE = 5
 AJOUT = 5
 INVITE = 2
 MOMENT = 1
+
+
+##
+# Type de notifs
+##
+
+## Invitation
+INVITATION = 0
+## MODIFICATION DE MOMENT
+MODIF = 1
+## NOUVELLE PHOTO
+NEW_PHOTO = 2
+## NOUVEAU CHAT 
+NEW_CHAT = 3
