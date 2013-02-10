@@ -133,12 +133,14 @@ def send_message_device(reg_id, titre, message):
 	gcm.plaintext_request(registration_id=reg_id, data=data)
 
 #Push notification to iOS
-def send_ios_notif(reg_id, message):
+def send_ios_notif(id_moment, type_notif, reg_id, message):
 	PAYLOAD = {
 			'aps': {
 			   	'alert': message,
-		    	'sound': 'default'
-		}
+		    	'sound': 'bingbong.aiff'
+			},
+			'type_id' : type_notif,
+			'id_moment': id_moment
 	}
 
 	payload = json.dumps(PAYLOAD)
