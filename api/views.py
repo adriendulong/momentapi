@@ -225,7 +225,7 @@ def register():
 				#On enregistre la photo et son chemin en base
 				name_picture = "%s" % user.id
 				path_photo = user.add_profile_picture(f, name_picture)
-				user.profile_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+				user.profile_picture_url = "%s%s" % (app.config.get("SERVER_NAME"), path_photo)
 				user.profile_picture_path = "%s%s" % (app.root_path, path_photo)
 				#On enregistre en base
 				db.session.commit()
@@ -410,7 +410,7 @@ def new_moment():
 				#On enregistre la photo et son chemin en base
 				name_picture = "cover"
 				path_photo = moment.add_cover_photo(f, name_picture)
-				moment.cover_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+				moment.cover_picture_url = "%s%s" % (app.config.get("SERVER_NAME"), path_photo)
 				moment.cover_picture_path = "%s%s" % (app.root_path, path_photo)
 				#On enregistre en base
 				db.session.commit()
@@ -753,7 +753,7 @@ def modifiy_state(moment_id, state):
 					reponse["new_state"] = state
 
 				else:
-					reponse["error"] = "This state is not valid. State possibles : 2 = Coming, 3 = Not coming, 4 = Unknown"
+					reponse["error"] = "This state is not valid. State possibles : 2 = Coming, 3 = Not coming, 5 = Maybe"
 					return jsonify(reponse), 405
 			else:
 				reponse["error"] = "Not Authorized : you can't modify the Admin or Owner state thanks to this request"
@@ -799,9 +799,14 @@ def add_admin(moment_id, user_id):
 				if moment.is_in_guests(user_id):
 					#On verifie que le user n'est pas déjà owner
 					if user != moment.get_owner():
-						#Le user devient ADMIN
-						moment.modify_user_state(user, userConstants.ADMIN)
-						reponse["success"] = "The user %s %s is now the admin of this moment" % (user.firstname, user.lastname)
+						#Si le user est déjà ADMIN on le passe à COMING
+						if moment.is_admin(user):
+							moment.modify_user_state(user, userConstants.COMING)
+							reponse["success"] = "The user %s %s is no more ADMIN, he is now COMING" % (user.firstname, user.lastname)
+						else:
+							#Le user devient ADMIN
+							moment.modify_user_state(user, userConstants.ADMIN)
+							reponse["success"] = "The user %s %s is now the admin of this moment" % (user.firstname, user.lastname)
 					else:
 						reponse["error"] = "This user is already the owner of this moment"
 						return jsonify(reponse), 405

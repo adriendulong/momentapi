@@ -292,13 +292,17 @@ class User(db.Model):
 
         # On vérifie que le chemin pour enregistrer sa photo de profil existe
         if os.path.exists(app.root_path + user_path+"/profile_pictures"):
-            f.save(app.root_path + user_path+"/profile_pictures/"+name+".png")
-            return user_path+"/profile_pictures/"+name+".png"
+            im_original = Image.open(f)
+            im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
+            im_original.save(app.root_path + user_path+"/profile_pictures/"+name+".jpg", "JPEG")
+            return user_path+"/profile_pictures/"+name+".jpg"
         #sinon on créé le chemin en question
         else:
             os.mkdir(app.root_path + user_path+"/profile_pictures")
-            f.save(app.root_path + user_path+"/profile_pictures/"+name+".png")
-            return user_path+"/profile_pictures/"+name+".png"
+            im_original = Image.open(f)
+            im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
+            im_original.save(app.root_path + user_path+"/profile_pictures/"+name+".jpg", "JPEG")
+            return user_path+"/profile_pictures/"+name+".jpg"
 
 
     #fonctions qui créé un favoris si il n'existe pas, ou increment son score si il existe
@@ -545,9 +549,13 @@ class Moment(db.Model):
         path_moment = "%s%s/%s" % (app.root_path, constants.MOMENT_PATH , self.id)
         path_url = "%s/%s" % (constants.MOMENT_PATH , self.id)
 
-        f.save(path_moment + "/cover/"+name+".png")
+        #f.save(path_moment + "/cover/"+name+".png")
 
-        return path_url + "/cover/"+name+".png"
+        im_original = Image.open(f)
+        im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
+        im_original.save(path_moment + "/cover/"+name+".jpg", "JPEG")
+
+        return path_url + "/cover/"+name+".jpg"
 
 
 
@@ -694,6 +702,17 @@ class Moment(db.Model):
         for guest in self.guests:
             if guest.state == userConstants.OWNER:
                 return guest.user
+
+
+    #Fonction qui dit si le user est déjà ADMIN ou pas
+    def is_admin(self, user):
+
+        for guest in self.guests:
+            if guest.user.id == user.id:
+                if guest.state == userConstants.ADMIN:
+                    return True
+
+        return False
 
 
     #Nb d'invités qui viennent au moment
@@ -1123,6 +1142,7 @@ class Notification(db.Model):
         notif = {}
         notif["time"] = self.time.strftime("%s")
         notif["moment_id"] = self.moment_id
+        notif["moment_name"] = self.moment.name
         notif["type"] = self.type_notif
 
         return notif
