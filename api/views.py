@@ -225,7 +225,7 @@ def register():
 				#On enregistre la photo et son chemin en base
 				name_picture = "%s" % user.id
 				path_photo = user.add_profile_picture(f, name_picture)
-				user.profile_picture_url = "%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+				user.profile_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
 				user.profile_picture_path = "%s%s" % (app.root_path, path_photo)
 				#On enregistre en base
 				db.session.commit()
@@ -410,7 +410,7 @@ def new_moment():
 				#On enregistre la photo et son chemin en base
 				name_picture = "cover"
 				path_photo = moment.add_cover_photo(f, name_picture)
-				moment.cover_picture_url = "%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+				moment.cover_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
 				moment.cover_picture_path = "%s%s" % (app.root_path, path_photo)
 				#On enregistre en base
 				db.session.commit()
