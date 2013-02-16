@@ -293,14 +293,14 @@ class User(db.Model):
         # On vérifie que le chemin pour enregistrer sa photo de profil existe
         if os.path.exists(app.root_path + user_path+"/profile_pictures"):
             im_original = Image.open(f)
-            im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
+            im_original.thumbnail(constants.SIZE_MEDIUM, Image.ANTIALIAS)
             im_original.save(app.root_path + user_path+"/profile_pictures/"+name+".jpg", "JPEG")
             return user_path+"/profile_pictures/"+name+".jpg"
         #sinon on créé le chemin en question
         else:
             os.mkdir(app.root_path + user_path+"/profile_pictures")
             im_original = Image.open(f)
-            im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
+            im_original.thumbnail(constants.SIZE_MEDIUM, Image.ANTIALIAS)
             im_original.save(app.root_path + user_path+"/profile_pictures/"+name+".jpg", "JPEG")
             return user_path+"/profile_pictures/"+name+".jpg"
 

@@ -1134,7 +1134,7 @@ def last_chats(moment_id, nb_page = 1):
 		if moment.is_in_guests(current_user.id):
 			#On recupere les chats de ce Moment, au format pagination
 			print nb_page
-			chatsPagination = Chat.query.filter_by(moment_id=moment_id).paginate(nb_page, 2, False)
+			chatsPagination = Chat.query.filter_by(moment_id=moment_id).paginate(nb_page, constants.CHATS_PAGINATION, False)
 
 			#Si il y a des pages suivantes
 			if chatsPagination.has_next:
