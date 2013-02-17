@@ -1180,7 +1180,7 @@ def last_chats(moment_id, nb_page = 1):
 
 @app.route('/chat/<int:chat_id>', methods=["GET"])
 @login_required
-def last_chats(chat_id):
+def chat(chat_id):
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 	
