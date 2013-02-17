@@ -1123,12 +1123,10 @@ def new_chat(moment_id):
 
 
 #####################################################################
-############ Post un chat du user loggé ############################
+############ Recuperer les x dernier chat ############################
 ######################################################################
-# Methode acceptées : POST
+# Methode acceptées : GET
 # Paramètres obligatoires : 
-# - Dans l'url : id_moment
-#  - Dans le corp : message
 #	
 
 @app.route('/lastchats/<int:moment_id>', methods=["GET"])
@@ -1170,6 +1168,43 @@ def last_chats(moment_id, nb_page = 1):
 	else:
 		reponse["error"] = "This moment does not exist"
 		return jsonify(reponse), 405
+
+
+
+#####################################################################
+############ Recuperer un chat ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/chat/<int:chat_id>', methods=["GET"])
+@login_required
+def last_chats(chat_id):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	
+	
+
+	chat = Chat.query.filter(Chat.id==chat_id).first()
+
+	if chat is None:
+		reponse["error"] = "This chat does not exist"
+		return jsonify(reponse), 405
+
+	else:
+		moment = Moment.query.get(chat.moment_id)
+
+		#Le user doit être invité à ce moment
+		if moment.is_in_guests(current_user.id):
+			#On construit le tableau des messages
+			reponse["chat"] = chat.chat_to_send()
+
+			return jsonify(reponse), 200
+		else:
+			reponse["error"] = "The user is not a guest of this moment"
+			return jsonify(reponse), 401
+
 
 
 
