@@ -1157,6 +1157,7 @@ def last_chats(moment_id, nb_page = 1):
 			for chat in chatsPagination.items:
 				reponse["chats"].append(chat.chat_to_send())
 
+			reponse["chats"].reverse()
 			return jsonify(reponse), 200
 
 
