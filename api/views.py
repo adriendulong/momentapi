@@ -15,6 +15,7 @@ import controller
 import constants
 import fonctions
 import user.userConstants as userConstants
+from sqlalchemy import desc, asc
 
 
 
@@ -1090,7 +1091,6 @@ def like_photo(photo_id):
 def new_chat(moment_id):
 	#On créé la réponse qui sera envoyé
 	reponse = {}
-	print request.form["message"]
 	
 	moment = Moment.query.get(moment_id)
 
@@ -1145,7 +1145,7 @@ def last_chats(moment_id, nb_page = 1):
 		if moment.is_in_guests(current_user.id):
 			#On recupere les chats de ce Moment, au format pagination
 			print nb_page
-			chatsPagination = Chat.query.filter_by(moment_id=moment_id).paginate(nb_page, constants.CHATS_PAGINATION, False)
+			chatsPagination = Chat.query.filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
 
 			#Si il y a des pages suivantes
 			if chatsPagination.has_next:
@@ -1208,6 +1208,40 @@ def notifications():
 			reponse["modif_moment"].append(notification.notif_to_send())
 
 	return jsonify(reponse), 200
+
+
+
+#####################################################################
+############ Matcher les moments avec un code #######################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/matchcode/<code>', methods=["GET"])
+@login_required
+def match_code(code):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	
+	prospect = Prospect.query.filter(Prospect.unique_code == code).first()
+
+	if prospect is None:
+		reponse["error"] = "This code does not exist"
+		return jsonify(reponse), 405
+
+	else:
+		#On recupere les moments
+		prospect.match_moments(current_user)
+		#On met à jour le profil avec les données sur prospect
+		current_user.update_from_prospect(prospect)
+
+		#On efface le prospect
+		db.session.delete(prospect)
+		db.session.commit()
+
+		reponse["success"] = "The Moments have been matched"
+		return jsonify(reponse), 200
 
 
 

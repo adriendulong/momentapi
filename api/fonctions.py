@@ -179,25 +179,15 @@ def send_ios_notif(id_moment, type_notif, reg_id, message):
 	apns.gateway_server.send_notification(token_hex, payload)
 
 
-#Push notification to iOS
-def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat):
 
-	#Payload pour le chat
-	PAYLOAD_CHAT = {
-			'aps': {
-			   	'alert': chat,
-		    	'sound': 'bingbong.aiff'
-			},
-			'type_id' : type_notif,
-			'id_moment': id_moment,
-			'chat' : chat
-	}
+#Push notification to iOS
+def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat_id):
 
 	apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
 
 	# Send a notification
 	token_hex = reg_id
-	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=1, custom={'type_id': type_notif, 'id_moment' : id_moment, 'chat' : chat})
+	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=1, custom={'type_id': type_notif, 'id_moment' : id_moment, 'chat_id' : chat_id})
 	print payload
 	apns.gateway_server.send_notification(token_hex, payload)
 

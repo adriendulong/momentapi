@@ -345,6 +345,34 @@ class User(db.Model):
         db.session.commit()
         return deviceTemp
 
+    #Fonction qui update un user en fonction des champs d'un prospect
+    def update_from_prospect(self, prospect):
+        if self.firstname is None or self.firstname == ""  and prospect.firstname is not None:
+            self.firstname = prospect.firstname
+
+        if self.lastname is None or self.lastname == "" and prospect.lastname is not None:
+            self.lastname = prospect.lastname
+
+        if self.phone is None or self.phone == "" and prospect.phone is not None:
+            self.phone = prospect.phone
+
+        if self.email is None or self.email == "" and prospect.email is not None:
+            self.email = prospect.email
+
+        if self.facebookId is None and prospect.facebookId is not None:
+            self.facebookId = prospect.facebookId
+
+        if self.secondEmail is None or self.secondEmail == "" and prospect.secondEmail is not None:
+            self.secondEmail = prospect.secondEmail
+
+        if self.secondPhone is None or self.secondPhone == "" and prospect.secondPhone is not None:
+            self.secondPhone = prospect.secondPhone
+
+        if self.profile_picture_url is None and prospect.profile_picture_url is not None:
+            self.profile_picture_url = prospect.profile_picture_url
+
+
+
 
 
 
@@ -1091,7 +1119,7 @@ class Device(db.Model):
             thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
         #C'est un iPhone
         if self.os == 0:
-            thread.start_new_thread(fonctions.send_ios_notif_chat, (moment.id, type_id, self.notif_id, message, chat.chat_to_send(),))
+            thread.start_new_thread(fonctions.send_ios_notif_chat, (moment.id, type_id, self.notif_id, message, chat.id,))
             
 
 
@@ -1111,6 +1139,7 @@ class Chat(db.Model):
 
     def __init__(self, message, user, moment):
         self.message = message
+        self.time = datetime.datetime.now()
         user.chats.append(self)
         moment.chats.append(self)
 
