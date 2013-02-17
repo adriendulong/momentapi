@@ -132,9 +132,13 @@ def send_message_device(reg_id, titre, message):
 	# Plaintext request
 	gcm.plaintext_request(registration_id=reg_id, data=data)
 
+
+
+
+
 #Push notification to iOS
 def send_ios_notif(id_moment, type_notif, reg_id, message):
-	PAYLOAD = {
+	'''PAYLOAD = {
 			'aps': {
 			   	'alert': message,
 		    	'sound': 'bingbong.aiff'
@@ -142,6 +146,7 @@ def send_ios_notif(id_moment, type_notif, reg_id, message):
 			'type_id' : type_notif,
 			'id_moment': id_moment
 	}
+
 
 	payload = json.dumps(PAYLOAD)
 
@@ -163,8 +168,44 @@ def send_ios_notif(id_moment, type_notif, reg_id, message):
 	cmd = '\x00'
 	message = struct.pack(fmt, cmd, len(token), token, len(payload), payload)
 	sock.write(message)
-	sock.close()
+	sock.close()'''
 
+
+	apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
+
+	# Send a notification
+	token_hex = reg_id
+	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=1)
+	apns.gateway_server.send_notification(token_hex, payload)
+
+
+#Push notification to iOS
+def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat):
+
+	#Payload pour le chat
+	PAYLOAD_CHAT = {
+			'aps': {
+			   	'alert': chat,
+		    	'sound': 'bingbong.aiff'
+			},
+			'type_id' : type_notif,
+			'id_moment': id_moment,
+			'chat' : chat
+	}
+
+	apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
+
+	# Send a notification
+	token_hex = reg_id
+	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=1, custom={'type_id': type_notif, 'id_moment' : id_moment, 'chat' : chat})
+	print payload
+	apns.gateway_server.send_notification(token_hex, payload)
+
+
+	# Get feedback messages
+	for (token_hex, fail_time) in apns.feedback_server.items():
+	    print token_hex
+	    print fail_time
 
 
 

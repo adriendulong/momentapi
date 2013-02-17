@@ -96,6 +96,18 @@ def index():
 		return user.email
 
 
+#################################################################
+######## Requete pour ecouter un tag instagram ##################
+##################################################################
+
+@app.route("/addtag/<tag>")
+def addtag(tag):
+    payload = {'client_id': constants.INTAGRAM_CLIENT_ID, 'client_secret': constants.INSTAGRAM_CLIENT_SECRET, 'object':'tag', 'aspect':'media', 'object_id':tag, 'callback_url':'http://api.appmoment.fr/instagram'}
+    r = requests.post("https://api.instagram.com/v1/subscriptions/", data=payload)
+
+    return r.text
+
+
 
 #################################################################
 ######## Requete pour enregistrer un nouvel utilisateur #########
@@ -1090,8 +1102,7 @@ def new_chat(moment_id):
 			if "message" in request.form:
 				#On créé un nouveau chat lié au user en question et au Moment
 				chat = Chat(request.form["message"], current_user, moment)
-				db.session.add(chat)
-				db.session.commit()
+				
 
 				reponse["success"] = "message added to the chat"
 				return jsonify(reponse), 200

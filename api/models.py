@@ -394,7 +394,7 @@ class User(db.Model):
         title = "Nouveau Message de %s" % (chat.user.firstname)
 
         for device in self.devices:
-            device.notify_simple(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'))
+            device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat)
 
 
 
@@ -1082,6 +1082,16 @@ class Device(db.Model):
         #C'est un iPhone
         if self.os == 0:
             thread.start_new_thread(fonctions.send_ios_notif, (moment.id, type_id, self.notif_id, message,))
+
+
+    def notify_chat(self, moment, type_id, titre, message, chat):
+        #C'est un Android
+        if self.os==1:
+
+            thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
+        #C'est un iPhone
+        if self.os == 0:
+            thread.start_new_thread(fonctions.send_ios_notif_chat, (moment.id, type_id, self.notif_id, message, chat.chat_to_send(),))
             
 
 
@@ -1104,8 +1114,14 @@ class Chat(db.Model):
         user.chats.append(self)
         moment.chats.append(self)
 
+        #On enregistre
+        db.session.add(self)
+        db.session.commit()
+
         #On notifie tous les gens invités à ce moment que quelqu'un a ecrit un message
         moment.notify_users_new_chat(self)
+
+        
 
 
     def chat_to_send(self):
@@ -1143,7 +1159,7 @@ class Notification(db.Model):
         notif["time"] = self.time.strftime("%s")
         notif["moment_id"] = self.moment_id
         notif["moment_name"] = self.moment.name
-        notif["type"] = self.type_notif
+        notif["type_id"] = self.type_notif
 
         return notif
 
