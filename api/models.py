@@ -1045,6 +1045,9 @@ class Photo(db.Model):
         self.path_thumbnail = app.root_path+moment.get_moment_path()+"/photos/thumbnail/"+photo_name
         self.url_thumbnail = "http://%s%s" % (app.config.get("SERVER_NAME"), moment.get_moment_path()+"/photos/thumbnail/"+photo_name)
 
+        #On met une heure
+        self.creation_datetime = datetime.datetime.now()
+
 
 
         db.session.commit()
@@ -1061,6 +1064,7 @@ class Photo(db.Model):
         photo["url_thumbnail"] = self.url_thumbnail
         photo["taken_by"] = self.user.user_to_send()
         photo["nb_like"] = len(self.likes)
+        photo["time"] = self.creation_datetime.strftime("%s")
 
         return photo
 
