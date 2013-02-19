@@ -1190,8 +1190,7 @@ class Notification(db.Model):
     def notif_to_send(self):
         notif = {}
         notif["time"] = self.time.strftime("%s")
-        notif["moment_id"] = self.moment_id
-        notif["moment_name"] = self.moment.name
+        notif["moment"] = self.moment.moment_to_send(self.user_id)
         notif["type_id"] = self.type_notif
 
         return notif

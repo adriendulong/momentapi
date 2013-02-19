@@ -1246,6 +1246,29 @@ def notifications():
 	return jsonify(reponse), 200
 
 
+#####################################################################
+############ REset Notifications une fois luz #################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/resetnotifications', methods=["GET"])
+@login_required
+def reset_notifications():
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	
+	for notification in current_user.notifications:
+		db.session.delete(notification)
+
+	db.session.commit()
+
+	reponse["success"] = "Notifications emptied"
+
+	return jsonify(reponse), 200
+
+
 
 #####################################################################
 ############ Matcher les moments avec un code #######################
