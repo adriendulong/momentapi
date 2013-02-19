@@ -396,9 +396,50 @@ def new_moment():
 		if "hashtag" in request.form:
 			hashtag = request.form["hashtag"]
 			moment.hashtag = hashtag
+
+		#Si on fournit le Facebook Id alors c'est un event importé de Facebook
 		if "facebookId" in request.form:
-			facebookId = request.form["facebookId"]
-			moment.facebookId = facebookId
+			#Il faut vérifier qu'un Moment avec ce facebookId n'existe pas
+			momentFb = Moment.query.filter(Moment.facebookId == request.form["facebookId"]).first()
+
+			#Si ce moment existe déjà
+			if momentFb is not None:
+				#On rajoute ce user comme guest
+				momentFb.add_guest(current_user.id, request.form["state"])
+				db.session.commit()
+
+				reponse = momentFb.moment_to_send(current_user.id)
+				return jsonify(reponse), 200
+
+			#Sinon on créé normalement le moment mais on attribut le state à ce user
+			else:
+				facebookId = request.form["facebookId"]
+				moment.facebookId = facebookId
+				#On créé l'invitation qui le lie à ce Moment
+				invitation = Invitation(request.form["state"], current_user) 
+
+				#On ratache cette invitations aux guests du nouveau Moment
+				moment.guests.append(invitation)
+
+				#On enregistre en base
+				db.session.add(moment)
+				db.session.commit()
+
+				#On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
+				moment.create_paths()
+
+				if "photo" in request.files:
+					f = request.files["photo"]
+					#On enregistre la photo et son chemin en base
+					name_picture = "cover"
+					path_photo = moment.add_cover_photo(f, name_picture)
+					moment.cover_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+					moment.cover_picture_path = "%s%s" % (app.root_path, path_photo)
+					#On enregistre en base
+					db.session.commit()
+
+				reponse = moment.moment_to_send(current_user.id)
+				return jsonify(reponse), 200
 
 
 		# On recupere en base le user qui créé ce Moment
