@@ -84,7 +84,7 @@ class User(db.Model):
     lastname = db.Column(db.String(80))
     pwd = db.Column(db.String(80))
     phone = db.Column(db.String(20))
-    facebookId = db.Column(db.Integer)
+    facebookId = db.Column(db.BigInteger)
     creationDateUser = db.Column(db.Date)
     goldProfileNumber = db.Column(db.Integer)
     secondEmail = db.Column(db.String(80))
@@ -502,11 +502,12 @@ class Moment(db.Model):
     endTime = db.Column(db.Time)
     description = db.Column(db.Text)
     hashtag = db.Column(db.String(60))
-    facebookId = db.Column(db.Integer)
+    facebookId = db.Column(db.BigInteger)
     isOpenInvit = db.Column(db.Boolean, default=False)
     last_modification = db.Column(db.DateTime, default = datetime.datetime.now())
     cover_picture_url = db.Column(db.String(120))
     cover_picture_path = db.Column(db.String(120))
+    owner_facebookId = db.Column(db.BigInteger)
 
     guests = db.relationship("Invitation", backref="moment")
     prospects = db.relationship("Prospect",
