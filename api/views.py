@@ -537,7 +537,7 @@ def moments():
 
 	# On construit le tableau de moments que l'on va renvoyer
 	reponse["moments"] = []
-	for moment in moments_of_user_past:
+	for moment in reversed(moments_of_user_past):
 		# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
 		reponse["moments"].append(moment.moment_to_send(current_user.id))
 
