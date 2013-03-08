@@ -1393,7 +1393,7 @@ def match_code(code):
 # Paramètres obligatoires : 
 #	
 
-@app.route('/facebookevents/', methods=["POST"])
+@app.route('/facebookevents', methods=["POST"])
 @login_required
 def facebookevents():
 
