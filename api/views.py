@@ -415,11 +415,9 @@ def new_moment():
 			else:
 				facebookId = request.form["facebookId"]
 				moment.facebookId = facebookId
-				#On créé l'invitation qui le lie à ce Moment
-				invitation = Invitation(request.form["state"], current_user) 
 
-				#On ratache cette invitations aux guests du nouveau Moment
-				moment.guests.append(invitation)
+				#On rajoute le user en invité
+				moment.add_guest(current_user.id, request.form["state"])
 
 				#On enregistre en base
 				db.session.add(moment)
@@ -437,6 +435,12 @@ def new_moment():
 					moment.cover_picture_path = "%s%s" % (app.root_path, path_photo)
 					#On enregistre en base
 					db.session.commit()
+
+				if "photo_url" in request.form:
+					moment.cover_picture_url = request.form["photo_url"]
+					db.session.commit()
+
+
 
 				reponse = moment.moment_to_send(current_user.id)
 				return jsonify(reponse), 200
@@ -540,13 +544,13 @@ def moments_after_date(date):
 
 		# Si on demande des moments superieur à une date future
 		if dateRef > datetime.date.today():
-			moments = user.get_moments_sup_date(nb_moment, dateRef, True)
+			moments = user.get_moments_sup_date(nb_moment, dateRef, False)
 			reponse["success"] = "These are the %s moments after the %s" % (len(moments), date)
 			for moment in moments:
 				moments_to_send.append(moment.moment_to_send(user.id))
 
 		else:
-			moments = user.get_moments_inf_date(nb_moment, dateRef, True)
+			moments = user.get_moments_inf_date(nb_moment, dateRef, False)
 			reponse["success"] = "These are the %s moments before the %s" % (len(moments), date)
 			for moment in moments:
 				moments_to_send.append(moment.moment_to_send(user.id))
@@ -745,17 +749,50 @@ def new_guests(idMoment):
 # Paramètres obligatoires : 
 #	
 
-@app.route('/user', methods=["GET"])
+@app.route('/user', methods=["GET", "POST"])
 @login_required
 def user():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 
-	user = User.query.get(current_user.id)
+	user = current_user
 
-	reponse = user.user_to_send()
+	if request.method == 'GET':
+		reponse = user.user_to_send()
+		return jsonify(reponse), 200
 
-	return jsonify(reponse), 200
+	else:
+		reponse["modified_elements"] = {}
+
+		#Si le facebookId est fourni
+		if "facebookId" in  request.form:
+			print "INIT facebookId"
+			user.facebookId = request.form["facebookId"]
+
+			#reponse
+			reponse["modified_elements"]["facebookId"] = "Modified with %s" % user.facebookId
+
+				#On voit si un prospect avec ce FacebookID existait
+			prospect = Prospect.query.filter(Prospect.facebookId == user.facebookId).first()
+
+			#Si un prospect existait on met à jour le profil et on recupere les moments
+			if prospect is not None:
+				#On recupere les moments
+				prospect.match_moments(user)
+				#On met à jour le profil avec les données sur prospect
+				user.update_from_prospect(prospect)
+
+				#On efface le prospect
+				db.session.delete(prospect)
+				db.session.commit()
+
+				reponse["modified_elements"]["facebookId"] = "Modified with %s and some moments matched" % user.facebookId
+					
+
+
+		
+		db.session.commit()
+		return jsonify(reponse), 200
 
 
 #####################################################################
@@ -1070,8 +1107,10 @@ def photos_moment(moment_id):
 	if moment is not None:
 		#On verifie que le user est bien parmis les invites pour acceder aux photos
 		if moment.is_in_guests(current_user.id):
+			photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(asc(Photo.creation_datetime)).all()
+			#filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
 			reponse["photos"] = []
-			for photo in moment.photos:
+			for photo in photos:
 				reponse["photos"].append(photo.photo_to_send())
 
 			return jsonify(reponse), 200
@@ -1342,6 +1381,55 @@ def match_code(code):
 
 		reponse["success"] = "The Moments have been matched"
 		return jsonify(reponse), 200
+
+
+
+
+#####################################################################
+############ Tris les evenements Facebook entre ceux déjà existans   ###################
+############ ceux existant et où le user est invité, ceux non existants #######################
+######################################################################
+# Methode acceptées : POST
+# Paramètres obligatoires : 
+#	
+
+@app.route('/facebookevents/', methods=["POST"])
+@login_required
+def facebookevents():
+
+	reponse = {}
+	reponse["exist_and_invited"] = []
+	reponse["exist"] = []
+	reponse["not_exist"] = []
+
+	#On recupere tous les facebookId
+	if "events" in request.json:
+		events = request.json["events"]
+
+		#Pour chaque facebookId
+		for event in events:
+			print event
+			fbEvent = Moment.query.filter(Moment.facebookId == event).first()
+
+			#Si un moment avec ce facebookID existe
+			if fbEvent is not None:
+
+				#Si le user fait parti des invité
+				if fbEvent.is_in_guests(current_user.id):
+					reponse["exist_and_invited"].append(fbEvent.facebookId)
+				else:
+					reponse["exist"].append(fbEvent.facebookId)
+
+			else:
+				reponse["not_exist"].append(event)
+
+		return jsonify(reponse), 200
+
+	else:
+		reponse = {}
+		reponse["error"] = "no events provided"
+		return jsonufy(reponse), 405
+
 
 
 
