@@ -210,7 +210,7 @@ class User(db.Model):
     def get_moments_inf_date(self, nb_moments, date, equal):
 
         if equal:
-            moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate <= date).order_by(Moment.startDate.asc()).limit(nb_moments).all()
+            moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate <= date).order_by(Moment.startDate.desc()).limit(nb_moments).all()
 
             #Si on a recupéré des moments
             if len(moments) > 0:
@@ -218,7 +218,7 @@ class User(db.Model):
                 last_moment = moments[0]
 
                 #Si il y en a on recupere aussi les moments de la derniere journée
-                moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.asc()).all()
+                moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.desc()).all()
 
                 for moment in moments_day:
                     isPresent = False
@@ -636,6 +636,8 @@ class Moment(db.Model):
     def add_guest(self, user_id, state):
 
         user = User.query.get(user_id)
+
+        print user.firstname
 
         if user is not None:
             #Si il n'est pas déjà invité

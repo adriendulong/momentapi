@@ -404,6 +404,7 @@ def new_moment():
 
 			#Si ce moment existe déjà
 			if momentFb is not None:
+				print current_user.id
 				#On rajoute ce user comme guest
 				momentFb.add_guest(current_user.id, request.form["state"])
 				db.session.commit()
@@ -413,11 +414,41 @@ def new_moment():
 
 			#Sinon on créé normalement le moment mais on attribut le state à ce user
 			else:
+				print "Null"
 				facebookId = request.form["facebookId"]
 				moment.facebookId = facebookId
 
+
 				#On rajoute le user en invité
 				moment.add_guest(current_user.id, request.form["state"])
+
+				#Si on nous fournit un owner
+				'''owner = {}
+				if  "owner_facebookId" in request.form:
+				 	owner["facebookId"] = request.form["owner_facebookId"]
+
+					#On voit si un user avec ce facebookId existe
+					userPot = User.query.filter(User.facebookId == owner["facebookId"]).first()
+					prospectPot = Prospect.query.filter(Prospect.facebookId == owner["facebookId"]).first()
+
+					if userPot is not None:
+						moment.add_guest(userPot, userConstants.OWNER)
+					elif prospectPot is not None:
+						moment.add_prospect(prospectPot)
+					else:
+						#On recupere les infos et on créé le prospect
+						if "owner_firstname" in request.form:
+						 	owner["firstname"] = requet.form["owner_firstname"]
+						if "owner_lastname" in request.form:
+							owner["lastname"] = request.form["owner_lastname"]
+						if "owner_picture_url":
+							owner["photo_url"] = request.form["owner_picture_url"]
+
+						prospect = Prospect()
+						prospect.init_from_dict(owner)'''
+
+
+
 
 				#On enregistre en base
 				db.session.add(moment)
