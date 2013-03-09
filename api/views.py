@@ -715,8 +715,9 @@ def del_moment(id_moment):
 
 
 			#On supprime la cover
-			if os.path.exists(moment.cover_picture_path):
-				os.remove(moment.cover_picture_path)
+			if moment.cover_picture_path is not None:
+				if os.path.exists(moment.cover_picture_path):
+					os.remove(moment.cover_picture_path)
 
 			db.session.delete(moment)
 			db.session.commit()
