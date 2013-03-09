@@ -705,6 +705,13 @@ def del_moment(id_moment):
 				db.session.delete(photo)
 
 
+			#On efface les notifs
+			invitations = Invitation.query.filter(Invitation.moment_id == moment.id).all()
+
+			for invitation in invitations:
+				db.session.delete(invitation)
+
+
 			db.session.delete(moment)
 			db.session.commit()
 
