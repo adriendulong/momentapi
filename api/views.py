@@ -688,7 +688,6 @@ def del_moment(id_moment):
 
 			for invitation in invitations:
 				db.session.delete(invitation)
-				db.session.commit()
 
 
 			#On efface tous les chats
@@ -696,7 +695,6 @@ def del_moment(id_moment):
 
 			for chat in chats:
 				db.session.delete(chat)
-				db.session.commit()
 
 			#On efface toutes les photos
 			photos = Photo.query.filter(Photo.moment_id == moment.id).all()
@@ -707,15 +705,13 @@ def del_moment(id_moment):
 				if os.path.exists(photo.path_thumbnail):
 					os.remove(photo.path_thumbnail)
 				db.session.delete(photo)
-				db.session.commit()
 
 
 			#On efface les notifs
-			invitations = Invitation.query.filter(Invitation.moment_id == moment.id).all()
+			notifications = Notification.query.filter(Notification.moment_id == moment.id).all()
 
-			for invitation in invitations:
-				db.session.delete(invitation)
-				db.session.commit()
+			for notification in notifications:
+				db.session.delete(notification)
 
 
 			db.session.delete(moment)
