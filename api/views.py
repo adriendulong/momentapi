@@ -9,7 +9,7 @@ from flask import session
 from flask.ext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin, AnonymousUser,
                             confirm_login, fresh_login_required)
-from api.models import User, Moment, Invitation, Prospect, Photo, Device, Chat
+from api.models import User, Moment, Invitation, Prospect, Photo, Device, Chat, Notification
 from itsdangerous import URLSafeSerializer
 import controller
 import constants
