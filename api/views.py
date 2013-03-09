@@ -700,8 +700,10 @@ def del_moment(id_moment):
 			photos = Photo.query.filter(Photo.moment_id == moment.id).all()
 
 			for photo in photos:
-				os.remove(photo.path_original)
-				os.remove(photo.path_thumbnail)
+				if os.path.exists(photo.path_original):
+					os.remove(photo.path_original)
+				if os.path.exists(photo.path_thumbnail):
+					os.remove(photo.path_thumbnail)
 				db.session.delete(photo)
 
 
