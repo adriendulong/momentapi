@@ -746,6 +746,14 @@ class Moment(db.Model):
             if guest.state == userConstants.OWNER:
                 return guest.user
 
+    def is_owner(self, user):
+        for guest in self.guests:
+            if guest.state == userConstants.OWNER:
+                if guest.user.id == user.id:
+                    return True
+
+        return False
+
 
     #Fonction qui dit si le user est déjà ADMIN ou pas
     def is_admin(self, user):

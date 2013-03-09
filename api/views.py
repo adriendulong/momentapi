@@ -15,7 +15,8 @@ import controller
 import constants
 import fonctions
 import user.userConstants as userConstants
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, and_, or_
+import os
 
 
 
@@ -660,6 +661,65 @@ def moment(id):
 	return jsonify(reponse), 200
 
 
+
+
+#####################################################################
+####################  Suppr un moment ###############
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires :
+# 	- Aucune 
+#	
+
+@app.route('/delmoment/<int:id_moment>', methods=["GET"])
+@login_required
+def del_moment(id_moment):
+	reponse = {}
+
+	#On recupere le moment
+	moment = Moment.query.get(id_moment)
+
+	#On verifie que le moment existe
+	if moment is not None:
+		#On verifie que le user est bien le owner
+		if moment.is_owner(current_user):
+			#On efface toutes les invitation :
+			invitations = Invitation.query.filter(Invitation.moment_id == moment.id).all()
+
+			for invitation in invitations:
+				db.session.delete(invitation)
+
+
+			#On efface tous les chats
+			chats = Chat.query.filter(Chat.moment_id == moment.id).all()
+
+			for chat in chats:
+				db.session.delete(chat)
+
+			#On efface toutes les photos
+			photos = Photo.query.filter(Photo.moment_id == moment.id).all()
+
+			for photo in photos:
+				os.remove(photo.path_original)
+				os.remove(photo.path_thumbnail)
+				db.session.delete(photo)
+
+
+			db.session.delete(moment)
+			db.session.commit()
+
+			reponse["success"] = "This moment has been deleted"
+			return jsonify(reponse), 200
+
+		else:
+			reponse["error"] = "The Moment can only be deleted by his owner"
+			return jsonify(reponse), 405
+
+	else:
+		reponse["error"] = "This moment does not exist"
+		return jsonify(reponse), 405
+
+
 #####################################################################
 ################  Ajouter des invités à un Moment ###################
 ######################################################################
@@ -777,7 +837,10 @@ def user():
 	else:
 		reponse["modified_elements"] = {}
 
-		#Si le facebookId est fourni
+		######
+		## On modifie le FB id
+		######
+
 		if "facebookId" in  request.form:
 			user.facebookId = request.form["facebookId"]
 
@@ -799,10 +862,117 @@ def user():
 				db.session.commit()
 
 				reponse["modified_elements"]["facebookId"] = "Modified with %s and some moments matched" % user.facebookId
-					
+
+		####
+		## On modifie le phone
+		####
+
+		if "phone" in request.form:
+			user.phone = request.form["phone"]
+
+			reponse["modified_elements"]["phone"] = "Modified with %s" % user.phone
+
+			prospect = Prospect.query.filter(Prospect.phone == user.phone).first()
+
+			#Si un prospect existait on met à jour le profil et on recupere les moments
+			if prospect is not None:
+				#On recupere les moments
+				prospect.match_moments(user)
+				#On met à jour le profil avec les données sur prospect
+				user.update_from_prospect(prospect)
+
+				#On efface le prospect
+				db.session.delete(prospect)
+				db.session.commit()
+
+				reponse["modified_elements"]["phone"] = "Modified with %s and some moments matched" % user.phone
 
 
-		
+		### 
+		## On modifie l'email
+		###
+		'''
+		if "email" in request.form:
+			user.email = request.form["email"]
+
+			reponse["modified_elements"]["email"] = "Modified with %s" % user.email
+
+			prospect = Prospect.query.filter(Prospect.email == user.email).first()
+
+			#Si un prospect existait on met à jour le profil et on recupere les moments
+			if prospect is not None:
+				#On recupere les moments
+				prospect.match_moments(user)
+				#On met à jour le profil avec les données sur prospect
+				user.update_from_prospect(prospect)
+
+				#On efface le prospect
+				db.session.delete(prospect)
+				db.session.commit()
+
+				reponse["modified_elements"]["email"] = "Modified with %s and some moments matched" % user.email
+
+				'''
+
+		###
+		## On modifie le prénom
+		###
+
+		if "firstname" in request.form:
+			user.firstname = request.form["firstname"]
+
+			reponse["modified_elements"]["firstname"] = "Modified with %s" % user.firstname
+
+			prospect = Prospect.query.filter(Prospect.firstname == user.firstname).first()
+
+			#Si un prospect existait on met à jour le profil et on recupere les moments
+			if prospect is not None:
+				#On recupere les moments
+				prospect.match_moments(user)
+				#On met à jour le profil avec les données sur prospect
+				user.update_from_prospect(prospect)
+
+				#On efface le prospect
+				db.session.delete(prospect)
+				db.session.commit()
+
+				reponse["modified_elements"]["firstname"] = "Modified with %s and some moments matched" % user.firstname
+
+		###
+		## On modifie le nom
+		###
+
+		if "lastname" in request.form:
+			user.lastname = request.form["lastname"]
+
+			reponse["modified_elements"]["lastname"] = "Modified with %s" % user.lastname
+
+			prospect = Prospect.query.filter(Prospect.lastname == user.lastname).first()
+
+			#Si un prospect existait on met à jour le profil et on recupere les moments
+			if prospect is not None:
+				#On recupere les moments
+				prospect.match_moments(user)
+				#On met à jour le profil avec les données sur prospect
+				user.update_from_prospect(prospect)
+
+				#On efface le prospect
+				db.session.delete(prospect)
+				db.session.commit()
+
+				reponse["modified_elements"]["lastname"] = "Modified with %s and some moments matched" % user.lastname
+
+		###
+		## On modifie la photo
+		###
+
+		if "photo" in request.files:
+			print "new photo"
+			name_picture = "%s" % current_user.id
+			user.add_profile_picture(request.files["photo"], name_picture)
+
+
+
 		db.session.commit()
 		return jsonify(reponse), 200
 
@@ -1470,6 +1640,46 @@ def privacy_moment(id_moment):
 	else:
 		moment["error"] = "This moment does not exist"
 		return jsonify(reponse), 405
+
+
+
+#####################################################################
+############ Recherche de user ou moment ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/search/<search>', methods=["GET"])
+@login_required
+def search(search):
+	reponse = {}
+
+	print search
+
+	#On recherche des user dont le prénom ou le nom corresponde
+	#Pour les noms on decompose car la premiere partie correspondra à nom ou prénom et l'autre à nom ou prenom
+
+	decSearch = search.split(" ", 2)
+
+
+	#Si le texte est composé d'un seul mot
+	if len(decSearch)==1:
+		users = User.query.filter(or_(User.firstname.ilike("%"+decSearch[0]+"%"), User.lastname.ilike("%"+decSearch[0]+"%"))).all()
+
+	#Sinon on peut avoir nom et prenom
+	else:
+		users = User.query.filter(or_(and_(User.firstname.ilike("%"+decSearch[0]+"%"), User.lastname.ilike("%"+decSearch[1]+"%")), and_(User.lastname.ilike("%"+decSearch[0]+"%"), User.firstname.ilike("%"+decSearch[1]+"%")))).all()
+
+	reponse["users"] = []
+	for user in users:
+		reponse["users"].append(user.user_to_send())
+
+
+	return jsonify(reponse), 200
+
+
+
 
 		
 
