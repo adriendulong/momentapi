@@ -89,7 +89,6 @@ def load_token(token):
 @app.route('/')
 @login_required
 def index():
-	print app.config.get("SERVER_NAME")
 	user = User.query.filter(User.email == current_user.email).first()
 	if user is None:
 		return current_user.email
@@ -125,14 +124,6 @@ def register():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 
-	if "model" in request.form:
-		print request.form["model"]
-	if "os" in request.form:
-		print request.form["os"]
-	if "os_version" in request.form:
-		print request.form["os_version"]
-	if "reg_id" in request.form:
-		print request.form["reg_id"]
 
 	#On verifie que tous les champs obligatoires sont renseignés (email, password, firstname, lastname)
 	if request.method == "POST" and "password" in request.form and "email" in request.form and "firstname" in request.form and "lastname" in request.form :
@@ -146,7 +137,6 @@ def register():
 
 		# Si un utilisateur avec cette adresse mail existe on ne peut pas créer un compte
 		if controller.user_exist_email(email):
-			print "does exist"
 			reponse["error"] = "already exist"
 			return jsonify(reponse), 405
 
@@ -273,19 +263,6 @@ def login():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 
-	if "model" in request.form:
-		print request.form["model"]
-	if "os" in request.form:
-		print request.form["os"]
-	if "os_version" in request.form:
-		print request.form["os_version"]
-	if "notif_id" in request.form:
-		print request.form["notif_id"]
-	if "device_id" in request.form:
-		print request.form["device_id"]
-	if "lang" in request.form:
-		print request.form["lang"]
-
 	#On verifie que tous les champs sont renseignes
 	if request.method == "POST" and "email" in request.form and "password" in request.form:
 		email = request.form["email"]
@@ -404,7 +381,6 @@ def new_moment():
 
 			#Si ce moment existe déjà
 			if momentFb is not None:
-				print current_user.id
 				#On rajoute ce user comme guest
 				momentFb.add_guest(current_user.id, request.form["state"])
 				db.session.commit()
@@ -414,7 +390,6 @@ def new_moment():
 
 			#Sinon on créé normalement le moment mais on attribut le state à ce user
 			else:
-				print "Null"
 				facebookId = request.form["facebookId"]
 				moment.facebookId = facebookId
 
@@ -422,8 +397,11 @@ def new_moment():
 				#On rajoute le user en invité
 				moment.add_guest(current_user.id, request.form["state"])
 
-				#Si on nous fournit un owner
-				'''owner = {}
+				###############
+				## On nous fournit un owner
+				###############
+
+				owner = {}
 				if  "owner_facebookId" in request.form:
 				 	owner["facebookId"] = request.form["owner_facebookId"]
 
@@ -433,19 +411,27 @@ def new_moment():
 
 					if userPot is not None:
 						moment.add_guest(userPot, userConstants.OWNER)
+
+					#C est un prospect de notre base
 					elif prospectPot is not None:
 						moment.add_prospect(prospectPot)
+						#Si c'est un prospect on doit retenir quel facebook Id il a afin de le retrouver comme owner
+						moment.owner_facebookId = request.form["owner_facebookId"]
+
+					#Il n'existe pas en base, on créé un prospect en base et on le garde comme owner
 					else:
 						#On recupere les infos et on créé le prospect
 						if "owner_firstname" in request.form:
-						 	owner["firstname"] = requet.form["owner_firstname"]
+						 	owner["firstname"] = request.form["owner_firstname"]
 						if "owner_lastname" in request.form:
 							owner["lastname"] = request.form["owner_lastname"]
 						if "owner_picture_url":
 							owner["photo_url"] = request.form["owner_picture_url"]
 
 						prospect = Prospect()
-						prospect.init_from_dict(owner)'''
+						prospect.init_from_dict(owner)
+						moment.owner_facebookId = request.form["owner_facebookId"]
+						db.session.add(prospect)
 
 
 
@@ -611,7 +597,6 @@ def moments_after_date(date):
 @login_required
 def moment(id):
 	#On créé la réponse qui sera envoyé
-	print id
 	reponse = {}
 
 	# Si c est une requete POST on modofie le moment
@@ -687,7 +672,6 @@ def moment(id):
 def new_guests(idMoment):
 	#On créé la réponse qui sera envoyé
 	reponse = {}
-	print idMoment
 
 	# Compteur d'invités rajoutés
 	count = 0
@@ -703,7 +687,6 @@ def new_guests(idMoment):
 
 				# On recupere les users fournis dans la requete
 				users = request.json["users"]
-				print len(users)
 
 				#On parcourt la liste des users envoyés
 				for user in users:
@@ -720,7 +703,6 @@ def new_guests(idMoment):
 								# On le rajoute et si ça s'est bien passé on incrémente le compteur
 								if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
 									count += 1
-									print user["id"]
 
 
 						#Sinon c'est un prospect
@@ -797,7 +779,6 @@ def user():
 
 		#Si le facebookId est fourni
 		if "facebookId" in  request.form:
-			print "INIT facebookId"
 			user.facebookId = request.form["facebookId"]
 
 			#reponse
@@ -1253,7 +1234,6 @@ def last_chats(moment_id, nb_page = 1):
 		#On verifie que le user fait partie des invités
 		if moment.is_in_guests(current_user.id):
 			#On recupere les chats de ce Moment, au format pagination
-			print nb_page
 			chatsPagination = Chat.query.filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
 
 			#Si il y a des pages suivantes
@@ -1439,7 +1419,6 @@ def facebookevents():
 
 		#Pour chaque facebookId
 		for event in events:
-			print event
 			fbEvent = Moment.query.filter(Moment.facebookId == event).first()
 
 			#Si un moment avec ce facebookID existe
@@ -1460,6 +1439,40 @@ def facebookevents():
 		reponse = {}
 		reponse["error"] = "no events provided"
 		return jsonufy(reponse), 405
+
+
+#####################################################################
+############ Modifier la privacy du Moment #######################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/openmoment/<int:id_moment>', methods=["GET"])
+@login_required
+def privacy_moment(id_moment):
+
+	reponse = {}
+
+	moment = Moment.query.get(id_moment)
+
+	if moment is not None:
+		if moment.isOpenInvit:
+			moment.isOpenInvit = False
+			reponse["success"] = "Moment is now closed"
+		else:
+			moment.isOpenInvit = True
+			reponse["success"] = "Moment is now open"
+
+		db.session.commit()
+		return jsonify(reponse), 200
+
+	else:
+		moment["error"] = "This moment does not exist"
+		return jsonify(reponse), 405
+
+		
+
 
 
 

@@ -537,6 +537,7 @@ class Moment(db.Model):
         moment["address"] = self.address
         moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
         moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
+        moment["isOpen"] = self.isOpenInvit
         
         if self.description is not None:
             moment["description"] = self.description
@@ -564,6 +565,17 @@ class Moment(db.Model):
         for guest in self.guests:
             if guest.state == 0:
                 moment["owner"] = guest.user.user_to_send()
+
+        #Si on a pas recupére de Owner parmis les user Moment alors c est peut etre un prospect (si le moment provient d'un evenement FB)
+        if "owner" not in moment:
+            #Si on a associé un facebook Id au owner alors on devrait le retrouver dans les prospect
+            if self.owner_facebookId is not None:
+                ownerProspect = Prospect.query.filter(Prospect.facebookId == self.owner_facebookId).first()
+
+                #Si il y en a bien un
+                if ownerProspect is not None:
+                    moment["owner"] = ownerProspect.prospect_to_send()
+
 
         # Les invités
         moment["guests_number"] = len(self.guests) + len(self.prospects)
