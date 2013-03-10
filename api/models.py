@@ -1107,6 +1107,13 @@ class Photo(db.Model):
         db.session.commit()
         return True
 
+    def delete_photos(self):
+
+        if os.path.exists(self.path_original):
+            os.remove(self.path_original)
+        if os.path.exists(self.path_thumbnail):
+            os.remove(self.path_thumbnail)
+
 
 
 

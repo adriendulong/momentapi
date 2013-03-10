@@ -752,6 +752,54 @@ def del_moment(id_moment):
 		return jsonify(reponse), 405
 
 
+
+#####################################################################
+####################  Suppr une photo #######################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires :
+# 	- Aucune 
+#	
+
+@app.route('/delphoto/<int:id_photo>', methods=["GET"])
+@login_required
+def del_moment(id_photo):
+	reponse = {}
+
+	photo = Photo.query.get(id_photo)
+
+	if photo is not None:
+		momentPhoto = Moment.query.get(photo.moment_id)
+
+		#On verifie que le user est bien le owner de ce moment ou celui qui l'a posté
+		if momentPhoto.is_owner(current_user):
+			photo.delete_photos()
+			db.session.delete(photo)
+			db.session.commit()
+
+			reponse["succes"] = "This photo has been deleted"
+			return jsonify(reponse), 200
+
+		elif photo.user_id == current_user.id:
+			photo.delete_photos()
+			db.session.delete(photo)
+			db.session.commit()
+
+			reponse["succes"] = "This photo has been deleted"
+			return jsonify(reponse), 200
+			
+		else:
+			reponse["error"] = "This user is not allowed to delete this photo"
+			return jsonify(reponse), 405
+
+
+
+	else:
+		reponse["error"] = "This photo does not exist"
+		return jsonify(reponse), 405
+
+
+
 #####################################################################
 ################  Ajouter des invités à un Moment ###################
 ######################################################################
