@@ -787,7 +787,7 @@ def del_moment(id_photo):
 
 			reponse["succes"] = "This photo has been deleted"
 			return jsonify(reponse), 200
-			
+
 		else:
 			reponse["error"] = "This user is not allowed to delete this photo"
 			return jsonify(reponse), 405
@@ -1788,6 +1788,34 @@ def search(search):
 
 
 	return jsonify(reponse), 200
+
+
+
+#####################################################################
+############ Changer MDP (STTTTTTOOOOPPP CEETTEE REQUETE) ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/changepassword/<email>/<passw>', methods=["GET"])
+def password(email, passw):
+
+	reponse = {}
+
+	user = User.query.filter(User.email == email).first()
+
+	if user is not None:
+		user.pwd = hashpw(passw, gensalt())
+		db.session.commit()
+
+		reponse["success"] = "Don't loose your password again ! This is the new one : %s" % passw
+		return jsonify(reponse), 200
+
+	else:
+		reponse["error"] = "This user does not exist"
+		return jsonify(reponse), 405
+
 
 
 
