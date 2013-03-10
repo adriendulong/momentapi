@@ -546,9 +546,10 @@ def moments():
 # - Date : YYYY-MM-DD
 #	
 
+@app.route('/momentsafter/<int:when>/<date>', methods=["GET"])
 @app.route('/momentsafter/<date>', methods=["GET"])
 @login_required
-def moments_after_date(date):
+def moments_after_date(date, when = 0):
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 	nb_moment = 10
@@ -566,6 +567,15 @@ def moments_after_date(date):
 			reponse["success"] = "These are the %s moments after the %s" % (len(moments), date)
 			for moment in moments:
 				moments_to_send.append(moment.moment_to_send(user.id))
+				'''
+		elif dateRef == datetime.date.today():
+			#Si on demande le passé
+			if when == 0:
+				moments = user.get_moments_sup_date(nb_moment, dateRef, False)
+				reponse["success"] = "These are the %s moments after the %s" % (len(moments), date)
+				for moment in moments:
+					moments_to_send.append(moment.moment_to_send(user.id))'''
+
 
 		else:
 			moments = user.get_moments_inf_date(nb_moment, dateRef, False)
@@ -1671,6 +1681,11 @@ def search(search):
 
 	print search
 
+
+	########
+	## Recherche des Users
+	########
+
 	#On recherche des user dont le prénom ou le nom corresponde
 	#Pour les noms on decompose car la premiere partie correspondra à nom ou prénom et l'autre à nom ou prenom
 
@@ -1679,15 +1694,41 @@ def search(search):
 
 	#Si le texte est composé d'un seul mot
 	if len(decSearch)==1:
-		users = User.query.filter(or_(User.firstname.ilike("%"+decSearch[0]+"%"), User.lastname.ilike("%"+decSearch[0]+"%"))).all()
+		users = User.query.filter(or_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[0]+"%"))).all()
 
 	#Sinon on peut avoir nom et prenom
 	else:
-		users = User.query.filter(or_(and_(User.firstname.ilike("%"+decSearch[0]+"%"), User.lastname.ilike("%"+decSearch[1]+"%")), and_(User.lastname.ilike("%"+decSearch[0]+"%"), User.firstname.ilike("%"+decSearch[1]+"%")))).all()
+		users = User.query.filter(or_(and_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[1]+"%")), and_(User.lastname.ilike(decSearch[0]+"%"), User.firstname.ilike(decSearch[1]+"%")))).all()
 
 	reponse["users"] = []
 	for user in users:
 		reponse["users"].append(user.user_to_send())
+
+
+	#######
+	## REcherche des moments persos
+	######
+
+	reponse["user_moments"] = []
+	momentsPerso = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== current_user.id).filter(Moment.name.ilike("%"+search+"%")).order_by(Moment.startDate.asc()).all()
+
+	for moment in momentsPerso:
+		reponse["user_moments"].append(moment.moment_to_send(current_user.id))
+
+
+	#######
+	## Recherche des moments publics
+	######
+
+	reponse["public_moments"] = []
+	momentsPublic = Moment.query.filter(and_(Moment.name.ilike("%"+search+"%"), Moment.isOpenInvit == True)).all()
+
+	for moment in momentsPublic:
+		if not moment.is_in_guests(current_user.id):
+			reponse["public_moments"].append(moment.moment_to_send(current_user.id))
+
+
+
 
 
 	return jsonify(reponse), 200

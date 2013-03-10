@@ -531,7 +531,8 @@ class Moment(db.Model):
 
         #On construit le Moment tel qu'on va le renvoyer à l'app
         moment = {}
-        moment["user_state"] = self.get_user_state(user_id)
+        if self.is_in_guests(user_id):
+            moment["user_state"] = self.get_user_state(user_id)
         moment["id"] = self.id
         moment["name"] = self.name
         moment["address"] = self.address
