@@ -137,7 +137,7 @@ def send_message_device(reg_id, titre, message):
 
 
 #Push notification to iOS
-def send_ios_notif(id_moment, type_notif, reg_id, message):
+def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
 	'''PAYLOAD = {
 			'aps': {
 			   	'alert': message,
@@ -175,7 +175,7 @@ def send_ios_notif(id_moment, type_notif, reg_id, message):
 
 	# Send a notification
 	token_hex = reg_id
-	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=1)
+	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread)
 	apns.gateway_server.send_notification(token_hex, payload)
 
 

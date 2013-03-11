@@ -506,7 +506,7 @@ class User(db.Model):
         message = "%s %s '%s'" % (moment.get_owner().firstname, contenu, moment.name)
 
         for device in self.devices:
-            device.notify_simple(moment, userConstants.INVITATION, title, message.encode('utf-8'))
+            device.notify_simple(moment, userConstants.INVITATION, title, message.encode('utf-8'), self)
 
     def notify_new_chat(self, moment, chat):
         #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
@@ -562,7 +562,7 @@ class User(db.Model):
         message = "%s '%s'" % (contenu, moment.name)
 
         for device in self.devices:
-            device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"))
+            device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
 
 
 
@@ -1244,14 +1244,15 @@ class Device(db.Model):
         self.os_version = os_version
 
 
-    def notify_simple(self, moment, type_id, titre, message):
+    def notify_simple(self, moment, type_id, titre, message, user):
         #C'est un Android
         if self.os==1:
 
             thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
         #C'est un iPhone
         if self.os == 0:
-            thread.start_new_thread(fonctions.send_ios_notif, (moment.id, type_id, self.notif_id, message,))
+            nb_notif_unread = user.nb_notif_unread()
+            thread.start_new_thread(fonctions.send_ios_notif, (moment.id, type_id, self.notif_id, message, nb_notif_unread, ))
 
 
     def notify_chat(self, moment, type_id, titre, message, chat, user):
