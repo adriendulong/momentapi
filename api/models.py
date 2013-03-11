@@ -475,7 +475,7 @@ class User(db.Model):
 
     def nb_notif_unread(self):
 
-        return len(notifications)
+        return len(self.notifications)
 
 
 
