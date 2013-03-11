@@ -27,6 +27,11 @@ likes_table = db.Table('likes',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
 )
 
+followers_table = db.Table("followers_table", 
+    db.Column("follower_id", db.Integer, db.ForeignKey("user.id"), primary_key=True),
+    db.Column("followed_id", db.Integer, db.ForeignKey("user.id"), primary_key=True)
+)
+
 """
 moment_owners = db.Table('moment_owners',
     db.Column('moment_id', db.Integer, db.ForeignKey('moment.id')),
@@ -104,6 +109,12 @@ class User(db.Model):
     devices = db.relationship("Device", backref="user")
     chats = db.relationship("Chat", backref="user")
     notifications = db.relationship("Notification", backref="user")
+    follows = db.relationship("User",
+                        secondary=followers_table,
+                        primaryjoin=id==followers_table.c.follower_id,
+                        secondaryjoin=id==followers_table.c.followed_id,
+                        backref="followers"
+    )
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -270,7 +281,40 @@ class User(db.Model):
         if self.facebookId is not None:
             user["facebookId"] = self.facebookId
 
+        if self.secondEmail is not None:
+            user["secondEmail"] = self.secondEmail
+
+        if self.secondPhone is not None:
+            user["secondPhone"] = self.secondPhone
+
+        user["nb_follows"] = len(self.follows)
+        user["nb_followers"] = len(self.followers)
+
         return user
+
+    ####
+    # Fonction qui renvoit en plus de user_to_send l'info si le user suit déjà un user donné
+
+    def user_to_send_social(self, user):
+
+        user_to_send = self.user_to_send()
+        user_to_send["is_followed"] = False
+
+        #On pourcours les gens qui suivent ce user pour voir si y en a un qui correpond au user connecté
+        for follower in user.followers:
+            if follower.id == self.id:
+                user_to_send["is_followed"] = True
+                
+
+        return user_to_send
+                
+
+
+        
+
+
+
+        user["is_followed"]
 
 
     #Renvoie le chemin vers le dossiers de ce user, Créé si il n'existe pas
@@ -370,6 +414,60 @@ class User(db.Model):
 
         if self.profile_picture_url is None and prospect.profile_picture_url is not None:
             self.profile_picture_url = prospect.profile_picture_url
+
+
+    #####
+    ## Fonction qui rajoute rajoute un user qui va etre follow
+    #####
+
+    def add_follow(self, user):
+
+        #On verifie que le user est pas déjà suivi
+        for follow in self.follows:
+            if follow.id == user.id:
+                return False
+
+        #Si c est pas le cas on le rajoute
+        self.follows.append(user)
+        db.session.commit()
+        return True
+
+
+    ####
+    ## Fonction qui va renvoyer si ce user est déjà suivi ou pas
+    ####
+
+    def is_following(self, user):
+
+        for follow in self.follows:
+            if follow.id == user.id:
+                return True
+
+        return False
+
+
+    ####
+    ## Fonction qui eneleve un follow
+    ####
+
+    def remove_follow(self, user):
+
+        self.follows.remove(user)
+        db.session.commit()
+
+
+    ####
+    ## Fonction qui va renvoyer si est suivi par ce user
+    ####
+
+    def is_followed_by(self, user):
+
+        for follower in self.followers:
+            if follower.id == user.id:
+                return True
+
+        return False
+
 
 
 
@@ -1193,6 +1291,7 @@ class Chat(db.Model):
         chat["message"] = self.message
         chat["time"] = self.time.strftime("%s")
         chat["user"] = self.user.user_to_send()
+        chat["id"] = self.id
 
         return chat
 

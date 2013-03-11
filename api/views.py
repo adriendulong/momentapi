@@ -1386,6 +1386,36 @@ def photos_moment(moment_id):
 		return jsonify(reponse), 405
 
 
+
+
+#####################################################################
+############ Retourne la liste des photos prises par le user ############
+############ dans des evenements publics ou ouverts ###################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+'''
+@app.route('/photosuser/<int:user_id>', methods=["GET"])
+@login_required
+def photos_user(user_id):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	
+	#On recupere le moment en question
+	user = User.query.get(user_id)
+
+	if user is not None:
+
+		Photo.query.join(Photo.user_id).join(Invitation.user).filter(User.id== current_user.id).filter(Moment.name.ilike("%"+search+"%")).order_by(Moment.startDate.asc()).all()
+		
+
+	else:
+		reponse["error"] = "This user does not exist"
+		return jsonify(reponse), 405
+'''
+
+
 #####################################################################
 ############ Like une photo ou dislike si déjà liké ######
 ######################################################################
@@ -1447,6 +1477,7 @@ def new_chat(moment_id):
 				
 
 				reponse["success"] = "message added to the chat"
+				reponse["chat"] = chat.chat_to_send()
 				return jsonify(reponse), 200
 
 			else:
@@ -1810,6 +1841,115 @@ def password(email, passw):
 		db.session.commit()
 
 		reponse["success"] = "Don't loose your password again ! This is the new one : %s" % passw
+		return jsonify(reponse), 200
+
+	else:
+		reponse["error"] = "This user does not exist"
+		return jsonify(reponse), 405
+
+
+
+
+#####################################################################
+############ S   O   C    I   A   L #################################
+############ S   O   C    I   A   L #################################
+############ S   O   C    I   A   L #################################
+############ S   O   C    I   A   L #################################
+######################################################################
+
+
+#####################################################################
+############ Suivre quelqu'un ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+
+@app.route('/addfollow/<int:user_id>', methods=["GET"])
+@login_required
+def add_follow(user_id):
+	reponse = {}
+
+	userToFollow = User.query.get(user_id)
+
+	#Si le user existe
+	#### Ici VOIR EN FONCTION DE LA PRIVACY DE CHAQUE USER  (PUBLIC , SEMI OUVERT, FERME)
+	if userToFollow is not None:
+
+		#Si le user a bien été ajouté
+		#Si le user n'est pas ecnore suivi
+		if not current_user.is_following(userToFollow):
+			if current_user.add_follow(userToFollow):
+				reponse["success"] = "User added to the people followed"
+				return jsonify(reponse), 200
+
+			#Sinon (probablement dejà suivi)
+			else:
+				reponse["error"] = "User not followed (probably already followed)"
+				return jsonify(reponse), 405
+
+		#Sinon on le retire de ceux suivis
+		else:
+			current_user.remove_follow(userToFollow)
+			reponse["success"] = "This user is no more followed"
+			return jsonify(reponse), 200
+
+
+	else:
+		reponse["error"] = "This user does not exist"
+		return jsonify(reponse), 405
+
+
+#####################################################################
+############ Recuperer les personnes suivis ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+
+@app.route('/follows/<int:user_id>', methods=["GET"])
+@login_required
+def get_follows(user_id):
+	reponse = {}
+
+	user = User.query.get(user_id)
+
+	if user is not None:
+		reponse["follows"] = []
+
+		for follow in user.follows:
+			reponse["follows"].append(follow.user_to_send_social(current_user))
+
+		return jsonify(reponse), 200
+
+	else:
+		reponse["error"] = "This user does not exist"
+		return jsonify(reponse), 405
+
+
+#####################################################################
+############ Recuperer les personnes qui suivent ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+
+@app.route('/followers/<int:user_id>', methods=["GET"])
+@login_required
+def get_followers(user_id):
+	reponse = {}
+
+	user = User.query.get(user_id)
+
+	if user is not None:
+		reponse["followers"] = []
+
+		for follower in user.followers:
+			reponse["followers"].append(follower.user_to_send_social(current_user))
+
 		return jsonify(reponse), 200
 
 	else:
