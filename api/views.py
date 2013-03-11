@@ -142,10 +142,9 @@ def register():
 			return jsonify(reponse), 405
 
 		#On verifie aussi qu'un user avec ce facebookId n'existe pas
-		if "facebookId" in request.form:
-			if controller.user_exist_fb(request.form["facebookId"]):
-				reponse["error"] = "already exist with this facebook account"
-				return jsonify(reponse), 405
+		elif "facebookId" in request.form and controller.user_exist_fb(request.form["facebookId"]):
+			reponse["error"] = "already exist with this facebook account"
+			return jsonify(reponse), 405
 
 
 
