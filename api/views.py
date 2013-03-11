@@ -1071,7 +1071,7 @@ def user_id(id):
 
 	user = User.query.get(id)
 
-	reponse = user.user_to_send()
+	reponse = user.user_to_send_social(current_user)
 
 	return jsonify(reponse), 200
 
