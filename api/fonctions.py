@@ -181,13 +181,17 @@ def send_ios_notif(id_moment, type_notif, reg_id, message):
 
 
 #Push notification to iOS
-def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat_id):
+def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat_id, nb_notif_unread):
 
 	apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
 
+	#ON limite la taille du message
+	if len(message) > 100:
+		message = message[0:100]
+
 	# Send a notification
 	token_hex = reg_id
-	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=1, custom={'type_id': type_notif, 'id_moment' : id_moment, 'chat_id' : chat_id})
+	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread, custom={'type_id': type_notif, 'id_moment' : id_moment, 'chat_id' : chat_id})
 	print payload
 	apns.gateway_server.send_notification(token_hex, payload)
 

@@ -469,6 +469,15 @@ class User(db.Model):
         return False
 
 
+    ####
+    ## Nombre de notifs non lus
+    ####
+
+    def nb_notif_unread(self):
+
+        return len(notifications)
+
+
 
 
 
@@ -520,7 +529,7 @@ class User(db.Model):
         title = "Nouveau Message de %s" % (chat.user.firstname)
 
         for device in self.devices:
-            device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat)
+            device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat, self)
 
 
 
@@ -1245,14 +1254,16 @@ class Device(db.Model):
             thread.start_new_thread(fonctions.send_ios_notif, (moment.id, type_id, self.notif_id, message,))
 
 
-    def notify_chat(self, moment, type_id, titre, message, chat):
+    def notify_chat(self, moment, type_id, titre, message, chat, user):
         #C'est un Android
         if self.os==1:
 
             thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
         #C'est un iPhone
         if self.os == 0:
-            thread.start_new_thread(fonctions.send_ios_notif_chat, (moment.id, type_id, self.notif_id, message, chat.id,))
+            #On recupere le nb de notif du user
+            nb_notif_unread = user.nb_notif_unread()
+            thread.start_new_thread(fonctions.send_ios_notif_chat, (moment.id, type_id, self.notif_id, message, chat.id, nb_notif_unread, ))
             
 
 

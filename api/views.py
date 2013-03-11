@@ -1394,25 +1394,31 @@ def photos_moment(moment_id):
 # Methode acceptées : GET
 # Paramètres obligatoires : 
 #	
-'''
+
 @app.route('/photosuser/<int:user_id>', methods=["GET"])
 @login_required
 def photos_user(user_id):
 	#On créé la réponse qui sera envoyé
 	reponse = {}
+	reponse["photos"] = []
 	
 	#On recupere le moment en question
 	user = User.query.get(user_id)
 
 	if user is not None:
 
-		Photo.query.join(Photo.user_id).join(Invitation.user).filter(User.id== current_user.id).filter(Moment.name.ilike("%"+search+"%")).order_by(Moment.startDate.asc()).all()
+		for photo in user.photos:
+			if photo.moment.isOpenInvit:
+				reponse["photos"].append(photo.photo_to_send())
+
+		return jsonify(reponse), 200
+		
 		
 
 	else:
 		reponse["error"] = "This user does not exist"
 		return jsonify(reponse), 405
-'''
+
 
 
 #####################################################################
