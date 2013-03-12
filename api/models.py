@@ -677,14 +677,18 @@ class Moment(db.Model):
             if guest.state == 0:
                 moment["owner"] = guest.user.user_to_send()
 
+        print "OWNER"
         #Si on a pas recupére de Owner parmis les user Moment alors c est peut etre un prospect (si le moment provient d'un evenement FB)
         if "owner" not in moment:
+            print "Pas de owner"
             #Si on a associé un facebook Id au owner alors on devrait le retrouver dans les prospect
             if self.owner_facebookId is not None:
+                print "un owner facebook"
                 ownerProspect = Prospect.query.filter(Prospect.facebookId == self.owner_facebookId).first()
 
                 #Si il y en a bien un
                 if ownerProspect is not None:
+                    print "ajout prospect"
                     moment["owner"] = ownerProspect.prospect_to_send()
 
 
