@@ -615,6 +615,7 @@ class Moment(db.Model):
     cover_picture_url = db.Column(db.String(120))
     cover_picture_path = db.Column(db.String(120))
     owner_facebookId = db.Column(db.BigInteger)
+    privacy = db.Column(db.Integer)
 
     guests = db.relationship("Invitation", backref="moment")
     prospects = db.relationship("Prospect",
@@ -628,6 +629,7 @@ class Moment(db.Model):
         self.address = address
         self.startDate = startDate
         self.endDate = endDate
+        self.privacy = constants.PUBLIC
 
         #self.last_modification = datetime.datetime.now()
 
@@ -645,7 +647,8 @@ class Moment(db.Model):
         moment["address"] = self.address
         moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
         moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
-        moment["isOpen"] = self.isOpenInvit
+        moment["isOpenInvit"] = self.isOpenInvit
+        moment["privacy"] = self.privacy
         
         if self.description is not None:
             moment["description"] = self.description

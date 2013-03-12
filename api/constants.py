@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 from api import app
 
+
+#######
+## PRIVACY MOMENTS
+#######
+
+PRIVATE = 0
+OPEN = 1
+PUBLIC = 2
+
 PROFILE_PATH = "/static/data/users"
 
 MOMENT_PATH = "/static/data/moments"

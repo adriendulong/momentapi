@@ -762,7 +762,7 @@ def del_moment(id_moment):
 
 @app.route('/delphoto/<int:id_photo>', methods=["GET"])
 @login_required
-def del_moment(id_photo):
+def del_photo(id_photo):
 	reponse = {}
 
 	photo = Photo.query.get(id_photo)
@@ -1408,7 +1408,7 @@ def photos_user(user_id):
 	if user is not None:
 
 		for photo in user.photos:
-			if photo.moment.isOpenInvit:
+			if photo.moment.privacy==constants.PUBLIC:
 				reponse["photos"].append(photo.photo_to_send())
 
 		return jsonify(reponse), 200
@@ -1813,7 +1813,7 @@ def search(search):
 	######
 
 	reponse["public_moments"] = []
-	momentsPublic = Moment.query.filter(and_(Moment.name.ilike("%"+search+"%"), Moment.isOpenInvit == True)).all()
+	momentsPublic = Moment.query.filter(and_(Moment.name.ilike("%"+search+"%"), Moment.privacy == constants.PUBLIC)).all()
 
 	for moment in momentsPublic:
 		if not moment.is_in_guests(current_user.id):
