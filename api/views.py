@@ -1924,8 +1924,9 @@ def get_follows(user_id):
 	if user is not None:
 		reponse["follows"] = []
 
-		for follow in user.follows:
-			reponse["follows"].append(follow.user_to_send_social(current_user))
+		if user.follows is not None:	
+			for follow in user.follows:
+				reponse["follows"].append(follow.user_to_send_social(current_user))
 
 		return jsonify(reponse), 200
 
@@ -1952,8 +1953,9 @@ def get_followers(user_id):
 	if user is not None:
 		reponse["followers"] = []
 
-		for follower in user.followers:
-			reponse["followers"].append(follower.user_to_send_social(current_user))
+		if user.followers is not None:
+			for follower in user.followers:
+				reponse["followers"].append(follower.user_to_send_social(current_user))
 
 		return jsonify(reponse), 200
 
