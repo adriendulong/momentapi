@@ -109,6 +109,7 @@ class User(db.Model):
     devices = db.relationship("Device", backref="user")
     chats = db.relationship("Chat", backref="user")
     notifications = db.relationship("Notification", backref="user")
+    actus = db.relationship("Actu", backref="user")
     follows = db.relationship("User",
                         secondary=followers_table,
                         primaryjoin=id==followers_table.c.follower_id,
@@ -301,8 +302,8 @@ class User(db.Model):
         user_to_send["is_followed"] = False
 
         #On pourcours les gens qui suivent ce user pour voir si y en a un qui correpond au user connecté
-        for follower in user.followers:
-            if follower.id == self.id:
+        for follow in user.follows:
+            if follow.id == self.id:
                 user_to_send["is_followed"] = True
                 
 
@@ -485,9 +486,11 @@ class User(db.Model):
 
 
 
-    ##
-    # NOTIFICATIONS
-    ##
+    ####################################################
+    ###########     NOTIFICATIONS    ########################
+    ###########     NOTIFICATIONS    ########################
+    ###########     NOTIFICATIONS    ########################
+    ##############################################
 
     def notify_new_moment(self, moment):
         #On place une notifiation en base (pour le volet)
@@ -566,6 +569,63 @@ class User(db.Model):
 
 
 
+    ####################################################
+    ###########     ACTUS USER    ########################
+    ###########     ACTUS USER      ########################
+    ###########     ACTUS USER      ########################
+    ##############################################
+
+    #Actu comme quoi le user a rajouté une photo sur un moment OPEN ou PUBLIC
+    def add_actu_photo(self, photo, moment):
+
+        if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+            actu_photo = Actu(moment, self, userConstants.ACTION_PHOTO, photo.id)
+            self.actus.append(actu_photo)
+            db.session.commit()
+
+
+    #Actu comme quoi le user a rajouté un chat sur un moment OPEN ou PUBLIC
+    def add_actu_chat(self, chat, moment):
+
+        if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+            actu_chat = Actu(moment, self, userConstants.ACTION_CHAT, chat.id)
+            self.actus.append(actu_chat)
+            db.session.commit()
+
+
+    #Actu comme quoi le user a créé un moment public
+    def add_actu_new_moment(self, moment):
+
+        #On rajoute cette actu que si le moment est public ou ouvert
+        if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+            actu_moment = Actu(moment, self, userConstants.ACTION_CREATION_EVENT)
+            self.actus.append(actu_moment)
+
+
+    #Actu comme quoi le user va à un moment public ou ouvert
+    def add_actu_going(self, moment):
+
+        #On rajoute cette actu que si le moment est public ou ouvert
+        if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+            actu_moment = Actu(moment, self, userConstants.ACTION_GOING)
+            self.actus.append(actu_moment)
+            db.session.commit()
+
+
+    #Actu comme quoi le user a été invité à un moment public ou ouvert
+    def add_actu_invit(self, moment):
+        #On rajoute cette actu que si le moment est public ou ouvert
+        if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+            actu_moment = Actu(moment, self, userConstants.ACTION_INVITED)
+            self.actus.append(actu_moment)
+            print "invit"
+            db.session.commit()
+
+        
+
+
+
+
 
 
 
@@ -623,6 +683,7 @@ class Moment(db.Model):
                     backref="invitations")
     photos = db.relationship("Photo", backref="moment")
     chats = db.relationship("Chat", backref="moment")
+    actus = db.relationship("Actu", backref="moment")
 
     def __init__(self, name, address, startDate, endDate):
         self.name = name
@@ -1161,6 +1222,7 @@ class Photo(db.Model):
     likes = db.relationship("User",
                     secondary=likes_table,
                     backref="photos_liked")
+    actus = db.relationship("Actu", backref="photo")
         
 
     def save_photo(self, f, moment, user):
@@ -1198,6 +1260,8 @@ class Photo(db.Model):
 
         # Le Moment s'occupe de notifier tous les invités qu'une nouvelle photo a été ajoutée
         moment.notify_users_new_photo(self)
+
+        user.add_actu_photo(self, moment)
 
 
     def photo_to_send(self):
@@ -1294,6 +1358,7 @@ class Chat(db.Model):
     time = db.Column(db.DateTime, default = datetime.datetime.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'))
+    actus = db.relationship("Actu", backref="chat")
 
     def __init__(self, message, user, moment):
         self.message = message
@@ -1308,6 +1373,9 @@ class Chat(db.Model):
         #On notifie tous les gens invités à ce moment que quelqu'un a ecrit un message
         moment.notify_users_new_chat(self)
 
+        #Si l'evènement est PUBLIC ou OPEN on enregistre cette actu
+        user.add_actu_chat(self, moment)
+    
         
 
 
@@ -1349,6 +1417,49 @@ class Notification(db.Model):
         notif["type_id"] = self.type_notif
 
         return notif
+
+
+
+
+#############################################################################
+##### Actu of a user (all the action that can  be seen by his followers) ###########
+#############################################################################
+
+class Actu(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type_action = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), nullable=False)
+    photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'))
+    chat_id = db.Column(db.Integer, db.ForeignKey('chat.id'))
+    time = db.Column(db.DateTime, default = datetime.datetime.now())
+
+    def __init__(self, moment, user, type_action, id_element = None):
+        self.moment_id = moment.id
+        self.user_id = user.id
+        self.type_action = type_action
+        self.time = datetime.datetime.now()
+
+        if type_action == userConstants.ACTION_PHOTO:
+            self.photo_id = id_element
+
+        elif type_action == userConstants.ACTION_CHAT:
+            self.chat_id = id_element
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

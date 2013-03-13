@@ -364,6 +364,9 @@ def new_moment():
 
 		#On créé un nouveau moment
 		moment = Moment(name, address, startDate, endDate)
+		#On enregistre en base
+		db.session.add(moment)
+		db.session.commit()
 
 		##
 		# Recuperation des autres valeurs (non obligatoires)
@@ -445,7 +448,7 @@ def new_moment():
 
 
 				#On enregistre en base
-				db.session.add(moment)
+				#db.session.add(moment)
 				db.session.commit()
 
 				#On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
@@ -472,7 +475,7 @@ def new_moment():
 
 
 		# On recupere en base le user qui créé ce Moment
-		user = User.query.filter(User.email == current_user.email).first()
+		user = current_user
 
 		#On créé l'invitation qui le lie à ce Moment
 		# Il est owner, donc state à 0
@@ -481,8 +484,10 @@ def new_moment():
 		#On ratache cette invitations aux guests du nouveau Moment
 		moment.guests.append(invitation)
 
-		#On enregistre en base
-		db.session.add(moment)
+		#On rajoute à l'actualité de cet utilisateur qu'il a créé un moment
+		user.add_actu_new_moment(moment)
+
+		
 		db.session.commit()
 
 		#On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
@@ -670,6 +675,8 @@ def moment(id):
 			#Si le user fait partie des invité (sinon pas accès à ce moment)
 			if moment.is_in_guests(current_user.id):
 				reponse = moment.moment_to_send(current_user.id)
+			elif moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+				reponse = moment.moment_to_send(current_user.id)
 			else:
 				reponse["error"] = "Not Authorized"
 				return jsonify(reponse), 401
@@ -842,6 +849,8 @@ def new_guests(idMoment):
 								# On le rajoute et si ça s'est bien passé on incrémente le compteur
 								if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
 									count += 1
+									print "invit"
+									user_to_add.add_actu_invit(moment)
 
 
 						#Sinon c'est un prospect
@@ -965,6 +974,31 @@ def user():
 				db.session.commit()
 
 				reponse["modified_elements"]["phone"] = "Modified with %s and some moments matched" % user.phone
+
+
+		####
+		## On modifie le second phone
+		####
+
+		if "secondPhone" in request.form:
+			user.secondPhone = request.form["secondPhone"]
+
+			reponse["modified_elements"]["secondPhone"] = "Modified with %s" % user.secondPhone
+
+			prospect = Prospect.query.filter(Prospect.secondPhone == user.secondPhone).first()
+
+			#Si un prospect existait on met à jour le profil et on recupere les moments
+			if prospect is not None:
+				#On recupere les moments
+				prospect.match_moments(user)
+				#On met à jour le profil avec les données sur prospect
+				user.update_from_prospect(prospect)
+
+				#On efface le prospect
+				db.session.delete(prospect)
+				db.session.commit()
+
+				reponse["modified_elements"]["secondPhone"] = "Modified with %s and some moments matched" % user.secondPhone
 
 
 		### 
@@ -1102,6 +1136,8 @@ def modifiy_state(moment_id, state):
 				#On essaye de modifier son état
 				if state == userConstants.COMING or state == userConstants.NOT_COMING or state == userConstants.MAYBE:
 					moment.modify_user_state(user, state)
+					if state == userConstants.COMING:
+						user.add_actu_going(moment)
 					reponse["new_state"] = state
 
 				else:
@@ -1366,19 +1402,32 @@ def photos_moment(moment_id):
 	moment = Moment.query.get(moment_id)
 
 	if moment is not None:
-		#On verifie que le user est bien parmis les invites pour acceder aux photos
-		if moment.is_in_guests(current_user.id):
+		
+		#Si le moment est privé
+		if moment.privacy == constants.PRIVATE:
+			#On verifie que le user est bien parmis les invites pour acceder aux photos
+			if moment.is_in_guests(current_user.id):
+				photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(asc(Photo.creation_datetime)).all()
+				#filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
+				reponse["photos"] = []
+				for photo in photos:
+					reponse["photos"].append(photo.photo_to_send())
+
+				return jsonify(reponse), 200
+
+
+			else:
+				reponse["error"] = "This user does not have access to this Moment"
+				return jsonify(reponse), 401
+
+		#Si le moment est public (ou ouvert pour le moment) on a aps besoin de savoir si le user est invité
+		elif moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
 			photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(asc(Photo.creation_datetime)).all()
 			#filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
 			reponse["photos"] = []
 			for photo in photos:
 				reponse["photos"].append(photo.photo_to_send())
 
-			return jsonify(reponse), 200
-
-		else:
-			reponse["error"] = "This user does not have access to this Moment"
-			return jsonify(reponse), 401
 
 	else:
 		reponse["error"] = "This moment does not exist"
@@ -1444,6 +1493,12 @@ def like_photo(photo_id):
 			reponse["nb_likes"] = len(photo.likes)
 			return jsonify(reponse), 200
 
+		elif photo.moment.privacy == constants.PUBLIC or photo.moment.privacy == constants.OPEN:
+			photo.like(current_user)
+			reponse["success"] = "Photo liked"
+			reponse["nb_likes"] = len(photo.likes)
+			return jsonify(reponse), 200
+
 		else:
 			reponse["error"] = "The user is not authorized to like this photo"
 			return jsonify(reponse), 401
@@ -1488,6 +1543,23 @@ def new_chat(moment_id):
 			else:
 				reponse["error"] = "Mandatory value missing"
 				return jsonify(reponse), 405
+
+		#Si le user fait pas partie des invités, on voit si le moment est public (ou open pour le moment)
+		elif moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+			#Si un message est envoyé
+			if "message" in request.form:
+				#On créé un nouveau chat lié au user en question et au Moment
+				chat = Chat(request.form["message"], current_user, moment)
+				
+
+				reponse["success"] = "message added to the chat"
+				reponse["chat"] = chat.chat_to_send()
+				return jsonify(reponse), 200
+
+			else:
+				reponse["error"] = "Mandatory value missing"
+				return jsonify(reponse), 405
+
 
 		else:
 			reponse["error"] = "The user is not a guest of this moment"
@@ -1537,8 +1609,25 @@ def last_chats(moment_id, nb_page = 1):
 			reponse["chats"].reverse()
 			return jsonify(reponse), 200
 
+		#Si le user fait pas partie des invités, on voit si le moment est public (ou open pour le moment)
+		elif moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+			#On recupere les chats de ce Moment, au format pagination
+			chatsPagination = Chat.query.filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
 
+			#Si il y a des pages suivantes
+			if chatsPagination.has_next:
+				reponse["next_page"] = chatsPagination.next_num
+			#Si il y a une page precedente
+			if chatsPagination.has_prev:
+				reponse["prev_page"] = chatsPagination.prev_num
 
+			#On construit le tableau des messages
+			reponse["chats"] = []
+			for chat in chatsPagination.items:
+				reponse["chats"].append(chat.chat_to_send())
+
+			reponse["chats"].reverse()
+			return jsonify(reponse), 200
 		else:
 			reponse["error"] = "The user is not a guest of this moment"
 			return jsonify(reponse), 401
