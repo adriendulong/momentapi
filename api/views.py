@@ -1428,6 +1428,8 @@ def photos_moment(moment_id):
 			for photo in photos:
 				reponse["photos"].append(photo.photo_to_send())
 
+			return jsonify(reponse), 200
+
 
 	else:
 		reponse["error"] = "This moment does not exist"
