@@ -9,7 +9,7 @@ from flask import session
 from flask.ext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin, AnonymousUser,
                             confirm_login, fresh_login_required)
-from api.models import User, Moment, Invitation, Prospect, Photo, Device, Chat, Notification
+from api.models import User, Moment, Invitation, Prospect, Photo, Device, Chat, Notification, Feed
 from itsdangerous import URLSafeSerializer
 import controller
 import constants
@@ -421,7 +421,7 @@ def new_moment():
 					prospectPot = Prospect.query.filter(Prospect.facebookId == owner["facebookId"]).first()
 
 					if userPot is not None:
-						moment.add_guest(userPot, userConstants.OWNER)
+						moment.add_guest(userPot.id, userConstants.OWNER)
 
 					#C est un prospect de notre base
 					elif prospectPot is not None:
@@ -713,12 +713,13 @@ def del_moment(id_moment):
 			for invitation in invitations:
 				db.session.delete(invitation)
 
-
+				'''
 			#On efface tous les chats
 			chats = Chat.query.filter(Chat.moment_id == moment.id).all()
 
 			for chat in chats:
 				db.session.delete(chat)
+				'''
 
 			#On efface toutes les photos
 			photos = Photo.query.filter(Photo.moment_id == moment.id).all()
@@ -730,14 +731,13 @@ def del_moment(id_moment):
 					os.remove(photo.path_thumbnail)
 				db.session.delete(photo)
 
-
+			'''
 			#On efface les notifs
 			notifications = Notification.query.filter(Notification.moment_id == moment.id).all()
 
 			for notification in notifications:
 				db.session.delete(notification)
-
-
+			'''
 			#On supprime la cover
 			if moment.cover_picture_path is not None:
 				if os.path.exists(moment.cover_picture_path):
@@ -2053,6 +2053,42 @@ def get_followers(user_id):
 	else:
 		reponse["error"] = "This user does not exist"
 		return jsonify(reponse), 405
+
+
+
+#####################################################################
+############ Recuperer le feed du user ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+
+@app.route('/feed', methods=["GET"])
+@app.route('/feed/<int:nb_page>', methods=["GET"])
+@login_required
+def feed(nb_page = 1):
+	reponse = {}
+
+	#On update son feed
+	current_user.update_feed()
+
+	#On recupere ses feed
+	feedsPages = Feed.query.filter(Feed.user_id == current_user.id).order_by(desc(Feed.time)).paginate(nb_page, constants.FEED_PAGINATION, False)
+
+	#Si il y a des pages suivantes
+	if feedsPages.has_next:
+		reponse["next_page"] = feedsPages.next_num
+	#Si il y a une page precedente
+	if feedsPages.has_prev:
+		reponse["prev_page"] = feedsPages.prev_num
+
+	#On construit le tableau des messages
+	reponse["feeds"] = []
+	for feed in feedsPages.items:
+		reponse["feeds"].append(feed.feed_to_send())
+
+	return jsonify(reponse), 200
 
 
 

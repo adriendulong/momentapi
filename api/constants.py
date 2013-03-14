@@ -10,12 +10,17 @@ PRIVATE = 0
 OPEN = 1
 PUBLIC = 2
 
+
+
 PROFILE_PATH = "/static/data/users"
 
 MOMENT_PATH = "/static/data/moments"
 
 #Nombre de chat par page
 CHATS_PAGINATION = 20
+
+#Nombre de chat par page
+FEED_PAGINATION = 20
 
 #Tailles photos
 SIZE_THUMBNAIL = 180, 180

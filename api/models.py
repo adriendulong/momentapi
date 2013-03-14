@@ -32,6 +32,16 @@ followers_table = db.Table("followers_table",
     db.Column("followed_id", db.Integer, db.ForeignKey("user.id"), primary_key=True)
 )
 
+feed_photos = db.Table("feed_photos", 
+    db.Column("feed", db.Integer, db.ForeignKey("feed.id"), primary_key=True),
+    db.Column("photo", db.Integer, db.ForeignKey("photo.id"), primary_key=True)
+)
+
+feed_chats = db.Table("feed_chats", 
+    db.Column("feed", db.Integer, db.ForeignKey("feed.id"), primary_key=True),
+    db.Column("chat", db.Integer, db.ForeignKey("chat.id"), primary_key=True)
+)
+
 """
 moment_owners = db.Table('moment_owners',
     db.Column('moment_id', db.Integer, db.ForeignKey('moment.id')),
@@ -76,6 +86,58 @@ class Favoris(db.Model):
 
 
 
+#############################################################################
+###########################    Feed d'un utilisateur   ######################
+#############################################################################
+
+class Feed(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type_action = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), nullable=False)
+    time = db.Column(db.DateTime, default = datetime.datetime.now())
+    photos = db.relationship("Photo",
+                    secondary=feed_photos,
+                    backref=db.backref("feeds", cascade="delete"),
+                    cascade = "delete")
+    chats = db.relationship("Chat",
+                    secondary=feed_chats,
+                    backref=db.backref("feeds", cascade="delete"),
+                    cascade = "delete")
+
+
+    def __init__(self, moment_id, user_id, type_action):
+        self.moment_id = moment_id
+        self.user_id = user_id
+        self.type_action = type_action
+        self.time = datetime.datetime.now()
+
+    def feed_to_send(self):
+        reponse = {}
+
+        reponse["user"] = self.user.user_to_send()
+        reponse["time"] = self.time.strftime("%s")
+        reponse["type_action"] = self.type_action
+        reponse["moment"] = self.moment.moment_to_send_short()
+
+        if self.type_action == userConstants.ACTION_PHOTO:
+            reponse["photos"] = []
+
+            for photo in self.photos:
+                 reponse["photos"].append(photo.photo_to_send_short())  
+
+        if self.type_action == userConstants.ACTION_CHAT:
+            reponse["chats"] = []
+
+            for chat in self.chats:
+                 reponse["chats"].append(chat.chat_to_send_short())  
+            
+
+        return reponse
+
+
+
+
 
 
 ################################
@@ -98,6 +160,7 @@ class User(db.Model):
     profile_picture_url = db.Column(db.String(120))
     profile_picture_path = db.Column(db.String(120))
     lang = db.Column(db.String(40))
+    last_feed_update = db.Column(db.DateTime)
 
     #Les favoris du user
     favoris = db.relationship("Favoris", backref='has_favoris',
@@ -116,6 +179,7 @@ class User(db.Model):
                         secondaryjoin=id==followers_table.c.followed_id,
                         backref="followers"
     )
+    feeds = db.relationship("Feed", backref="user", cascade = "delete, delete-orphan")
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -145,6 +209,7 @@ class User(db.Model):
         self.lastname = lastname
         self.pwd = pwd
         self.creationDateUser = datetime.date.today()
+        self.last_feed_update = datetime.datetime.now()
 
     def __cmp__(self, other):
         if self.id < other.id:  # compare name value (should be unique)
@@ -621,6 +686,111 @@ class User(db.Model):
             print "invit"
             db.session.commit()
 
+
+
+
+    ####################################################
+    ###########     FEED    ########################
+    ###########     FEED    ########################
+    ###########     FEED    ########################
+    ##############################################
+
+
+    #Fonction qui va recuperer les actus de tous les users suivis et va construire la suite du feed
+    def update_feed(self):
+
+        #On parcours l'actualité de tous les follows 
+        for follow in self.follows:
+            #On recupere les actus de ce user qui sont sup à last_feed_update
+            actus = Actu.query.filter(and_(Actu.time > self.last_feed_update, Actu.user_id == follow.id)).all()
+
+            #On initialise un tableau de feed associé à ce user
+            feedsFollow = []
+
+            #On partcourt les actus
+            for actu in actus:
+
+                #Si c est une actu de photo
+                if actu.type_action == userConstants.ACTION_PHOTO:
+                    print "action photo"
+
+                    #Boolean pour savoir si on rajoute à un feed ou en créé un
+                    is_exist = False
+
+                    #On regarde si dans les feed précédents il y a avit une actu photo pour ce même moment
+                    for feedFollow in feedsFollow:
+
+                        #Si un des feed est un feed photo du même moment, on rajoute la photo
+                        if feedFollow.type_action == userConstants.ACTION_PHOTO and feedFollow.moment_id == actu.moment_id:
+                            feedFollow.photos.append(Photo.query.get(actu.photo_id))
+                            is_exist = True
+
+                    #Si finalement aucun feed ne correspondait on en créé un
+                    if not is_exist:
+                        feed = Feed(actu.moment_id, actu.user_id, actu.type_action)
+                        feed.photos.append(Photo.query.get(actu.photo_id))
+                        db.session.add(feed)
+                        #On le rajoute à la liste des feed
+                        feedsFollow.append(feed)
+
+
+                #Si c est une actu de chat
+                elif actu.type_action == userConstants.ACTION_CHAT:
+                    print "chat"
+
+                    #Boolean pour savoir si on rajoute à un feed ou en créé un
+                    is_exist = False
+
+                    #On regarde si dans les feed précédents il y a avit une actu chat pour ce même moment
+                    for feedFollow in feedsFollow:
+
+                        #Si un des feed est un feed photo du même moment, on rajoute la photo
+                        if feedFollow.type_action == userConstants.ACTION_CHAT and feedFollow.moment_id == actu.moment_id:
+                            feedFollow.chats.append(Chat.query.get(actu.chat_id))
+                            is_exist = True
+
+                    #Si finalement aucun feed ne correspondait on en créé un
+                    if not is_exist:
+                        feed = Feed(actu.moment_id, actu.user_id, actu.type_action)
+                        feed.chats.append(Chat.query.get(actu.chat_id))
+                        db.session.add(feed)
+                        #On le rajoute à la liste des feed
+                        feedsFollow.append(feed)
+
+
+
+
+
+                elif actu.type_action == userConstants.ACTION_INVITED:
+                    print "invit"
+                    feed = Feed(actu.moment_id, actu.user_id, actu.type_action)
+                    db.session.add(feed)
+                    #On le rajoute à la liste des feed
+                    feedsFollow.append(feed)
+
+
+                elif actu.type_action == userConstants.ACTION_CREATION_EVENT:
+                    print "crea"
+                    feed = Feed(actu.moment_id, actu.user_id, actu.type_action)
+                    db.session.add(feed)
+                    #On le rajoute à la liste des feed
+                    feedsFollow.append(feed)
+
+
+            #On ajoute les feeds qu'on a construit dans les feeds du user
+            self.feeds.extend(feedsFollow)
+
+
+        #On met à jour l'heure de la derniere construction du feed
+        self.last_feed_update = datetime.datetime.now()
+
+        #On sauvegarde
+        db.session.commit()
+
+        
+
+
+
         
 
 
@@ -682,8 +852,9 @@ class Moment(db.Model):
                     secondary=invitations_prospects,
                     backref="invitations")
     photos = db.relationship("Photo", backref="moment")
-    chats = db.relationship("Chat", backref="moment")
-    actus = db.relationship("Actu", backref="moment")
+    chats = db.relationship("Chat", backref="moment", cascade = "delete, delete-orphan")
+    actus = db.relationship("Actu", backref="moment", cascade = "delete, delete-orphan")
+    feeds = db.relationship("Feed", backref="moment", cascade = "delete, delete-orphan")
 
     def __init__(self, name, address, startDate, endDate):
         self.name = name
@@ -752,11 +923,8 @@ class Moment(db.Model):
 
                 #Si il y en a bien un
                 if ownerProspect is not None:
-                    moment["owner"] = 1
-                    print moment["owner"]
-                    print ownerProspect.prospect_to_send()
                     moment["owner"] = ownerProspect.prospect_to_send()
-                    print moment["owner"]
+                   
 
 
         # Les invités
@@ -766,6 +934,19 @@ class Moment(db.Model):
 
 
         return moment
+
+
+    #On renvoit les inofs de base du moment
+    def moment_to_send_short(self):
+        moment = {}
+
+        moment["id"] = self.id
+        moment["name"] = self.name
+        if self.cover_picture_url is not None:
+            moment["cover_photo_url"] = self.cover_picture_url
+
+        return moment
+
 
 
     def add_cover_photo(self, f, name):
@@ -1044,7 +1225,7 @@ class Prospect(db.Model):
     firstname = db.Column(db.String(80))
     lastname = db.Column(db.String(80))
     phone = db.Column(db.String(20))
-    facebookId = db.Column(db.Integer)
+    facebookId = db.Column(db.BigInteger)
     creationDateUser = db.Column(db.Date)
     secondEmail = db.Column(db.String(80))
     secondPhone = db.Column(db.String(20))
@@ -1277,6 +1458,20 @@ class Photo(db.Model):
         return photo
 
 
+    def photo_to_send_short(self):
+
+        photo = {}
+
+        photo["id"] = self.id
+        photo["url_original"] = self.url_original
+        photo["url_thumbnail"] = self.url_thumbnail
+        photo["nb_like"] = len(self.likes)
+        photo["time"] = self.creation_datetime.strftime("%s")
+
+        return photo
+
+
+
     #Fonction qui rajoute un like du user "user"
     def like(self, user):
         #On verifie que le user a pas déjà liké la photo
@@ -1388,6 +1583,14 @@ class Chat(db.Model):
 
         return chat
 
+    def chat_to_send_short(self):
+        chat = {}
+        chat["message"] = self.message
+        chat["time"] = self.time.strftime("%s")
+        chat["id"] = self.id
+
+        return chat
+
 
 
 
@@ -1401,7 +1604,7 @@ class Notification(db.Model):
     time = db.Column(db.DateTime, default = datetime.datetime.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), nullable=False)
-    moment = db.relationship("Moment")
+    moment = db.relationship("Moment", backref=db.backref("notifications", cascade="delete, delete-orphan"))
     __table_args__ = (UniqueConstraint('moment_id', 'user_id', 'type_notif', name='_type_moment_user_uc'),
                      )
 
@@ -1445,6 +1648,15 @@ class Actu(db.Model):
 
         elif type_action == userConstants.ACTION_CHAT:
             self.chat_id = id_element
+
+
+
+
+
+
+
+
+
 
 
 
