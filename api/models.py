@@ -94,6 +94,7 @@ class Feed(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type_action = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    followed_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), nullable=False)
     time = db.Column(db.DateTime, default = datetime.datetime.now())
     photos = db.relationship("Photo",
@@ -106,9 +107,9 @@ class Feed(db.Model):
                     cascade = "delete")
 
 
-    def __init__(self, moment_id, user_id, type_action):
+    def __init__(self, moment_id, followed, type_action):
         self.moment_id = moment_id
-        self.user_id = user_id
+        self.followed = followed
         self.type_action = type_action
         self.time = datetime.datetime.now()
 
@@ -116,7 +117,7 @@ class Feed(db.Model):
         reponse = {}
 
         reponse["id"] = self.id
-        reponse["user"] = self.user.user_to_send()
+        reponse["user"] = self.followed.user_to_send()
         reponse["time"] = self.time.strftime("%s")
         reponse["type_action"] = self.type_action
         reponse["moment"] = self.moment.moment_to_send_short()
@@ -128,10 +129,11 @@ class Feed(db.Model):
                  reponse["photos"].append(photo.photo_to_send_short())  
 
         if self.type_action == userConstants.ACTION_CHAT:
-            reponse["chats"] = []
+            if len(self.chats) == 1:
+                reponse["chats"] = []
 
-            for chat in self.chats:
-                 reponse["chats"].append(chat.chat_to_send_short())  
+                for chat in self.chats:
+                     reponse["chats"].append(chat.chat_to_send_short())  
             
 
         return reponse
@@ -180,7 +182,10 @@ class User(db.Model):
                         secondaryjoin=id==followers_table.c.followed_id,
                         backref="followers"
     )
-    feeds = db.relationship("Feed", backref="user", cascade = "delete, delete-orphan")
+    feeds = db.relationship("Feed", backref="user", cascade = "delete, delete-orphan", foreign_keys=[Feed.user_id])
+
+    #Liens avec tous les feed dans lesquel ce user apparait
+    concerned_feeds = db.relationship("Feed", backref="followed", cascade = "delete, delete-orphan", foreign_keys=[Feed.followed_id])
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -718,7 +723,7 @@ class User(db.Model):
                     #Boolean pour savoir si on rajoute à un feed ou en créé un
                     is_exist = False
 
-                    #On regarde si dans les feed précédents il y a avit une actu photo pour ce même moment
+                    #On regarde si dans les feed précédents il y a avait une actu photo pour ce même moment
                     for feedFollow in feedsFollow:
 
                         #Si un des feed est un feed photo du même moment, on rajoute la photo
@@ -728,7 +733,7 @@ class User(db.Model):
 
                     #Si finalement aucun feed ne correspondait on en créé un
                     if not is_exist:
-                        feed = Feed(actu.moment_id, actu.user_id, actu.type_action)
+                        feed = Feed(actu.moment_id, actu.user, actu.type_action)
                         feed.photos.append(Photo.query.get(actu.photo_id))
                         db.session.add(feed)
                         #On le rajoute à la liste des feed
@@ -752,7 +757,7 @@ class User(db.Model):
 
                     #Si finalement aucun feed ne correspondait on en créé un
                     if not is_exist:
-                        feed = Feed(actu.moment_id, actu.user_id, actu.type_action)
+                        feed = Feed(actu.moment_id, actu.user, actu.type_action)
                         feed.chats.append(Chat.query.get(actu.chat_id))
                         db.session.add(feed)
                         #On le rajoute à la liste des feed
@@ -764,7 +769,7 @@ class User(db.Model):
 
                 elif actu.type_action == userConstants.ACTION_INVITED:
                     print "invit"
-                    feed = Feed(actu.moment_id, actu.user_id, actu.type_action)
+                    feed = Feed(actu.moment_id, actu.user, actu.type_action)
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
@@ -772,7 +777,7 @@ class User(db.Model):
 
                 elif actu.type_action == userConstants.ACTION_CREATION_EVENT:
                     print "crea"
-                    feed = Feed(actu.moment_id, actu.user_id, actu.type_action)
+                    feed = Feed(actu.moment_id, actu.user, actu.type_action)
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
