@@ -42,6 +42,11 @@ feed_chats = db.Table("feed_chats",
     db.Column("chat", db.Integer, db.ForeignKey("chat.id"), primary_key=True)
 )
 
+feed_follows = db.Table("feed_follows", 
+    db.Column("feed", db.Integer, db.ForeignKey("feed.id"), primary_key=True),
+    db.Column("user", db.Integer, db.ForeignKey("user.id"), primary_key=True)
+)
+
 """
 moment_owners = db.Table('moment_owners',
     db.Column('moment_id', db.Integer, db.ForeignKey('moment.id')),
@@ -85,6 +90,41 @@ class Favoris(db.Model):
 
 
 
+#############################################################################
+##### Actu of a user (all the action that can  be seen by his followers) ###########
+#############################################################################
+
+class Actu(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type_action = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'))
+    photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'))
+    chat_id = db.Column(db.Integer, db.ForeignKey('chat.id'))
+    follow_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    time = db.Column(db.DateTime, default = datetime.datetime.now())
+
+    def __init__(self, moment , user, type_action, id_element = None):
+        self.user_id = user.id
+        self.type_action = type_action
+        self.time = datetime.datetime.now()
+
+        if type_action == userConstants.ACTION_PHOTO:
+            self.photo_id = id_element
+            self.moment_id = moment.id
+
+        elif type_action == userConstants.ACTION_CHAT:
+            self.chat_id = id_element
+            self.moment_id = moment.id
+
+        elif type_action == userConstants.ACTION_FOLLOW:
+            self.follow_id = id_element
+
+        else:
+            self.moment_id = moment.id
+
+
+
 
 #############################################################################
 ###########################    Feed d'un utilisateur   ######################
@@ -95,23 +135,36 @@ class Feed(db.Model):
     type_action = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     followed_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), nullable=False)
+    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'))
     time = db.Column(db.DateTime, default = datetime.datetime.now())
+
+    #The photos that has been by the user followed
     photos = db.relationship("Photo",
                     secondary=feed_photos,
                     backref=db.backref("feeds", cascade="delete"),
                     cascade = "delete")
+
+    #The chats that has been added by the user followed
     chats = db.relationship("Chat",
                     secondary=feed_chats,
                     backref=db.backref("feeds", cascade="delete"),
                     cascade = "delete")
 
+    #The user that has been followed by the user followed
+    follows = db.relationship("User",
+                    secondary=feed_follows,
+                    backref=db.backref("feeds_followed_concerned", cascade="delete"),
+                    cascade = "delete")
 
-    def __init__(self, moment_id, followed, type_action):
-        self.moment_id = moment_id
+
+    def __init__(self, followed, type_action, moment_id = None):
         self.followed = followed
         self.type_action = type_action
         self.time = datetime.datetime.now()
+
+        if type_action != userConstants.ACTION_FOLLOW:
+            self.moment_id = moment_id
+
 
     def feed_to_send(self):
         reponse = {}
@@ -120,20 +173,31 @@ class Feed(db.Model):
         reponse["user"] = self.followed.user_to_send()
         reponse["time"] = self.time.strftime("%s")
         reponse["type_action"] = self.type_action
-        reponse["moment"] = self.moment.moment_to_send_short()
+        
 
         if self.type_action == userConstants.ACTION_PHOTO:
             reponse["photos"] = []
+            reponse["moment"] = self.moment.moment_to_send_short()
 
             for photo in self.photos:
                  reponse["photos"].append(photo.photo_to_send_short())  
 
-        if self.type_action == userConstants.ACTION_CHAT:
+        elif self.type_action == userConstants.ACTION_CHAT:
+            reponse["moment"] = self.moment.moment_to_send_short()
             if len(self.chats) == 1:
                 reponse["chats"] = []
 
                 for chat in self.chats:
                      reponse["chats"].append(chat.chat_to_send_short())  
+
+        elif self.type_action == userConstants.ACTION_FOLLOW:
+            reponse["follows"] = []
+
+            for follow in self.follows:
+                reponse["follows"].append(follow.user_to_send())
+
+        else:
+            reponse["moment"] = self.moment.moment_to_send_short()
             
 
         return reponse
@@ -175,17 +239,26 @@ class User(db.Model):
     devices = db.relationship("Device", backref="user")
     chats = db.relationship("Chat", backref="user")
     notifications = db.relationship("Notification", backref="user")
-    actus = db.relationship("Actu", backref="user")
+
+    #All the actus of this users
+    actus = db.relationship("Actu", backref="user", foreign_keys=[Actu.user_id])
+
+    #All the people this user follows
     follows = db.relationship("User",
                         secondary=followers_table,
                         primaryjoin=id==followers_table.c.follower_id,
                         secondaryjoin=id==followers_table.c.followed_id,
                         backref="followers"
     )
+
+    #The feeds of the user
     feeds = db.relationship("Feed", backref="user", cascade = "delete, delete-orphan", foreign_keys=[Feed.user_id])
 
     #Liens avec tous les feed dans lesquel ce user apparait
     concerned_feeds = db.relationship("Feed", backref="followed", cascade = "delete, delete-orphan", foreign_keys=[Feed.followed_id])
+
+    #Liens avec toutes les actus dans lesquelles ce user est concerné (parce qu'il a été suivi)
+    concerned_actus = db.relationship("Actu", backref="follow", cascade = "delete, delete-orphan", foreign_keys=[Actu.follow_id])
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -502,6 +575,9 @@ class User(db.Model):
         #Si c est pas le cas on le rajoute
         self.follows.append(user)
         db.session.commit()
+
+        #On l'enregistre dans les actus
+        self.add_actu_follow(user)
         return True
 
 
@@ -693,6 +769,14 @@ class User(db.Model):
             db.session.commit()
 
 
+    #Actu comme quoi le user a été invité à un moment public ou ouvert
+    def add_actu_follow(self, userFollowed):
+        actu_follow = Actu(None, self, userConstants.ACTION_FOLLOW, userFollowed.id)
+        self.actus.append(actu_follow)
+        print "follow"
+        db.session.commit()
+
+
 
 
     ####################################################
@@ -728,13 +812,13 @@ class User(db.Model):
 
                         #Si un des feed est un feed photo du même moment, on rajoute la photo
                         if feedFollow.type_action == userConstants.ACTION_PHOTO and feedFollow.moment_id == actu.moment_id:
-                            feedFollow.photos.append(Photo.query.get(actu.photo_id))
+                            feedFollow.photos.append(actu.photo)
                             is_exist = True
 
                     #Si finalement aucun feed ne correspondait on en créé un
                     if not is_exist:
-                        feed = Feed(actu.moment_id, actu.user, actu.type_action)
-                        feed.photos.append(Photo.query.get(actu.photo_id))
+                        feed = Feed(actu.user, actu.type_action, actu.moment_id)
+                        feed.photos.append(actu.photo)
                         db.session.add(feed)
                         #On le rajoute à la liste des feed
                         feedsFollow.append(feed)
@@ -752,13 +836,13 @@ class User(db.Model):
 
                         #Si un des feed est un feed photo du même moment, on rajoute la photo
                         if feedFollow.type_action == userConstants.ACTION_CHAT and feedFollow.moment_id == actu.moment_id:
-                            feedFollow.chats.append(Chat.query.get(actu.chat_id))
+                            feedFollow.chats.append(actu.chat)
                             is_exist = True
 
                     #Si finalement aucun feed ne correspondait on en créé un
                     if not is_exist:
-                        feed = Feed(actu.moment_id, actu.user, actu.type_action)
-                        feed.chats.append(Chat.query.get(actu.chat_id))
+                        feed = Feed(actu.user, actu.type_action, actu.moment_id)
+                        feed.chats.append(actu.chat)
                         db.session.add(feed)
                         #On le rajoute à la liste des feed
                         feedsFollow.append(feed)
@@ -769,7 +853,7 @@ class User(db.Model):
 
                 elif actu.type_action == userConstants.ACTION_INVITED:
                     print "invit"
-                    feed = Feed(actu.moment_id, actu.user, actu.type_action)
+                    feed = Feed(actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
@@ -777,10 +861,32 @@ class User(db.Model):
 
                 elif actu.type_action == userConstants.ACTION_CREATION_EVENT:
                     print "crea"
-                    feed = Feed(actu.moment_id, actu.user, actu.type_action)
+                    feed = Feed(actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
+
+                #Actu de type : a suivi quelqu'un 
+                elif actu.type_action == userConstants.ACTION_FOLLOW:
+
+                    #Boolean pour savoir si on rajoute à un feed ou en créé un
+                    is_exist = False
+
+                    #On regarde si dans les feed précédents il y a avit une actu chat pour ce même moment
+                    for feedFollow in feedsFollow:
+
+                        #Si un des feed est un feed follow on rajoute la photo
+                        if feedFollow.type_action == userConstants.ACTION_FOLLOW:
+                            feedFollow.follows.append(actu.follow)
+                            is_exist = True
+
+
+                    if not is_exist:
+                        feed = Feed(actu.user, actu.type_action)
+                        feed.follows.append(actu.follow)
+                        db.session.add(feed)
+                        #On le rajoute à la liste des feed
+                        feedsFollow.append(feed)
 
 
             #On ajoute les feeds qu'on a construit dans les feeds du user
@@ -1630,30 +1736,7 @@ class Notification(db.Model):
 
 
 
-#############################################################################
-##### Actu of a user (all the action that can  be seen by his followers) ###########
-#############################################################################
 
-class Actu(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    type_action = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), nullable=False)
-    photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'))
-    chat_id = db.Column(db.Integer, db.ForeignKey('chat.id'))
-    time = db.Column(db.DateTime, default = datetime.datetime.now())
-
-    def __init__(self, moment, user, type_action, id_element = None):
-        self.moment_id = moment.id
-        self.user_id = user.id
-        self.type_action = type_action
-        self.time = datetime.datetime.now()
-
-        if type_action == userConstants.ACTION_PHOTO:
-            self.photo_id = id_element
-
-        elif type_action == userConstants.ACTION_CHAT:
-            self.chat_id = id_element
 
 
 
