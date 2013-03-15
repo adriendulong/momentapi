@@ -20,7 +20,7 @@ MOMENT_PATH = "/static/data/moments"
 CHATS_PAGINATION = 20
 
 #Nombre de chat par page
-FEED_PAGINATION = 20
+FEED_PAGINATION = 10
 
 #Tailles photos
 SIZE_THUMBNAIL = 180, 180
