@@ -115,6 +115,7 @@ class Feed(db.Model):
     def feed_to_send(self):
         reponse = {}
 
+        reponse["id"] = self.id
         reponse["user"] = self.user.user_to_send()
         reponse["time"] = self.time.strftime("%s")
         reponse["type_action"] = self.type_action
