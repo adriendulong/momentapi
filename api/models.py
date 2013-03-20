@@ -769,12 +769,17 @@ class User(db.Model):
             db.session.commit()
 
 
-    #Actu comme quoi le user a été invité à un moment public ou ouvert
+    #Actu comme quoi le user a suivi quelqu'un
     def add_actu_follow(self, userFollowed):
         actu_follow = Actu(None, self, userConstants.ACTION_FOLLOW, userFollowed.id)
         self.actus.append(actu_follow)
         print "follow"
         db.session.commit()
+
+    def remove_actu_follow(self, userFollowed):
+        for actu in self.actus:
+            if actu.type_action == userConstants.ACTION_FOLLOW and actu.follow_id == userFollowed.id:
+                self.actus.remove(actu)
 
 
 
@@ -866,6 +871,7 @@ class User(db.Model):
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
 
+                '''
                 #Actu de type : a suivi quelqu'un 
                 elif actu.type_action == userConstants.ACTION_FOLLOW:
 
@@ -887,6 +893,7 @@ class User(db.Model):
                         db.session.add(feed)
                         #On le rajoute à la liste des feed
                         feedsFollow.append(feed)
+                    '''
 
 
             #On ajoute les feeds qu'on a construit dans les feeds du user
