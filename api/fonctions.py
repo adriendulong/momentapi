@@ -192,7 +192,6 @@ def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat_id, nb_noti
 	# Send a notification
 	token_hex = reg_id
 	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread, custom={'type_id': type_notif, 'id_moment' : id_moment, 'chat_id' : chat_id})
-	print payload
 	apns.gateway_server.send_notification(token_hex, payload)
 
 

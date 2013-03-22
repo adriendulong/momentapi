@@ -663,7 +663,6 @@ class User(db.Model):
         notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_CHAT)).first()
 
         if notif is None:
-            print "NEW CHAT"
             notification = Notification(moment, self, userConstants.NEW_CHAT)
             #On enregistre en base
             db.session.add(notification)
@@ -694,7 +693,6 @@ class User(db.Model):
         notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_PHOTO)).first()
 
         if notif is None:
-            print "NEW PHOTO"
             notification = Notification(moment, self, userConstants.NEW_PHOTO)
             #On enregistre en base
             db.session.add(notification)
@@ -765,7 +763,6 @@ class User(db.Model):
         if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
             actu_moment = Actu(moment, self, userConstants.ACTION_INVITED)
             self.actus.append(actu_moment)
-            print "invit"
             db.session.commit()
 
 
@@ -773,7 +770,6 @@ class User(db.Model):
     def add_actu_follow(self, userFollowed):
         actu_follow = Actu(None, self, userConstants.ACTION_FOLLOW, userFollowed.id)
         self.actus.append(actu_follow)
-        print "follow"
         db.session.commit()
 
     def remove_actu_follow(self, userFollowed):
@@ -807,7 +803,6 @@ class User(db.Model):
 
                 #Si c est une actu de photo
                 if actu.type_action == userConstants.ACTION_PHOTO:
-                    print "action photo"
 
                     #Boolean pour savoir si on rajoute à un feed ou en créé un
                     is_exist = False
@@ -831,7 +826,6 @@ class User(db.Model):
 
                 #Si c est une actu de chat
                 elif actu.type_action == userConstants.ACTION_CHAT:
-                    print "chat"
 
                     #Boolean pour savoir si on rajoute à un feed ou en créé un
                     is_exist = False
@@ -857,7 +851,6 @@ class User(db.Model):
 
 
                 elif actu.type_action == userConstants.ACTION_INVITED:
-                    print "invit"
                     feed = Feed(actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
@@ -865,7 +858,6 @@ class User(db.Model):
 
 
                 elif actu.type_action == userConstants.ACTION_CREATION_EVENT:
-                    print "crea"
                     feed = Feed(actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
@@ -965,6 +957,7 @@ class Moment(db.Model):
     cover_picture_path = db.Column(db.String(120))
     owner_facebookId = db.Column(db.BigInteger)
     privacy = db.Column(db.Integer)
+    is_sponso = db.Column(db.Boolean, default= False, nullable = False)
 
     guests = db.relationship("Invitation", backref="moment")
     prospects = db.relationship("Prospect",
@@ -1031,7 +1024,6 @@ class Moment(db.Model):
         for guest in self.guests:
             if guest.state == 0:
                 moment["owner"] = guest.user.user_to_send()
-                print "has owner"
                 has_owner = True
 
         #Si on a pas recupére de Owner parmis les user Moment alors c est peut etre un prospect (si le moment provient d'un evenement FB)
@@ -1044,6 +1036,9 @@ class Moment(db.Model):
                 if ownerProspect is not None:
                     moment["owner"] = ownerProspect.prospect_to_send()
                    
+
+        #Si il est sponsorisé
+        moment["is_sponso"] = self.is_sponso
 
 
         # Les invités
@@ -1132,7 +1127,6 @@ class Moment(db.Model):
 
         user = User.query.get(user_id)
 
-        print user.firstname
 
         if user is not None:
             #Si il n'est pas déjà invité
