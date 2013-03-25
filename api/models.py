@@ -724,9 +724,10 @@ class User(db.Model):
     def add_actu_photo(self, photo, moment):
 
         if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
-            actu_photo = Actu(moment, self, userConstants.ACTION_PHOTO, photo.id)
-            self.actus.append(actu_photo)
-            db.session.commit()
+            if photo.id is not None:
+                actu_photo = Actu(moment, self, userConstants.ACTION_PHOTO, photo.id)
+                self.actus.append(actu_photo)
+                db.session.commit()
 
 
     #Actu comme quoi le user a rajouté un chat sur un moment OPEN ou PUBLIC
