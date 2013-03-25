@@ -863,7 +863,7 @@ class User(db.Model):
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
 
-                '''
+                
                 #Actu de type : a suivi quelqu'un 
                 elif actu.type_action == userConstants.ACTION_FOLLOW:
 
@@ -885,7 +885,7 @@ class User(db.Model):
                         db.session.add(feed)
                         #On le rajoute à la liste des feed
                         feedsFollow.append(feed)
-                    '''
+                    
 
 
             #On ajoute les feeds qu'on a construit dans les feeds du user
@@ -1550,7 +1550,8 @@ class Photo(db.Model):
 
 
 
-        db.session.commit()
+        if db.session.commit():
+            print "TRUE PHOTO"
 
         # Le Moment s'occupe de notifier tous les invités qu'une nouvelle photo a été ajoutée
         moment.notify_users_new_photo(self)
