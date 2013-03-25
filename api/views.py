@@ -97,6 +97,20 @@ def index():
 		return user.email
 
 
+
+@app.route('/test')
+def test():
+	print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">\
+			<html>\
+			<head>\
+			<title>Webserver test</title>\
+			</head>\
+			<body>\
+			This is a webserver test page.\
+			</body>\
+			</html>'
+
+
 #################################################################
 ######## Requete pour ecouter un tag instagram ##################
 ##################################################################
@@ -849,7 +863,6 @@ def new_guests(idMoment):
 								# On le rajoute et si ça s'est bien passé on incrémente le compteur
 								if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
 									count += 1
-									print "invit"
 									user_to_add.add_actu_invit(moment)
 
 
@@ -1080,7 +1093,6 @@ def user():
 		###
 
 		if "photo" in request.files:
-			print "new photo"
 			name_picture = "%s" % current_user.id
 			user.add_profile_picture(request.files["photo"], name_picture)
 
@@ -1861,8 +1873,6 @@ def privacy_moment(id_moment):
 @login_required
 def search(search):
 	reponse = {}
-
-	print search
 
 
 	########
