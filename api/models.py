@@ -1517,7 +1517,7 @@ class Photo(db.Model):
     likes = db.relationship("User",
                     secondary=likes_table,
                     backref="photos_liked")
-    actus = db.relationship("Actu", backref="photo")
+    actus = db.relationship("Actu", backref="photo", cascade = "delete, delete-orphan")
         
 
     def save_photo(self, f, moment, user):
