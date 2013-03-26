@@ -1103,21 +1103,6 @@ def user():
 
 			reponse["modified_elements"]["firstname"] = "Modified with %s" % user.firstname
 
-			prospect = Prospect.query.filter(Prospect.firstname == user.firstname).first()
-
-			#Si un prospect existait on met à jour le profil et on recupere les moments
-			if prospect is not None:
-				#On recupere les moments
-				prospect.match_moments(user)
-				#On met à jour le profil avec les données sur prospect
-				user.update_from_prospect(prospect)
-
-				#On efface le prospect
-				db.session.delete(prospect)
-				db.session.commit()
-
-				reponse["modified_elements"]["firstname"] = "Modified with %s and some moments matched" % user.firstname
-
 		###
 		## On modifie le nom
 		###
@@ -1127,20 +1112,17 @@ def user():
 
 			reponse["modified_elements"]["lastname"] = "Modified with %s" % user.lastname
 
-			prospect = Prospect.query.filter(Prospect.lastname == user.lastname).first()
 
-			#Si un prospect existait on met à jour le profil et on recupere les moments
-			if prospect is not None:
-				#On recupere les moments
-				prospect.match_moments(user)
-				#On met à jour le profil avec les données sur prospect
-				user.update_from_prospect(prospect)
 
-				#On efface le prospect
-				db.session.delete(prospect)
-				db.session.commit()
+		###
+		## On modifie la description
+		###
 
-				reponse["modified_elements"]["lastname"] = "Modified with %s and some moments matched" % user.lastname
+		if "description" in request.form:
+			user.description = request.form["description"]
+
+			reponse["modified_elements"]["description"] = "Modified with %s" % user.description
+
 
 		###
 		## On modifie la photo

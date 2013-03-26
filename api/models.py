@@ -228,6 +228,8 @@ class User(db.Model):
     profile_picture_path = db.Column(db.String(120))
     lang = db.Column(db.String(40))
     last_feed_update = db.Column(db.DateTime)
+    description = db.Column(db.Text)
+
 
     #Les favoris du user
     favoris = db.relationship("Favoris", backref='has_favoris',
@@ -431,6 +433,9 @@ class User(db.Model):
 
         if self.secondPhone is not None:
             user["secondPhone"] = self.secondPhone
+
+        if self.description is not None:
+            user["description"] = self.description
 
         user["nb_follows"] = len(self.follows)
         user["nb_followers"] = len(self.followers)
