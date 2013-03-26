@@ -711,6 +711,15 @@ def moment(id):
 					moment.endTime = fonctions.cast_time(request.form["endTime"])
 					reponse["endTime"] = fonctions.time_to_string(moment.endTime)
 
+				if "photo" in request.files:
+					f = request.files["photo"]
+					#On enregistre la photo et son chemin en base
+					name_picture = "cover"
+					path_photo = moment.add_cover_photo(f, name_picture)
+					moment.cover_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+					moment.cover_picture_path = "%s%s" % (app.root_path, path_photo)
+					reponse["photo"] = moment.cover_picture_url
+
 				#On enregistre
 				db.session.commit()
 
