@@ -1940,7 +1940,7 @@ def search(search):
 
 	reponse["users"] = []
 	for user in users:
-		reponse["users"].append(user.user_to_send())
+		reponse["users"].append(user.user_to_send_social(current_user))
 
 
 	#######
