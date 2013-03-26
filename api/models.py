@@ -311,6 +311,10 @@ class User(db.Model):
 
         return moments
 
+    #Fonction qui va updater la denriere connection du user
+    def update_last_connection(self):
+        self.lastConnection = datetime.datetime.now()
+
 
 
 

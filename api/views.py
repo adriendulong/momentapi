@@ -39,7 +39,11 @@ def load_user(userid):
     user_loader stores the returned User object in current_user during every 
     flask request. 
     """
-    return User.query.get(userid)
+    user = User.query.get(userid)
+
+    #On update la derniere connection du user
+    user.update_last_connection()
+    return user
 
 
 @login_manager.token_loader
@@ -69,6 +73,8 @@ def load_token(token):
 
     #Check Password and return user or None
     if user and data[1] == user.pwd:
+    	#On update la derniere connection du user
+    	user.update_last_connection()
         return user
     return None
 
