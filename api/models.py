@@ -584,6 +584,8 @@ class User(db.Model):
         #Si c est pas le cas on le rajoute
         self.follows.append(user)
         db.session.commit()
+        #On notifie ce user qu'il est suivie
+        user.notify_new_follower(self)
 
         #On l'enregistre dans les actus
         self.add_actu_follow(user)
@@ -720,6 +722,32 @@ class User(db.Model):
 
         for device in self.devices:
             device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
+
+
+    ##
+    ## Notification nouveau follower
+    ##
+
+    def notify_new_follower(self, follower):
+
+        #notification = Notification(moment, self, userConstants.NEW_PHOTO)
+        #On enregistre en base
+        #db.session.add(notification)
+        #db.session.commit()
+
+        
+
+        ##
+        ## PUSH NOTIF
+        ##
+
+        #Titre de la notif
+        title = "Nouveau Follower"
+        contenu = unicode('vous suit maintenant','utf-8')
+        message = "%s '%s'" % (follower.firstname, contenu)
+
+        for device in self.devices:
+            device.notify_new_follower(title, message.encode("utf-8"), follower)
 
 
 
@@ -1662,6 +1690,18 @@ class Device(db.Model):
             #On recupere le nb de notif du user
             nb_notif_unread = user.nb_notif_unread()
             thread.start_new_thread(fonctions.send_ios_notif_chat, (moment.id, type_id, self.notif_id, message, chat.id, nb_notif_unread, ))
+
+
+
+    def notify_new_follower(self, titre, message, follower):
+        #C'est un Android
+        if self.os==1:
+
+            thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
+        #C'est un iPhone
+        if self.os == 0:
+            nb_notif_unread = self.user.nb_notif_unread()
+            thread.start_new_thread(fonctions.send_ios_follower_notif, (self.notif_id, message, follower.id, nb_notif_unread, ))
             
 
 

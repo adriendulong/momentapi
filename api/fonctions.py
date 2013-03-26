@@ -13,6 +13,7 @@ import binascii
 from gcm import GCM
 from apns import APNs, Payload
 from api import app
+from api import userConstants
 
 
 
@@ -199,6 +200,27 @@ def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat_id, nb_noti
 	for (token_hex, fail_time) in apns.feedback_server.items():
 	    print token_hex
 	    print fail_time
+
+
+#Push notif ios for a new follower
+def send_ios_follower_notif(reg_id, message, id_user, nb_notif_unread):
+	apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
+
+	#ON limite la taille du message
+	if len(message) > 100:
+		message = message[0:100]
+
+	# Send a notification
+	token_hex = reg_id
+	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread, custom={'type_id': userConstants.NEW_FOLLOWER, 'user_id' : id_user})
+	apns.gateway_server.send_notification(token_hex, payload)
+
+
+	# Get feedback messages
+	for (token_hex, fail_time) in apns.feedback_server.items():
+	    print token_hex
+	    print fail_time
+
 
 
 
