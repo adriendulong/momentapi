@@ -744,7 +744,7 @@ class User(db.Model):
         #Titre de la notif
         title = "Nouveau Follower"
         contenu = unicode('vous suit maintenant','utf-8')
-        message = "%s '%s'" % (follower.firstname, contenu)
+        message = "%s %s" % (follower.firstname, contenu)
 
         for device in self.devices:
             device.notify_new_follower(title, message.encode("utf-8"), follower)

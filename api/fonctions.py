@@ -13,7 +13,7 @@ import binascii
 from gcm import GCM
 from apns import APNs, Payload
 from api import app
-from api import userConstants
+import user.userConstants as userConstants
 
 
 
