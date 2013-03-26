@@ -100,7 +100,7 @@ def index():
 
 @app.route('/test')
 def test():
-	print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">\
+	return '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">\
 			<html>\
 			<head>\
 			<title>Webserver test</title>\
@@ -561,6 +561,51 @@ def moments():
 	reponse["success"] = "OK"
 
 	return jsonify(reponse), 200
+
+
+
+
+#####################################################################
+########  Requete pour récupérer les moments d'un user donné ###############
+######################################################################
+###### A FAIRE !!!!!!! : Enlevé tous les moments privés et ne garder que ceux auxquel le user qui demande participe
+
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/momentsofuser/<int:id_user>', methods=["GET"])
+@login_required
+def moments_of_user(id_user):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+
+	user = User.query.get(id_user)
+
+	if user is not None:
+
+		moments_of_user_futur = user.get_moments_sup_date(10, datetime.date.today(), True)
+		moments_of_user_past = user.get_moments_inf_date(10, datetime.date.today(), False)
+
+		# On construit le tableau de moments que l'on va renvoyer
+		reponse["moments"] = []
+		for moment in reversed(moments_of_user_past):
+			# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
+			if moment.privacy != constants.PRIVATE:
+				reponse["moments"].append(moment.moment_to_send(current_user.id))
+
+		for moment in moments_of_user_futur:
+			# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
+			if moment.privacy != constants.PRIVATE:
+				reponse["moments"].append(moment.moment_to_send(current_user.id))	
+
+		reponse["success"] = "OK"
+
+		return jsonify(reponse), 200
+
+	else:
+		reponse["error"] = "This user does not exist"
+		return jsonify(reponse), 405
 
 
 
