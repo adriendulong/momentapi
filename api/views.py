@@ -255,9 +255,9 @@ def register():
 				f = request.files["photo"]
 				#On enregistre la photo et son chemin en base
 				name_picture = "%s" % user.id
-				path_photo = user.add_profile_picture(f, name_picture)
-				user.profile_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
-				user.profile_picture_path = "%s%s" % (app.root_path, path_photo)
+				path_photo = user.add_profile_picture_aws(f, name_picture)
+				#user.profile_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
+				#user.profile_picture_path = "%s%s" % (app.root_path, path_photo)
 				#On enregistre en base
 				db.session.commit()
 
@@ -478,9 +478,7 @@ def new_moment():
 					f = request.files["photo"]
 					#On enregistre la photo et son chemin en base
 					name_picture = "cover"
-					path_photo = moment.add_cover_photo(f, name_picture)
-					moment.cover_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
-					moment.cover_picture_path = "%s%s" % (app.root_path, path_photo)
+					moment.add_cover_photo_aws(f, name_picture)
 					#On enregistre en base
 					db.session.commit()
 
@@ -517,9 +515,7 @@ def new_moment():
 				f = request.files["photo"]
 				#On enregistre la photo et son chemin en base
 				name_picture = "cover"
-				path_photo = moment.add_cover_photo(f, name_picture)
-				moment.cover_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
-				moment.cover_picture_path = "%s%s" % (app.root_path, path_photo)
+				moment.add_cover_photo_aws(f, name_picture)
 				#On enregistre en base
 				db.session.commit()
 
@@ -721,9 +717,7 @@ def moment(id):
 					f = request.files["photo"]
 					#On enregistre la photo et son chemin en base
 					name_picture = "cover"
-					path_photo = moment.add_cover_photo(f, name_picture)
-					moment.cover_picture_url = "http://%s%s" % (app.config.get("SERVER_NAME"), path_photo)
-					moment.cover_picture_path = "%s%s" % (app.root_path, path_photo)
+					moment.add_cover_photo_aws(f, name_picture)
 					reponse["photo"] = moment.cover_picture_url
 
 				#On enregistre
@@ -799,10 +793,7 @@ def del_moment(id_moment):
 			photos = Photo.query.filter(Photo.moment_id == moment.id).all()
 
 			for photo in photos:
-				if os.path.exists(photo.path_original):
-					os.remove(photo.path_original)
-				if os.path.exists(photo.path_thumbnail):
-					os.remove(photo.path_thumbnail)
+				photo.delete_photos()
 				db.session.delete(photo)
 
 			'''
@@ -814,8 +805,7 @@ def del_moment(id_moment):
 			'''
 			#On supprime la cover
 			if moment.cover_picture_path is not None:
-				if os.path.exists(moment.cover_picture_path):
-					os.remove(moment.cover_picture_path)
+				moment.delete_cover_file()
 
 			db.session.delete(moment)
 			db.session.commit()
@@ -1136,7 +1126,7 @@ def user():
 
 		if "photo" in request.files:
 			name_picture = "%s" % current_user.id
-			user.add_profile_picture(request.files["photo"], name_picture)
+			user.add_profile_picture_aws(request.files["photo"], name_picture)
 
 
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import variables
 import datetime
 import string
 import random
@@ -136,6 +135,14 @@ def send_message_device(reg_id, titre, message):
 
 
 
+#######################################
+#######################################
+########## NOTIFICATIONS ##############
+#######################################
+#######################################
+
+
+
 
 #Push notification to iOS
 def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
@@ -220,6 +227,45 @@ def send_ios_follower_notif(reg_id, message, id_user, nb_notif_unread):
 	for (token_hex, fail_time) in apns.feedback_server.items():
 	    print token_hex
 	    print fail_time
+
+
+
+
+
+
+
+#######################################
+#######################################
+################ AWS S3 ###############
+#######################################
+#######################################
+
+def upload_file_S3(path, file_name, extension, f, is_public):
+
+	#The key 
+	keyString = path+file_name+"."+extension
+
+	#Connect to S3
+	s3 = boto.connect_s3()
+
+	#We connect to our bucket
+	mybucket = s3.get_bucket('apimoment')
+
+	#We get the Key which correspond t
+	myKey = mybucket.get_key(keyString)
+
+	#If the key does not exist, we create it
+	if myKey is None:
+		myKey = mybucket.new_key(keyString)
+
+	#Then we upload the file
+	reponse = myKey.set_contents_from_file(f)
+
+	#If it needs to be readeable
+	myKey.set_acl('public-read')
+
+	return reponse
+
 
 
 

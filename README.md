@@ -16,6 +16,22 @@ Pour installer ce microframework :
 [FlaskSQLAlchemy](http://packages.python.org/Flask-SQLAlchemy/) : Extension de Flask qui ajoute le support de [SQLAlchemy](http://www.sqlalchemy.org/) qui est un touil SQL Python. Pour l'installer :
 
 	easy_install Flask-SQLAlchemy
+
+[APNS](https://github.com/simonwhitaker/PyAPNs) : Extension pour les notifs push sur iphone. Pour l'installer :
+
+	easy_install apns
+
+[GCM](https://github.com/simonwhitaker/PyAPNs) : Extension pour les notifs push sur iphone. Pour l'installer :
+
+	easy_install apns
+
+[itsdangerous](https://github.com/simonwhitaker/PyAPNs) : Extension pour les notifs push sur iphone. Pour l'installer :
+
+	easy_install apns
+
+[PIL](http://www.pythonware.com/products/pil/) : Extension pour les notifs push sur iphone. Pour l'installer :
+
+	sudo pip install http://effbot.org/downloads/Imaging-1.1.7.tar.gz
 	
 
 ### Configurations

@@ -8,7 +8,9 @@ import fonctions
 from PIL import Image
 from gcm import GCM
 import thread
+import StringIO
 from sqlalchemy import and_, UniqueConstraint
+from aws_S3 import S3
 
 
 ##########################################
@@ -501,6 +503,32 @@ class User(db.Model):
             im_original.thumbnail(constants.SIZE_MEDIUM, Image.ANTIALIAS)
             im_original.save(app.root_path + user_path+"/profile_pictures/"+name+".jpg", "JPEG")
             return user_path+"/profile_pictures/"+name+".jpg"
+
+    def add_profile_picture_aws(self, f, name):
+
+        #BUild the path which will be : data/users/9/
+        path = "%s%s/" % (constants.AWS_PROFILE_PATH, self.id)
+        name = "profile_picture_%s" % self.id
+
+        #Image buffer user to temporary hold the file
+        img_buff = StringIO.StringIO()
+
+        im_original = Image.open(f)
+        im_original.thumbnail(constants.SIZE_MEDIUM, Image.ANTIALIAS)
+        im_original.save(img_buff, "JPEG")
+
+        #We seek to 0 in the Image Buffer
+        img_buff.seek(0)
+
+        s3 = S3()
+        #We upload the file to S3
+        if s3.upload_file(path, name, "jpg", img_buff, True):
+            self.profile_picture_path = path + name + ".jpg"
+            self.profile_picture_url = constants.S3_URL + constants.S3_BUCKET + path + name +".jpg"
+            return True
+
+        else:
+            return False
 
 
     #fonctions qui créé un favoris si il n'existe pas, ou increment son score si il existe
@@ -1115,6 +1143,37 @@ class Moment(db.Model):
         return path_url + "/cover/"+name+".jpg"
 
 
+    def add_cover_photo_aws(self, f, name):
+        name = "cover"
+        path_moment = "%s%s/" % (constants.AWS_MOMENT_PATH , self.id)
+
+
+        #Image buffer user to temporary hold the file
+        img_buff = StringIO.StringIO()
+
+        im_original = Image.open(f)
+        im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
+        im_original.save(img_buff, "JPEG")
+
+        #We seek to 0 in the Image Buffer
+        img_buff.seek(0)
+
+        s3 = S3()
+        #We upload the file to S3
+        if s3.upload_file(path_moment, name, "jpg", img_buff, True):
+            self.cover_picture_path = path_moment + name + ".jpg"
+            self.cover_picture_url = constants.S3_URL + constants.S3_BUCKET + path_moment + name +".jpg"
+            return True
+
+        else:
+            return False
+
+
+    def delete_cover_file(self):
+        s3 = S3()
+        s3.delete_file(self.cover_picture_path)
+
+
 
 
     #Fonction qui renvoit si un user fait partie des invité et donc si il peut voir ce moment
@@ -1154,7 +1213,7 @@ class Moment(db.Model):
 
     def get_moment_path(self):
 
-        path_moment = "%s/%s" % (constants.MOMENT_PATH , self.id)
+        path_moment = "%s%s/" % (constants.AWS_MOMENT_PATH , self.id)
         return path_moment
 
 
@@ -1560,29 +1619,59 @@ class Photo(db.Model):
 
     def save_photo(self, f, moment, user):
 
-        photo_name = "%s.jpg" %(self.id)
+        name = "%s" %(self.id)
+
+        img_buff = StringIO.StringIO()
+
+        #Path for the original photos
+        original_path = moment.get_moment_path()+"photos/original/"
+        thumbnail_path = moment.get_moment_path()+"photos/thumbnail/"
+
+        #On se connect à S3
+        s3 = S3()
+
+        #####################
+        ### ORIGINAL #######
+        ####################
 
         im_original = Image.open(f)
         im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
-        im_original.save(app.root_path+moment.get_moment_path()+"/photos/original/"+photo_name, "JPEG")
+        im_original.save(img_buff, "JPEG")
 
-        #On enregistre la photo
-        #f.save(app.root_path+moment.get_moment_path()+"/photos/original/"+photo_name)
+        #We seek to 0 in the Image Buffer
+        img_buff.seek(0)
 
-        self.path_original = app.root_path+moment.get_moment_path()+"/photos/original/"+photo_name
-        self.url_original = "http://%s%s" % (app.config.get("SERVER_NAME"), moment.get_moment_path()+"/photos/original/"+photo_name)
+        #We upload the file to S3
+        if s3.upload_file(original_path, name, "jpg", img_buff, True):
+            self.path_original = original_path + name + ".jpg"
+            self.url_original = constants.S3_URL + constants.S3_BUCKET + original_path + name +".jpg"
+        else:
+            return False
 
         moment.photos.append(self)
         user.photos.append(self)
 
-        #On créé le thumbnail
-        im = Image.open(self.path_original)
-        im.thumbnail(constants.SIZE_THUMBNAIL, Image.ANTIALIAS)
-        thumbnail_name = "%s.thumbnail" % (self.id)
-        im.save(app.root_path+moment.get_moment_path()+"/photos/thumbnail/"+photo_name, "JPEG")
+        
+        ######################
+        ####### THUMBNAIL #####
+        #######################
+        img_buff.seek(0)
 
-        self.path_thumbnail = app.root_path+moment.get_moment_path()+"/photos/thumbnail/"+photo_name
-        self.url_thumbnail = "http://%s%s" % (app.config.get("SERVER_NAME"), moment.get_moment_path()+"/photos/thumbnail/"+photo_name)
+        img_buff_thum = StringIO.StringIO()
+
+        im = Image.open(img_buff)
+        im.thumbnail(constants.SIZE_THUMBNAIL, Image.ANTIALIAS)
+        thumbnail_name = "%s" % (self.id)
+        im.save(img_buff_thum, "JPEG")
+
+        img_buff_thum.seek(0)
+
+        #We upload the file to S3
+        if s3.upload_file(thumbnail_path, name, "thumbnail", img_buff_thum, True):
+            self.path_thumbnail = thumbnail_path + name + ".thumbnail"
+            self.url_thumbnail = constants.S3_URL + constants.S3_BUCKET + thumbnail_path + name +".thumbnail"
+        else:
+            return False
 
         #On met une heure
         self.creation_datetime = datetime.datetime.now()
@@ -1596,6 +1685,8 @@ class Photo(db.Model):
         moment.notify_users_new_photo(self)
 
         user.add_actu_photo(self, moment)
+
+        return True
 
 
     def photo_to_send(self):
@@ -1641,10 +1732,17 @@ class Photo(db.Model):
 
     def delete_photos(self):
 
+        s3 = S3()
+
+        s3.delete_file(self.path_original)
+        s3.delete_file(self.path_thumbnail)
+
+        '''
         if os.path.exists(self.path_original):
             os.remove(self.path_original)
         if os.path.exists(self.path_thumbnail):
             os.remove(self.path_thumbnail)
+            '''
 
 
 
