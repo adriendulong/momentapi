@@ -37,4 +37,4 @@ class AmazonConfig(Config):
 	#Emplacement de la database
 	SQLALCHEMY_DATABASE_URI = 'mysql://'+USER_DB+':'+PASSWORD_DB+'@apimoment-mysql.c3hcodpxa4oj.eu-west-1.rds.amazonaws.com/'+NAME_DB
 
-	SERVER_NAME = "api.appmoment.fr"
+	SERVER_NAME = "ec2-54-228-139-53.eu-west-1.compute.amazonaws.com"
