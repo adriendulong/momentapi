@@ -20,7 +20,7 @@ class S3:
 		print complete
 		print total
 
-		if complete == total:
+		if complete > total/2:
 			self.completed = True
 
 
