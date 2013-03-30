@@ -42,7 +42,8 @@ def load_user(userid):
     user = User.query.get(userid)
 
     #On update la derniere connection du user
-    user.update_last_connection()
+    if user is not None:
+    	user.update_last_connection()
     return user
 
 
