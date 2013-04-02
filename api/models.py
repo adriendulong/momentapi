@@ -232,6 +232,8 @@ class User(db.Model):
     last_feed_update = db.Column(db.DateTime)
     description = db.Column(db.Text)
 
+    #Les paramètres de notifications
+    param_notifs = db.relationship("ParamNotifs", backref="user")
 
     #Les favoris du user
     favoris = db.relationship("Favoris", backref='has_favoris',
@@ -293,6 +295,9 @@ class User(db.Model):
         self.pwd = pwd
         self.creationDateUser = datetime.date.today()
         self.last_feed_update = datetime.datetime.now()
+
+        #On créé tous les paramtres pour controller les notifs
+        self.create_params_notifs()
 
     def __cmp__(self, other):
         if self.id < other.id:  # compare name value (should be unique)
@@ -677,6 +682,29 @@ class User(db.Model):
     ###########     NOTIFICATIONS    ########################
     ###########     NOTIFICATIONS    ########################
     ##############################################
+
+
+    #Fonction qui créé les paramètres de notifications en base
+    def create_params_notifs(self):
+
+        #On créé le paramètre associé aux notifs d'invitation
+        param_invit = ParamNotifs(userConstants.INVITATION)
+        self.param_notifs.append(param_invit)
+
+        #On créé le paramètre associé aux notifs d'invitation
+        param_photo = ParamNotifs(userConstants.NEW_PHOTO)
+        self.param_notifs.append(param_photo)
+
+        #On créé le paramètre associé aux notifs d'invitation
+        param_chat = ParamNotifs(userConstants.NEW_CHAT)
+        self.param_notifs.append(param_chat)
+
+        #On créé le paramètre associé aux notifs d'invitation
+        param_modif = ParamNotifs(userConstants.MODIF)
+        self.param_notifs.append(param_modif)
+
+
+
 
     def notify_new_moment(self, moment):
         #On place une notifiation en base (pour le volet)
@@ -1169,6 +1197,7 @@ class Moment(db.Model):
             return False
 
 
+    #Remove from S3 the cover file
     def delete_cover_file(self):
         s3 = S3()
         s3.delete_file(self.cover_picture_path)
@@ -1884,6 +1913,24 @@ class Notification(db.Model):
 
         return notif
 
+
+class ParamNotifs(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type_notif = db.Column(db.Integer, nullable=False)
+    mail = db.Column(db.Boolean, default=False)
+    push = db.Column(db.Boolean, default=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, type_notif):
+        self.type_notif = type_notif
+
+    def params_notifs_to_send(self):
+        reponse = {}
+        reponse["type_notif"] = self.type_notif
+        reponse["mail"] = self.mail
+        reponse["push"] = self.push
+
+        return reponse
 
 
 

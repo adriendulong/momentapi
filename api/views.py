@@ -2136,6 +2136,93 @@ def feed(nb_page = 1):
 
 
 
+#####################################################################
+############ Recuperer les params de notifs ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+
+@app.route('/paramsnotifs', methods=["GET"])
+@login_required
+def params_notifs():
+	reponse = {}
+
+	reponse["params_notifs"] = []
+
+	for paramn_notif in current_user.param_notifs:
+		reponse["params_notifs"].append(paramn_notif.params_notifs_to_send())
+
+
+	return jsonify(reponse), 200
+
+
+#####################################################################
+############ Modifier les params de notifs ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+
+@app.route('/paramsnotifs/<int:mode>/<int:type_notif>', methods=["GET"])
+@login_required
+def params_notifs_modif(mode, type_notif):
+	reponse = {}
+
+	for paramn_notif in current_user.param_notifs:
+		if paramn_notif.type_notif == type_notif:
+			#On modifie les mails
+			if mode == 0:
+				if paramn_notif.mail:
+					paramn_notif.mail = False
+
+					#On enregistre
+					db.session.commit()
+
+					reponse["success"] = "Mail desactivated for type_notif = %s" % type_notif
+					return jsonify(reponse), 200
+				else:
+					paramn_notif.mail = True
+
+					#On enregistre
+					db.session.commit()
+
+					reponse["success"] = "Mail activated for type_notif = %s" % type_notif
+					return jsonify(reponse), 200
+
+			#On modifie le push
+			elif mode == 1:
+				if paramn_notif.push:
+					paramn_notif.push = False
+
+					#On enregistre
+					db.session.commit()
+
+					reponse["success"] = "Push desactivated for type_notif = %s" % type_notif
+					return jsonify(reponse), 200
+				else:
+					paramn_notif.push = True
+
+					#On enregistre
+					db.session.commit()
+					
+					reponse["success"] = "Push activated for type_notif = %s" % type_notif
+					return jsonify(reponse), 200
+
+			#Sinon mode inconnu
+			else:
+				reponse["error"] = "This mode is not known"
+				return jsonify(reponse), 405
+
+	reponse["error"] = "This type of notif is not known"
+	return jsonify(reponse), 405
+
+
+
+
+
 
 		
 
