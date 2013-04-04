@@ -12,7 +12,9 @@ import binascii
 from gcm import GCM
 from apns import APNs, Payload
 from api import app
+from mail import Mail
 import user.userConstants as userConstants
+import constants
 
 
 
@@ -245,6 +247,10 @@ def upload_file_S3(path, file_name, extension, f, is_public):
 	#The key 
 	keyString = path+file_name+"."+extension
 
+	#Headers
+	headers = {}
+	headers["Content-Type"] = "image/jpeg"
+
 	#Connect to S3
 	s3 = boto.connect_s3()
 
@@ -259,12 +265,41 @@ def upload_file_S3(path, file_name, extension, f, is_public):
 		myKey = mybucket.new_key(keyString)
 
 	#Then we upload the file
-	reponse = myKey.set_contents_from_file(f)
+	reponse = myKey.set_contents_from_file(f, headers = headers)
 
 	#If it needs to be readeable
 	myKey.set_acl('public-read')
 
-	return reponse
+	print reponse
+
+
+
+#######################################
+#######################################
+################ MAIL ###############
+#######################################
+#######################################
+
+
+def send_inscrption_mail(firstname, lastname, mail):
+
+	m = Mail()
+
+	subject = "Confirmation Inscrption"
+
+	template_name = constants.INSCRIPTION_TEMPLATE
+
+	template_args = []
+
+	destArray = []
+	dest = {
+		"email" : mail,
+		"name" : firstname + " " + lastname
+	}
+	destArray.append(dest)
+
+	m.send_template(subject, template_name, template_args, destArray)
+
 
 
 

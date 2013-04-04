@@ -11,6 +11,7 @@ import thread
 import StringIO
 from sqlalchemy import and_, UniqueConstraint
 from aws_S3 import S3
+from mail import Mail
 
 
 ##########################################
@@ -804,6 +805,15 @@ class User(db.Model):
 
         for device in self.devices:
             device.notify_new_follower(title, message.encode("utf-8"), follower)
+
+
+    ##
+    ## Mail pour nouvelle inscription
+    ##
+
+    def notify_insciption(self):
+
+        thread.start_new_thread( fonctions.send_inscrption_mail, (self.firstname, self.lastname, self.email,) )
 
 
 

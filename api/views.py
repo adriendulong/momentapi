@@ -190,6 +190,9 @@ def register():
 			db.session.add(user)
 			db.session.commit()
 
+			#Avant d'aller plus loin on le notifie par mail de son inscription
+			user.notify_insciption()
+
 			#On recupere le prospect si il existe
 			prospect = controller.get_prospect(potential_prospect)
 

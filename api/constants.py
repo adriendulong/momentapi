@@ -46,3 +46,16 @@ INSTAGRAM_CLIENT_SECRET = "d05fe5f51ede4f31b88bc797821fb212"
 S3_URL = "https://s3-eu-west-1.amazonaws.com"
 S3_BUCKET = "/apimoment/"
 
+
+
+#############
+# MANDRILL #
+#############
+
+MANDRILL_API_KEY = "eW9iPysJRI-LBinyq_D_Hg"
+
+FROM_EMAIL = "hello@appmoment.fr"
+FROM_NAME = "Moment"
+
+#Templates
+INSCRIPTION_TEMPLATE = "Inscription_Moment"
