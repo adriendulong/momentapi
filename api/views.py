@@ -952,6 +952,11 @@ def new_guests(idMoment):
 								moment_user = controller.user_from_dict(user)
 								if moment.add_guest_user(moment_user, current_user, userConstants.UNKNOWN):
 									count += 1
+									#On enregistre dans l'actu de ce user qu'il a été invité
+									moment_user.add_actu_invit(moment)
+
+									#On rajoute ce user à la liste des invités
+									moment_guests.append(moment_user)
 
 
 				#On enregistre en base
