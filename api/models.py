@@ -1459,6 +1459,37 @@ class Moment(db.Model):
                 guest.user.notify_new_photo(self, photo)
 
 
+    #Fcontion qui selectionne à quel user on va envoyer le mail d'invit
+    def mail_moment_guests(self, guests, host):
+
+        to_dests = []
+
+        for guest in guests:
+
+            #Ici condition par rapport au paramtres de notif
+
+            dest = {
+                "email" : guest.email,
+                "name" : "%s %s" % (guest.firstname, guest.lastname)
+            }
+            
+
+            to_dests.append(dest)
+
+        #On met les infos de celui qui invite dans un dict
+        host_infos = {}
+        host_infos["firstname"] = host.firstname
+        host_infos["lastname"] = host.lastname
+        host_infos["email"] = host.email
+        host_infos["photo"] = host.profile_picture_url
+
+        print len(to_dests)
+
+
+        thread.start_new_thread( fonctions.send_invitation_mail, (to_dests, self.name, host_infos,) )
+
+
+
 
 
 

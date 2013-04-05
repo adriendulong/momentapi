@@ -12,13 +12,17 @@ class Mail:
 		self.man = mandrill.Mandrill(MANDRILL_API_KEY)
 
 
-	def send_template(self, subject, template_name, template_args, to_dests):
+	def send_template(self, subject, template_name, template_args, to_dests, global_vars = []):
+
+
 
 		msg = {
 			'from_email' : FROM_EMAIL,
 			'from_name' : FROM_NAME,
 			'subject' : subject,
-			'to' : to_dests
+			'to' : to_dests,
+			'preserve_recipients' : False,
+			'global_merge_vars' : global_vars
 		}
 
 

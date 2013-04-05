@@ -887,6 +887,9 @@ def new_guests(idMoment):
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 
+	#Liste des invités inscrient à Moment (pour envoie mail)
+	moment_guests = []
+
 	# Compteur d'invités rajoutés
 	count = 0
 
@@ -917,8 +920,12 @@ def new_guests(idMoment):
 								# On le rajoute et si ça s'est bien passé on incrémente le compteur
 								if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
 									count += 1
+
+									#On enregistre dans l'actu de ce user qu'il a été invité
 									user_to_add.add_actu_invit(moment)
 
+									#On rajoute ce user à la liste des invités
+									moment_guests.append(user_to_add)
 
 						#Sinon c'est un prospect
 						else:
@@ -949,6 +956,10 @@ def new_guests(idMoment):
 
 				#On enregistre en base
 				db.session.commit()
+
+				if len(moment_guests) > 0:
+					#On envoit le mail à tous les invités inscris à Moment
+					moment.mail_moment_guests(moment_guests, current_user)
 				
 				reponse["nb_user_added"] = count
 				return jsonify(reponse), 200

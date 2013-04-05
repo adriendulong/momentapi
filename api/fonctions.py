@@ -301,6 +301,68 @@ def send_inscrption_mail(firstname, lastname, mail):
 	m.send_template(subject, template_name, template_args, destArray)
 
 
+#Fonction qui va envoyer un mail d'invitation à chaque participants
+# user_infos (dict)
+#	user_infos.firstname
+#	user_infos.lastname
+#	user_infos.photo
+# to_dest (array)
+#	dest (dict)
+#		dest.name
+#		dest.email
+# moment_name (string)
+
+def send_invitation_mail(to_dest, moment_name, user_infos):
+
+	m = Mail()
+
+	contenu = unicode('Invitation à','utf-8')
+	subject = "%s %s" % (contenu, moment_name)
+
+	template_name = constants.INVITATION_TEMPLATE
+
+	template_args = []
+
+	#Global Var
+	global_merge_vars = []
+
+	global_firstname = {
+		"name" : "host_firstname",
+		"content" : user_infos["firstname"]
+	}
+
+	global_merge_vars.append(global_firstname)
+
+	global_lastname = {
+		"name" : "host_lastname",
+		"content" : user_infos["lastname"]
+	}
+
+	global_merge_vars.append(global_lastname)
+
+	global_photo = {
+		"name" : "host_photo",
+		"content" : user_infos["photo"]
+	}
+
+	global_merge_vars.append(global_photo)
+
+
+	global_moment = {
+		"name" : "moment_name",
+		"content" : moment_name
+	}
+
+	global_merge_vars.append(global_moment)
+
+
+
+
+
+
+	m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+
+
 
 
 
