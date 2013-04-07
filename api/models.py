@@ -1681,10 +1681,13 @@ class Photo(db.Model):
     creation_datetime = db.Column(db.DateTime, default = datetime.datetime.now())
     moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    original_width = db.Column(db.Integer)
+    original_height = db.Column(db.Integer)
     likes = db.relationship("User",
                     secondary=likes_table,
                     backref="photos_liked")
     actus = db.relationship("Actu", backref="photo", cascade = "delete, delete-orphan")
+
         
 
     def save_photo(self, f, moment, user):
@@ -1706,6 +1709,12 @@ class Photo(db.Model):
 
         im_original = Image.open(f)
         im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
+
+        #Avant on enregistre la largeur et la hauteur de la photo
+        size = im_original.size
+        self.original_width = size[0]
+        self.original_height = size[1]
+
         im_original.save(img_buff, "JPEG")
 
         #We seek to 0 in the Image Buffer
@@ -1768,6 +1777,8 @@ class Photo(db.Model):
         photo["taken_by"] = self.user.user_to_send()
         photo["nb_like"] = len(self.likes)
         photo["time"] = self.creation_datetime.strftime("%s")
+        photo["original_width"] = self.original_width
+        photo["original_height"] = self.original_height
 
         return photo
 
