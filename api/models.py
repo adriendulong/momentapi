@@ -966,7 +966,7 @@ class User(db.Model):
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
-
+'''
                 
                 #Actu de type : a suivi quelqu'un 
                 elif actu.type_action == userConstants.ACTION_FOLLOW:
@@ -990,7 +990,7 @@ class User(db.Model):
                         #On le rajoute à la liste des feed
                         feedsFollow.append(feed)
                     
-
+'''
 
             #On ajoute les feeds qu'on a construit dans les feeds du user
             self.feeds.extend(feedsFollow)
@@ -1777,8 +1777,8 @@ class Photo(db.Model):
         photo["taken_by"] = self.user.user_to_send()
         photo["nb_like"] = len(self.likes)
         photo["time"] = self.creation_datetime.strftime("%s")
-        photo["original_width"] = self.original_width
-        photo["original_height"] = self.original_height
+        #photo["original_width"] = self.original_width
+        #photo["original_height"] = self.original_height
 
         return photo
 
