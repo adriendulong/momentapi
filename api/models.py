@@ -966,7 +966,7 @@ class User(db.Model):
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
-'''
+                '''
                 
                 #Actu de type : a suivi quelqu'un 
                 elif actu.type_action == userConstants.ACTION_FOLLOW:
@@ -989,8 +989,8 @@ class User(db.Model):
                         db.session.add(feed)
                         #On le rajoute à la liste des feed
                         feedsFollow.append(feed)
-                    
-'''
+                        
+                '''
 
             #On ajoute les feeds qu'on a construit dans les feeds du user
             self.feeds.extend(feedsFollow)
