@@ -966,7 +966,7 @@ class User(db.Model):
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
-                '''
+                
                 
                 #Actu de type : a suivi quelqu'un 
                 elif actu.type_action == userConstants.ACTION_FOLLOW:
@@ -974,12 +974,25 @@ class User(db.Model):
                     #Boolean pour savoir si on rajoute à un feed ou en créé un
                     is_exist = False
 
-                    #On regarde si dans les feed précédents il y a avit une actu chat pour ce même moment
+                    #Boolean pour  savoir si cette news de follow pour ce user a déjà été mise
+                    already_follow = False
+
+                    #On regarde si dans les feed précédents il y a avait une actu "follow"
                     for feedFollow in feedsFollow:
 
-                        #Si un des feed est un feed follow on rajoute la photo
+                        #Si un des feed est un feed follow on regarde si ce user est déjà pas dedans
                         if feedFollow.type_action == userConstants.ACTION_FOLLOW:
-                            feedFollow.follows.append(actu.follow)
+
+                            #On regarde si ce user etait déjà dans ce feed
+                            for follow in feedFollow.follows:
+                                if follow.id == actu.follow.id:
+                                    already_follow = True
+                                    
+                            #Si c est pas le cas on le rajoute
+                            if not already_follow:
+                                feedFollow.follows.append(actu.follow)
+
+
                             is_exist = True
 
 
@@ -990,7 +1003,7 @@ class User(db.Model):
                         #On le rajoute à la liste des feed
                         feedsFollow.append(feed)
                         
-                '''
+                
 
             #On ajoute les feeds qu'on a construit dans les feeds du user
             self.feeds.extend(feedsFollow)
@@ -1777,8 +1790,8 @@ class Photo(db.Model):
         photo["taken_by"] = self.user.user_to_send()
         photo["nb_like"] = len(self.likes)
         photo["time"] = self.creation_datetime.strftime("%s")
-        #photo["original_width"] = self.original_width
-        #photo["original_height"] = self.original_height
+        photo["original_width"] = self.original_width
+        photo["original_height"] = self.original_height
 
         return photo
 
