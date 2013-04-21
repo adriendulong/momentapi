@@ -388,7 +388,7 @@ def update_moment_tag(update):
 	photo = models.Photo()
 
 	for media in medias[0]:
-		photo.save_instagram_photos(media)
+		photo.save_instagram_photo(media)
 		print media.images["standard_resolution"].url
 
 
