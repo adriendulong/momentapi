@@ -1790,6 +1790,8 @@ class Photo(db.Model):
         photo["url_thumbnail"] = self.url_thumbnail
         if self.user is not None:
             photo["taken_by"] = self.user.user_to_send()
+        else:
+            photo["taken_by"] = "Instagram"
         photo["nb_like"] = len(self.likes)
         photo["time"] = self.creation_datetime.strftime("%s")
         photo["original_width"] = self.original_width
