@@ -1841,6 +1841,7 @@ class Photo(db.Model):
 
     def save_instagram_photo(self, infos):
 
+        print infos
         print infos.user.full_name
         #self.taken_by = infos.user["full_name"]
         self.time = infos.created_time
