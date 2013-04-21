@@ -2269,7 +2269,7 @@ def instagram_tag():
 	
 	if challenge: 
 		print verify_token
-		return Response(challenge)
+		return challenge
 
 	else:
 
