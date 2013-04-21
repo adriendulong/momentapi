@@ -1792,7 +1792,7 @@ class Photo(db.Model):
             photo["taken_by"] = self.user.user_to_send()
         else:
             instagram_user = User.query.get(48)
-            photo["taken_by"] = instagram_user
+            photo["taken_by"] = instagram_user.user_to_send()
         photo["nb_like"] = len(self.likes)
         photo["time"] = self.creation_datetime.strftime("%s")
         photo["original_width"] = self.original_width
