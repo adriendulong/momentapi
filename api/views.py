@@ -528,7 +528,7 @@ def new_moment():
 		#Si le moment a un hashtag, on souscrit à INSTAGRAM
 		if moment.hashtag is not None:
 			verify_token = "%s" % moment.id
-			instagram_client = client.InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
+			instagram_client = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
 			instagram_client.create_subscription(object='tag', object_id=moment.hashtag, aspect='media', verify_token = verify_token ,callback_url=constants.INSTAGRAM_CALLBACK_URL)
 
 		reponse = moment.moment_to_send(user.id)
