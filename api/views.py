@@ -17,6 +17,7 @@ import fonctions
 import user.userConstants as userConstants
 from sqlalchemy import desc, asc, and_, or_
 import os
+from instagram.client import InstagramAPI
 
 
 
@@ -522,6 +523,13 @@ def new_moment():
 				moment.add_cover_photo_aws(f, name_picture)
 				#On enregistre en base
 				db.session.commit()
+
+
+		#Si le moment a un hashtag, on souscrit à INSTAGRAM
+		if moment.hashtag is not None:
+			verify_token = "%s" % moment.id
+			instagram_client = client.InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
+			instagram_client.create_subscription(object='tag', object_id=moment.hashtag, aspect='media', verify_token = verify_token ,callback_url=constants.INSTAGRAM_CALLBACK_URL)
 
 		reponse = moment.moment_to_send(user.id)
 		return jsonify(reponse), 200
@@ -2241,6 +2249,43 @@ def params_notifs_modif(mode, type_notif):
 
 
 
+
+#####################################################################
+############ INSTAGRAM ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+
+@app.route('/paramsnotifs/updateinstagram/tag"', methods=["POST"])
+def instagram_tag():
+
+	from instagram import client, subscriptions
+
+	mode         = request.values.get('hub.mode')
+	challenge    = request.values.get('hub.challenge')
+	verify_token = request.values.get('hub.verify_token')
+	
+	if challenge: 
+		print verify_token
+		return Response(challenge)
+
+	else:
+
+		reactor = subscriptions.SubscriptionsReactor()
+    	reactor.register_callback(subscriptions.SubscriptionType.TAG, fonctions.update_moment_tag)
+
+    	x_hub_signature = request.headers.get('X-Hub-Signature')
+    	raw_response    = request.data
+        
+        try:
+            reactor.process(constants.INSTAGRAM_CLIENT_SECRET, raw_response, x_hub_signature)
+        except subscriptions.SubscriptionVerifyError:
+        	logging.error('Instagram signature mismatch')
+
+    	
+    	return Response('Parsed instagram')
 
 
 		

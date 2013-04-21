@@ -1075,6 +1075,7 @@ class Moment(db.Model):
     owner_facebookId = db.Column(db.BigInteger)
     privacy = db.Column(db.Integer)
     is_sponso = db.Column(db.Boolean, default= False, nullable = False)
+    instagram_sub_id = db.Column(db.Integer)
 
     guests = db.relationship("Invitation", backref="moment")
     prospects = db.relationship("Prospect",
