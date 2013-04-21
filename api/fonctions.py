@@ -389,7 +389,7 @@ def update_moment_tag(update):
 
 	for media in medias[0]:
 		#photo.save_instagram_photo(media)
-		print media["user"].full_name
+		print media.user.full_name
 		print media.images["standard_resolution"].url
 
 
