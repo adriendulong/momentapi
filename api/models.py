@@ -1791,7 +1791,9 @@ class Photo(db.Model):
         if self.user is not None:
             photo["taken_by"] = self.user.user_to_send()
         else:
-            photo["taken_by"] = "Instagram"
+            instagram_user = User()
+            user.firstname = "Instagram"
+            photo["taken_by"] = instagram_user
         photo["nb_like"] = len(self.likes)
         photo["time"] = self.creation_datetime.strftime("%s")
         photo["original_width"] = self.original_width
