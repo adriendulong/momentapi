@@ -1839,6 +1839,15 @@ class Photo(db.Model):
             os.remove(self.path_thumbnail)
             '''
 
+    def save_instagram_photo(self, infos):
+
+        print infos.user["full_name"]
+        self.taken_by = infos.user["full_name"]
+        self.time = infos.created_time
+        self.url_original = infos.images["standard_resolution"].url
+        self.original_height = infos.images["standard_resolution"].height
+        self.original_width = infos.images["standard_resolution"].width
+        self.url_thumbnail = infos.images["low_resolution"].url
 
 
 

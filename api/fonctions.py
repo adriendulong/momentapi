@@ -374,7 +374,7 @@ def send_invitation_mail(to_dest, moment_name, user_infos):
 
 def update_moment_tag(update):
 
-	hashtag = update.object_id
+	hashtag = update["object_id"]
 
 	moments = models.Moment.query.filter(models.Moment.hashtag == hashtag).all()
 	print len(moments)
@@ -383,8 +383,19 @@ def update_moment_tag(update):
 	api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
 	medias = api.tag_recent_media(count =1, tag_name = "momenttest")
 
+	#On créé une nouvelle photo
+	photo = models.Photo()
+
 	for media in medias[0]:
+		photo.save_instagram_photos(media)
 		print media.images["standard_resolution"].url
+
+
+	db.session.add(photo)
+	db.session.commit()
+
+	moments[0].photos.append(photo)
+	db.session.commit()
 
 	print hashtag
 
