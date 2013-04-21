@@ -2273,6 +2273,8 @@ def instagram_tag():
 
 	else:
 
+		print "INSTAGRAM"
+
 		reactor = subscriptions.SubscriptionsReactor()
     	reactor.register_callback(subscriptions.SubscriptionType.TAG, fonctions.update_moment_tag)
 
