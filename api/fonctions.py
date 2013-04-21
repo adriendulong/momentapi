@@ -15,6 +15,7 @@ from api import app, db
 from mail import Mail
 import user.userConstants as userConstants
 import constants
+from instagram.client import InstagramAPI
 
 
 
@@ -381,7 +382,7 @@ def update_moment_tag(update):
 
 	#Instagram API
 	api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
-	medias = api.tag_recent_media(count =1, tag_name = "momenttest")
+	medias = api.tag_recent_media(count =1, tag_name = hashtag)
 
 	#On créé une nouvelle photo
 	photo = models.Photo()
