@@ -1788,7 +1788,8 @@ class Photo(db.Model):
         photo["id"] = self.id
         photo["url_original"] = self.url_original
         photo["url_thumbnail"] = self.url_thumbnail
-        photo["taken_by"] = self.user.user_to_send()
+        if self.user is not None:
+            photo["taken_by"] = self.user.user_to_send()
         photo["nb_like"] = len(self.likes)
         photo["time"] = self.creation_datetime.strftime("%s")
         photo["original_width"] = self.original_width
