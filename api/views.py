@@ -2274,7 +2274,7 @@ def instagram_tag():
 		challenge    = request.values.get('hub.challenge')
 		verify_token = request.values.get('hub.verify_token')
 		print verify_token
-		return jsonify(challenge)
+		return challenge
 
 	else:
 
