@@ -2258,7 +2258,7 @@ def params_notifs_modif(mode, type_notif):
 #	
 
 
-@app.route('/updateinstagram/tag"', methods=["POST"])
+@app.route('/updateinstagram/tag"')
 def instagram_tag():
 
 	from instagram import client, subscriptions
