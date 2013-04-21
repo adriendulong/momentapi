@@ -2258,16 +2258,20 @@ def params_notifs_modif(mode, type_notif):
 #	
 
 
-@app.route('/updateinstagram/tag')
+@app.route('/updateinstagram/tag', methods=["GET", "POST"])
 def instagram_tag():
 
 	from instagram import client, subscriptions
 
-	mode         = request.values.get('hub.mode')
-	challenge    = request.values.get('hub.challenge')
-	verify_token = request.values.get('hub.verify_token')
 	
-	if challenge: 
+
+	print "INSTAGRAM ARRIVE" 
+	
+	if request.method == "GET": 
+		
+		mode         = request.values.get('hub.mode')
+		challenge    = request.values.get('hub.challenge')
+		verify_token = request.values.get('hub.verify_token')
 		print verify_token
 		return challenge
 
