@@ -11,7 +11,7 @@ import struct
 import binascii
 from gcm import GCM
 from apns import APNs, Payload
-from api import app
+from api import app, db
 from mail import Mail
 import user.userConstants as userConstants
 import constants
@@ -374,7 +374,19 @@ def send_invitation_mail(to_dest, moment_name, user_infos):
 
 def update_moment_tag(update):
 
-	print update
+	hashtag = update.object_id
+
+	moments = models.Moment.query.filter(models.Moment.hashtag == hashtag).all()
+	print len(moments)
+
+	#Instagram API
+	api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
+	medias = api.tag_recent_media(count =1, tag_name = "momenttest")
+
+	for media in medias[0]:
+		print media.images["standard_resolution"].url
+
+	print hashtag
 
 
 
