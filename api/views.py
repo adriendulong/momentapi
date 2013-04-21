@@ -529,7 +529,8 @@ def new_moment():
 		if moment.hashtag is not None:
 			verify_token = "%s" % moment.id
 			instagram_client = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
-			instagram_client.create_subscription(object='tag', object_id=moment.hashtag, aspect='media', verify_token = verify_token ,callback_url=constants.INSTAGRAM_CALLBACK_URL)
+			reponse = instagram_client.create_subscription(object='tag', object_id=moment.hashtag, aspect='media', verify_token = verify_token ,callback_url=constants.INSTAGRAM_CALLBACK_URL)
+			print reponse
 
 		reponse = moment.moment_to_send(user.id)
 		return jsonify(reponse), 200
@@ -2268,7 +2269,7 @@ def instagram_tag():
 	print "INSTAGRAM ARRIVE" 
 	
 	if request.method == "GET": 
-		
+
 		mode         = request.values.get('hub.mode')
 		challenge    = request.values.get('hub.challenge')
 		verify_token = request.values.get('hub.verify_token')
@@ -2288,10 +2289,10 @@ def instagram_tag():
         try:
             reactor.process(constants.INSTAGRAM_CLIENT_SECRET, raw_response, x_hub_signature)
         except subscriptions.SubscriptionVerifyError:
-        	logging.error('Instagram signature mismatch')
+        	print 'Instagram signature mismatch'
 
     	
-    	return Response('Parsed instagram')
+    	return 'Parsed instagram'
 
 
 		
