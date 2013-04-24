@@ -20,6 +20,9 @@ from instagram.client import InstagramAPI
 
 
 
+
+
+
 ##
 # Fonction qui renvoit la path du dossier d'un user, ou le créé si il n'existe pas
 ##
@@ -126,6 +129,26 @@ def random_identifier():
 		identifier += random.choice(letters[0:26])
 
 	return identifier.upper()
+
+
+##
+# Fonction qui renvoit un nouveau password aléatoire
+#
+##
+
+def random_pass():
+	letters = string.letters
+	identifier = ""
+
+	for i in range (0,4):
+		identifier += random.choice(letters[0:26])
+
+	identifier += "%s" % random.randint(1, 9) 
+
+	for i in range (0,2):
+		identifier += random.choice(letters[0:26])
+
+	return identifier
 
 
 def send_message_device(reg_id, titre, message):
@@ -367,11 +390,107 @@ def send_invitation_mail(to_dest, moment_name, user_infos):
 
 
 
+#Fonction qui va envoyer un mail lorsque une photo est postée
+# user_infos (dict)
+#	user_infos.firstname
+#	user_infos.lastname
+#	user_infos.photo
+# to_dest (array)
+#	dest (dict)
+#		dest.name
+#		dest.email
+# moment_name (string)
+# photo_url (string)
+
+def send_single_photo_mail(to_dest, moment_name, user_infos, photo_url):
+
+	m = Mail()
+
+	contenu = unicode(' : Nouvelle photo','utf-8')
+	subject = "%s %s" % ( moment_name, contenu)
+
+	template_name = constants.SINGLE_PHOTO_TEMPLATE
+
+	template_args = []
+
+	#Global Var
+	global_merge_vars = []
+
+	global_firstname = {
+		"name" : "fn_user",
+		"content" : user_infos["firstname"]
+	}
+
+	global_merge_vars.append(global_firstname)
+
+	global_photo = {
+		"name" : "image_moment",
+		"content" : photo_url
+	}
+
+	global_merge_vars.append(global_photo)
+
+
+	global_moment = {
+		"name" : "moment_name",
+		"content" : moment_name
+	}
+
+	global_merge_vars.append(global_moment)
+
+
+
+
+
+
+	m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+
+
+
+#Fonction qui va envoyer un mail une fois le mdp regéneré
+# to_dest (array)
+#	dest (dict)
+#		dest.name
+#		dest.email
+# new_pass (string)
+
+def send_new_pass_mail(to_dest, new_pass):
+
+	m = Mail()
+
+	contenu = unicode("Génération d'un nouveau mot de passe ",'utf-8')
+	subject = "%s" % contenu
+
+	template_name = constants.NEW_PASS_TEMPLATE
+
+	template_args = []
+
+	#Global Var
+	global_merge_vars = []
+
+	global_password = {
+		"name" : "new_password",
+		"content" : new_pass
+	}
+
+	global_merge_vars.append(global_password)
+
+
+
+	m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+
+
+
+
+
 #######################################
 #######################################
 ############# INSTAGRAM ###############
 #######################################
 #######################################
+
+## A FAIRE :
+# 	- Verifier si un moment avec ce hashtag a lieu dans un jour, a lieu ou est fini depuis moins de 1 jour
 
 def update_moment_tag(update):
 

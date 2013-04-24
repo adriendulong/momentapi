@@ -1150,6 +1150,16 @@ def user():
 
 
 		###
+		## On modifie le password
+		###
+
+		if "password" in request.form:
+			user.modify_pass(request.form["password"]) 
+
+			reponse["modified_elements"]["password"] = "Password modified"
+
+
+		###
 		## On modifie la photo
 		###
 
@@ -2293,6 +2303,31 @@ def instagram_tag():
 
     	
     	return 'Parsed instagram'
+
+
+#####################################################################
+############  Password Oublié ############################
+######################################################################
+# Methode acceptées : POST
+# Paramètres obligatoires : 
+# - Dans l'url : email
+#	
+
+@app.route('/lostpass/<email>', methods=["GET"])
+def lost_pass(email):
+	reponse = {}
+
+	user = User.query.filter(User.email == email).first()
+
+	new_pass = fonctions.random_pass()
+	user.modify_pass(new_pass)
+
+	reponse["new_pass"] = new_pass
+
+	return jsonify(reponse), 200
+
+
+
 
 
 		

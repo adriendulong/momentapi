@@ -12,6 +12,7 @@ import StringIO
 from sqlalchemy import and_, UniqueConstraint
 from aws_S3 import S3
 from mail import Mail
+from bcrypt import hashpw, gensalt
 
 
 ##########################################
@@ -323,6 +324,27 @@ class User(db.Model):
     def update_last_connection(self):
         self.lastConnection = datetime.datetime.now()
 
+
+    ##
+    # Modify the password
+    ##
+
+    def modify_pass(self, new_pass):
+        hashpwd = hashpw(new_pass, gensalt())
+        self.pwd = hashpwd
+
+        #On construit le tableau de destinataire
+        to_dests = []
+        dest = {
+            "email" : self.email,
+            "name" : "%s %s" % (self.firstname, self.lastname)
+        }
+        to_dests.append(dest)
+
+        #On envoie le mail
+        thread.start_new_thread( fonctions.send_new_pass_mail, (to_dests, new_pass,) )
+
+        db.session.commit()
 
 
 
@@ -706,6 +728,113 @@ class User(db.Model):
 
 
 
+    #########
+    ## Paramètres de Notifications
+    ###########
+
+
+    ##
+    # Fonction qui renvoie si le user veut recevoir les notifications push pour les photos
+    ##
+
+    def is_push_photo(self):
+
+        #On parcourt les parametres de notif du user
+        for param_notif in self.param_notifs:
+
+            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            if param_notif.type_notif == userConstants.NEW_PHOTO and param_notif.push is True:
+                return True
+
+        return False
+
+
+    ##
+    # Fonction qui renvoie si le user veut recevoir les notifications mail pour les photos
+    ##
+
+    def is_mail_photo(self):
+
+        #On parcourt les parametres de notif du user
+        for param_notif in self.param_notifs:
+
+            #Quand on trouve celle correspondant aux photos, on vérifie que le mail est activé
+            if param_notif.type_notif == userConstants.NEW_PHOTO and param_notif.mail is True:
+                return True
+
+        return False
+
+
+    ##
+    # Fonction qui renvoie si le user veut recevoir les notifications push pour les invit
+    ##
+
+    def is_push_invit(self):
+
+        #On parcourt les parametres de notif du user
+        for param_notif in self.param_notifs:
+
+            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            if param_notif.type_notif == userConstants.INVITATION and param_notif.push is True:
+                return True
+
+        return False
+
+
+    ##
+    # Fonction qui renvoie si le user veut recevoir les notifications mail pour les invit
+    ##
+
+    def is_mail_invit(self):
+
+        #On parcourt les parametres de notif du user
+        for param_notif in self.param_notifs:
+
+            #Quand on trouve celle correspondant aux photos, on vérifie que le mail est activé
+            if param_notif.type_notif == userConstants.INVITATION and param_notif.mail is True:
+                return True
+
+        return False
+
+
+    ##
+    # Fonction qui renvoie si le user veut recevoir les notifications push pour les chat
+    ##
+
+    def is_push_chat(self):
+
+        #On parcourt les parametres de notif du user
+        for param_notif in self.param_notifs:
+
+            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            if param_notif.type_notif == userConstants.NEW_CHAT and param_notif.push is True:
+                return True
+
+        return False
+
+
+    ##
+    # Fonction qui renvoie si le user veut recevoir les notifications mail pour les invit
+    ##
+
+    def is_mail_chat(self):
+
+        #On parcourt les parametres de notif du user
+        for param_notif in self.param_notifs:
+
+            #Quand on trouve celle correspondant aux photos, on vérifie que le mail est activé
+            if param_notif.type_notif == userConstants.NEW_CHAT and param_notif.mail is True:
+                return True
+
+        return False
+
+
+
+
+
+    ##
+    # Fonctions pour envoyer une notification lors d'un nouvel évènement
+    ##
 
     def notify_new_moment(self, moment):
         #On place une notifiation en base (pour le volet)
@@ -719,12 +848,19 @@ class User(db.Model):
         ## PUSH NOTIF
         ##
 
-        title = "Nouvelle invitation"
-        contenu = unicode('vous invite à participer à','utf-8')
-        message = "%s %s '%s'" % (moment.get_owner().firstname, contenu, moment.name)
+        if self.is_push_invit():
 
-        for device in self.devices:
-            device.notify_simple(moment, userConstants.INVITATION, title, message.encode('utf-8'), self)
+            title = "Nouvelle invitation"
+            contenu = unicode('vous invite à participer à','utf-8')
+            message = "%s %s '%s'" % (moment.get_owner().firstname, contenu, moment.name)
+
+            for device in self.devices:
+                device.notify_simple(moment, userConstants.INVITATION, title, message.encode('utf-8'), self)
+
+
+    ##
+    # Fonctions pour envoyer une notification lors d'un nouveau chat
+    ##
 
     def notify_new_chat(self, moment, chat):
         #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
@@ -742,11 +878,12 @@ class User(db.Model):
         ## PUSH NOTIF
         ##
 
-        #Titre de la notif
-        title = "Nouveau Message de %s" % (chat.user.firstname)
+        if self.is_push_chat():
+            #Titre de la notif
+            title = "Nouveau Message de %s" % (chat.user.firstname)
 
-        for device in self.devices:
-            device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat, self)
+            for device in self.devices:
+                device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat, self)
 
 
 
@@ -772,13 +909,22 @@ class User(db.Model):
         ## PUSH NOTIF
         ##
 
-        #Titre de la notif
-        title = "Nouvelle photo"
-        contenu = unicode('Nouvelle photo ajoutée à','utf-8')
-        message = "%s '%s'" % (contenu, moment.name)
+        #On envoit la notif que si le user a activé l'envoie par push de nouvelles photos
+        if self.is_push_photo():
 
-        for device in self.devices:
-            device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
+            #Titre de la notif
+            title = "Nouvelle photo"
+            contenu = unicode('Nouvelle photo ajoutée à','utf-8')
+            message = "%s '%s'" % (contenu, moment.name)
+
+            for device in self.devices:
+                device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
+
+
+        ##
+        # Mail Notif
+        ##
+
 
 
     ##
@@ -1460,18 +1606,57 @@ class Moment(db.Model):
 
     #Fonction qui prend en charge de notifier tout le monde qu'il y a un nouveau message
     def notify_users_new_chat(self, chat):
+
+        #La liste des destinataires à qui on va envoyer un mail 
+        to_dests = []
+
         for guest in self.guests:
             #On envoit pas la notif à celui qui a envoyé le message
             if guest.user.id != chat.user.id:
                 guest.user.notify_new_chat(self, chat)
 
+                #Si le user accepte les notifs mail pour les photos
+                if guest.user.is_mail_chat():
+                    #On le rajoute à la liste des destinaires
+                    dest = {
+                        "email" : guest.user.email,
+                        "name" : "%s %s" % (guest.user.firstname, guest.user.lastname)
+                    }
+                    to_dests.append(dest)
+
+        #### On envoit le mail aux destinataires
+
 
     def notify_users_new_photo(self, photo):
+
+        #La liste des destinataires à qui on va envoyer un mail 
+        to_dests = []
+
         for guest in self.guests:
             #On envoit pas la notif à celui qui a envoyé le message
             if guest.user.id != photo.user.id:
                 guest.user.notify_new_photo(self, photo)
 
+                #Si le user accepte les notifs mail pour les photos
+                if guest.user.is_mail_photo():
+                    #On le rajoute à la liste des destinaires
+                    dest = {
+                        "email" : guest.user.email,
+                        "name" : "%s %s" % (guest.user.firstname, guest.user.lastname)
+                    }
+                    to_dests.append(dest)
+
+
+        #### On envoit le mail aux destinataires
+
+        #On met les infos de celui qui a posté la photo dans un dict
+        host_infos = {}
+        host_infos["firstname"] = photo.user.firstname
+        host_infos["lastname"] = photo.user.lastname
+        host_infos["email"] = photo.user.email
+        host_infos["photo"] = photo.user.profile_picture_url
+
+        thread.start_new_thread( fonctions.send_single_photo_mail, (to_dests, self.name, host_infos, photo.url_original,) )
 
     #Fcontion qui selectionne à quel user on va envoyer le mail d'invit
     def mail_moment_guests(self, guests, host):
@@ -1481,14 +1666,14 @@ class Moment(db.Model):
         for guest in guests:
 
             #Ici condition par rapport au paramtres de notif
+            if guest.is_mail_invit():
+                dest = {
+                    "email" : guest.email,
+                    "name" : "%s %s" % (guest.firstname, guest.lastname)
+                }
+                
 
-            dest = {
-                "email" : guest.email,
-                "name" : "%s %s" % (guest.firstname, guest.lastname)
-            }
-            
-
-            to_dests.append(dest)
+                to_dests.append(dest)
 
         #On met les infos de celui qui invite dans un dict
         host_infos = {}
@@ -1996,8 +2181,8 @@ class Notification(db.Model):
 class ParamNotifs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type_notif = db.Column(db.Integer, nullable=False)
-    mail = db.Column(db.Boolean, default=False)
-    push = db.Column(db.Boolean, default=False)
+    mail = db.Column(db.Boolean, default=True)
+    push = db.Column(db.Boolean, default=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, type_notif):

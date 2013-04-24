@@ -56,6 +56,8 @@ FROM_NAME = "Moment"
 #Templates
 INSCRIPTION_TEMPLATE = "Inscription_Moment"
 INVITATION_TEMPLATE = "Invitation_Moment"
+NEW_PASS_TEMPLATE = "MDP_OUBLIE"
+SINGLE_PHOTO_TEMPLATE = "NouvellePhoto"
 
 
 ################
