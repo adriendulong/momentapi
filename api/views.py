@@ -390,8 +390,8 @@ def new_moment():
 		#On créé un nouveau moment
 		moment = Moment(name, address, startDate, endDate)
 		#On enregistre en base
-		db.session.add(moment)
-		db.session.commit()
+		#db.session.add(moment)
+		#db.session.commit()
 
 		##
 		# Recuperation des autres valeurs (non obligatoires)
@@ -426,13 +426,20 @@ def new_moment():
 
 			#Sinon on créé normalement le moment mais on attribut le state à ce user
 			else:
+				#On créé le Moment
+				#On enregistre en base
+				
+				db.session.add(moment)
+				db.session.commit()
+
+				
 				facebookId = request.form["facebookId"]
 				moment.facebookId = facebookId
 
 
 				#On rajoute le user en invité
 				moment.add_guest(current_user.id, request.form["state"])
-
+				print "ok"
 				###############
 				## On nous fournit un owner
 				###############
@@ -496,6 +503,10 @@ def new_moment():
 				reponse = moment.moment_to_send(current_user.id)
 				return jsonify(reponse), 200
 
+
+		#On créé le Moment
+		db.session.add(moment)
+		db.session.commit()
 
 		# On recupere en base le user qui créé ce Moment
 		user = current_user
@@ -970,6 +981,10 @@ def new_guests(idMoment):
 
 				#On enregistre en base
 				db.session.commit()
+
+				##
+				# Mail Notif
+				##
 
 				if len(moment_guests) > 0:
 					#On envoit le mail à tous les invités inscris à Moment
