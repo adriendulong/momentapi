@@ -428,11 +428,11 @@ def new_moment():
 			else:
 				#On créé le Moment
 				#On enregistre en base
-				
+
 				db.session.add(moment)
 				db.session.commit()
 
-				
+
 				facebookId = request.form["facebookId"]
 				moment.facebookId = facebookId
 
@@ -1783,17 +1783,37 @@ def chat(chat_id):
 #	
 
 @app.route('/notifications', methods=["GET"])
+@app.route('/notifications/<int:nb_page>', methods=["GET"])
 @login_required
-def notifications():
+def notifications(nb_page = 1):
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 	reponse["invitations"] = []
 	reponse["new_photos"] = []
 	reponse["new_chats"] = []
 	reponse["modif_moment"] = []
+	reponse["notifications"] = []
+
+
+	#On recupere le nb de nouvelles notifs et en même temps on les archive
+	reponse["nb_new_notifs"] = current_user.archive_notifs()
+
+
+
+	notificationPagination = Notification.query.filter_by(user_id = current_user.id).order_by(desc(Notification.time)).paginate(nb_page, constants.NOTIFS_PAGINATION, False)
+
+	if notificationPagination.has_next:
+		reponse["next_page"] = notificationPagination.next_num
+
+	if notificationPagination.has_prev:
+		reponse["prev_page"] = notificationPagination.prev_num
 	
-	for notification in current_user.notifications:
+	for notification in notificationPagination.items:
+
+		reponse["notifications"].append(notification.notif_to_send())
+
 		#Les invitations
+		'''
 		if notification.type_notif == userConstants.INVITATION:
 			reponse["invitations"].append(notification.notif_to_send())
 
@@ -1808,6 +1828,7 @@ def notifications():
 		#Les modifications
 		if notification.type_notif == userConstants.MODIF:
 			reponse["modif_moment"].append(notification.notif_to_send())
+		'''
 
 	return jsonify(reponse), 200
 

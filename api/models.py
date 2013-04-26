@@ -690,7 +690,38 @@ class User(db.Model):
 
     def nb_notif_unread(self):
 
-        return len(self.notifications)
+        #Nombre de nouvelles notifs
+        count = 0
+
+        for notif in self.notifications:
+            if notif.is_active:
+                count += 1
+
+        return count
+
+
+    ####
+    ## Passer dans l'historique toutes les notifications non lues
+    ####
+
+    def archive_notifs(self):
+
+        #Nombre de nouvelles notifs
+        count = 0
+
+        for notif in self.notifications:
+            if notif.is_active:
+                count += 1
+
+                #On archive la notif
+                notif.is_active = False
+
+
+        #On enregistre les modifs
+        db.session.commit()
+
+        return count
+
 
 
 
@@ -864,13 +895,17 @@ class User(db.Model):
 
     def notify_new_chat(self, moment, chat):
         #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
-        notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_CHAT)).first()
+        notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_CHAT, Notification.is_active == True)).first()
+
 
         if notif is None:
             notification = Notification(moment, self, userConstants.NEW_CHAT)
             #On enregistre en base
             db.session.add(notification)
             db.session.commit()
+
+        else:
+            notif.time = datetime.datetime.now()
 
         
 
@@ -895,13 +930,18 @@ class User(db.Model):
 
     def notify_new_photo(self, moment, photo):
         #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
-        notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_PHOTO)).first()
+        notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_PHOTO, Notification.is_active == True)).first()
+
+
 
         if notif is None:
             notification = Notification(moment, self, userConstants.NEW_PHOTO)
             #On enregistre en base
             db.session.add(notification)
             db.session.commit()
+
+        else:
+            notif.time = datetime.datetime.now()
 
         
 
@@ -2159,14 +2199,19 @@ class Notification(db.Model):
     time = db.Column(db.DateTime, default = datetime.datetime.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), nullable=False)
+
+    #Definit si la notif est en cours ou si elle est passée dans l'historique (False)
+    is_active = db.Column(db.Boolean, default=True)
+
     moment = db.relationship("Moment", backref=db.backref("notifications", cascade="delete, delete-orphan"))
-    __table_args__ = (UniqueConstraint('moment_id', 'user_id', 'type_notif', name='_type_moment_user_uc'),
-                     )
+    #__table_args__ = (UniqueConstraint('moment_id', 'user_id', 'type_notif', name='_type_moment_user_uc'),
+    #                 )
 
     def __init__(self, moment, user, type_notif):
         self.type_notif = type_notif
         self.moment = moment
         self.user = user
+        self.time = datetime.datetime.now()
 
     def notif_to_send(self):
         notif = {}
@@ -2175,6 +2220,13 @@ class Notification(db.Model):
         notif["type_id"] = self.type_notif
 
         return notif
+
+
+
+##
+# Paramètres de notifications permettant de savoir si le user veut recevoir des notifs par mail ou push
+#
+##
 
 
 class ParamNotifs(db.Model):

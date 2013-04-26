@@ -23,6 +23,9 @@ TEMP_PATH = "/static/data/tmp"
 #Nombre de chat par page
 CHATS_PAGINATION = 20
 
+#Nombre de Notif par page
+NOTIFS_PAGINATION = 20
+
 #Nombre de chat par page
 FEED_PAGINATION = 10
 
