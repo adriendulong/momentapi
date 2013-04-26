@@ -710,7 +710,7 @@ class User(db.Model):
         count = 0
 
         for notif in self.notifications:
-            if notif.is_active:
+            if notif.is_active and notif.type_notif != userConstants.INVITATION:
                 count += 1
 
                 #On archive la notif
@@ -722,6 +722,28 @@ class User(db.Model):
 
         return count
 
+
+    ####
+    ## Passer dans l'historique toutes les notifications non lues
+    ####
+
+    def archive_invitations(self):
+
+        #Nombre de nouvelles notifs
+        count = 0
+
+        for notif in self.notifications:
+            if notif.is_active and notif.type_notif == userConstants.INVITATION:
+                count += 1
+
+                #On archive la notif
+                notif.is_active = False
+
+
+        #On enregistre les modifs
+        db.session.commit()
+
+        return count
 
 
 

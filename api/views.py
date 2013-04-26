@@ -1793,14 +1793,18 @@ def notifications(nb_page = 1):
 	reponse["new_chats"] = []
 	reponse["modif_moment"] = []
 	reponse["notifications"] = []
+	reponse["invitations"] = []
 
+	#Le nombre total de notifs (notifs + invitations)
+	reponse["total_notifs"] = current_user.nb_notif_unread()
 
 	#On recupere le nb de nouvelles notifs et en même temps on les archive
 	reponse["nb_new_notifs"] = current_user.archive_notifs()
 
 
 
-	notificationPagination = Notification.query.filter_by(user_id = current_user.id).order_by(desc(Notification.time)).paginate(nb_page, constants.NOTIFS_PAGINATION, False)
+	notificationPagination = Notification.query.filter(and_(Notification.user_id == current_user.id, Notification.type_notif != userConstants.INVITATION)).order_by(desc(Notification.time)).paginate(nb_page, constants.NOTIFS_PAGINATION, False)
+
 
 	if notificationPagination.has_next:
 		reponse["next_page"] = notificationPagination.next_num
@@ -1830,6 +1834,49 @@ def notifications(nb_page = 1):
 			reponse["modif_moment"].append(notification.notif_to_send())
 		'''
 
+
+	return jsonify(reponse), 200
+
+
+
+
+
+#####################################################################
+############ Recuperer les invitations d'un user #################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+@app.route('/invitations', methods=["GET"])
+@app.route('/invitations/<int:nb_page>', methods=["GET"])
+@login_required
+def invitations(nb_page = 1):
+	#On créé la réponse qui sera envoyé
+	reponse = {}
+	reponse["invitations"] = []
+
+	#Le nombre total de notifs (notifs + invitations)
+	reponse["total_notifs"] = current_user.nb_notif_unread()
+
+	#On recupere le nb de nouvelles notifs et en même temps on les archive
+	reponse["nb_new_notifs"] = current_user.archive_invitations()
+
+
+	invitationPagination = Notification.query.filter(and_(Notification.user_id == current_user.id, Notification.type_notif == userConstants.INVITATION)).order_by(desc(Notification.time)).paginate(nb_page, constants.NOTIFS_PAGINATION, False)
+
+
+	if invitationPagination.has_next:
+		reponse["next_page"] = invitationPagination.next_num
+
+	if invitationPagination.has_prev:
+		reponse["prev_page"] = invitationPagination.prev_num
+	
+	for invitation in invitationPagination.items:
+
+		reponse["invitations"].append(invitation.notif_to_send())
+
+
 	return jsonify(reponse), 200
 
 
@@ -1846,11 +1893,12 @@ def reset_notifications():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 	
+	'''
 	for notification in current_user.notifications:
 		db.session.delete(notification)
 
 	db.session.commit()
-
+	'''
 	reponse["success"] = "Notifications emptied"
 
 	return jsonify(reponse), 200
