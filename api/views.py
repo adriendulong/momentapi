@@ -164,15 +164,13 @@ def register():
 			return jsonify(reponse), 405
 
 		#On verifie aussi qu'un user avec ce facebookId n'existe pas
-		elif "facebookId" in request.form and controller.user_exist_fb(request.form["facebookId"]):
-			reponse["error"] = "already exist with this facebook account"
-			return jsonify(reponse), 405
-
+		#elif "facebookId" in request.form and controller.user_exist_fb(request.form["facebookId"]):
+			#reponse["error"] = "already exist with this facebook account"
+			#return jsonify(reponse), 405
 
 
 		#Sinon nouvel utilisateur
 		else:
-
 			#On se créé un dictionnaire avec toutes les données
 			potential_prospect = {}
 			potential_prospect["email"] = email
@@ -187,6 +185,20 @@ def register():
 			#On cree l'utilisateur
 			user = User(email, firstname, lastname, hashpwd)
 
+
+			###
+			## Données non obligatoires : date d'anniversaire, et sexe
+			###
+
+			#On recupere les données non obligatoires
+			if "birth_date" in request.form:
+				user.birth_date = datetime.date.fromtimestamp(int(request.form["birth_date"]))
+			if "sex" in request.form:
+				if request.form["sex"] == constants.MALE:
+					user.sex = constants.MALE
+				elif request.form["sex"] == constants.FEMALE:
+					user.sex = constants.FEMALE 
+
 			#On l'enregistre en base pour avoir un id
 			db.session.add(user)
 			db.session.commit()
@@ -196,6 +208,13 @@ def register():
 
 			#On recupere le prospect si il existe
 			prospect = controller.get_prospect(potential_prospect)
+
+
+			###
+			##	Test pour voir si Prospect existe
+			##
+			###
+
 
 			#On a pas trouvé de prospect, on recupere les autres infos
 			if prospect is None:
@@ -240,6 +259,11 @@ def register():
 				#On supprime le prospect
 				db.session.delete(prospect)
 
+
+			###
+			##	Association du device
+			##
+			###
 
 			#On rajoute ce device si il n'est pas déjà associé
 			if "device_id" in request.form:
@@ -1185,6 +1209,42 @@ def user():
 			user.add_profile_picture_aws(request.files["photo"], name_picture)
 
 
+		###
+		## On modifie la date de naissance
+		###
+
+		if "birth_date" in request.form:
+			user.birth_date = datetime.date.fromtimestamp(int(request.form["birth_date"]))
+			reponse["modified_elements"]["birth_date"] = "The user birth date is %s" % (user.birth_date)
+
+		###
+		## On modifie le sexe
+		###
+
+		if "sex" in request.form:
+			if request.form["sex"] == constants.MALE:
+					user.sex = constants.MALE
+					reponse["modified_elements"]["sex"] = "The user is now a male !"
+			elif request.form["sex"] == constants.FEMALE:
+				user.sex = constants.FEMALE 
+				reponse["modified_elements"]["sex"] = "The user is now a female !"
+
+		###
+		## On modifie la privacy du profil
+		###
+
+		if "privacy" in request.form:
+			if int(request.form["privacy"]) == userConstants.OPEN:
+				user.privacy = int(userConstants.OPEN)
+				reponse["modified_elements"]["privacy"] = "The user profile is now open."
+			elif int(request.form["privacy"]) == userConstants.PRIVATE:
+				user.privacy = int(userConstants.PRIVATE)
+				reponse["modified_elements"]["privacy"] = "The user profile is now protected."
+			elif int(request.form["privacy"]) == userConstants.CLOSED:
+				user.privacy = int(userConstants.CLOSED)
+				reponse["modified_elements"]["privacy"] = "The user profile is now closed."
+
+
 
 		db.session.commit()
 		return jsonify(reponse), 200
@@ -2044,11 +2104,11 @@ def search(search):
 
 	#Si le texte est composé d'un seul mot
 	if len(decSearch)==1:
-		users = User.query.filter(or_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[0]+"%"))).all()
+		users = User.query.filter(or_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[0]+"%"), User.privacy != userConstants.CLOSED)).all()
 
 	#Sinon on peut avoir nom et prenom
 	else:
-		users = User.query.filter(or_(and_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[1]+"%")), and_(User.lastname.ilike(decSearch[0]+"%"), User.firstname.ilike(decSearch[1]+"%")))).all()
+		users = User.query.filter(or_(and_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[1]+"%")), and_(User.lastname.ilike(decSearch[0]+"%"), User.firstname.ilike(decSearch[1]+"%")), User.privacy != userConstants.CLOSED)).all()
 
 	reponse["users"] = []
 	for user in users:
@@ -2136,9 +2196,16 @@ def add_follow(user_id):
 
 	userToFollow = User.query.get(user_id)
 
+
+
 	#Si le user existe
 	#### Ici VOIR EN FONCTION DE LA PRIVACY DE CHAQUE USER  (PUBLIC , SEMI OUVERT, FERME)
 	if userToFollow is not None:
+
+		#On verifie que le user n'est pas fermé
+		if userToFollow.privacy == userConstants.CLOSED:
+			reponse["error"] = "This user is private thus it can't be followed"
+			return jsonify(reponse), 405
 
 		#Si le user a bien été ajouté
 		#Si le user n'est pas ecnore suivi

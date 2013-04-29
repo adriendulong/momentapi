@@ -233,6 +233,9 @@ class User(db.Model):
     lang = db.Column(db.String(40))
     last_feed_update = db.Column(db.DateTime)
     description = db.Column(db.Text)
+    birth_date = db.Column(db.Date)
+    sex = db.Column(db.String(1))
+    privacy = db.Column(db.Integer, default = userConstants.OPEN)
 
     #Les paramètres de notifications
     param_notifs = db.relationship("ParamNotifs", backref="user")
@@ -589,7 +592,7 @@ class User(db.Model):
 
         #On verifie qu'il existe pas déjà un device avec ce meme device_id
         sameDevice = Device.query.filter(Device.device_id == device_id).first()
-        #Si il en existe un ça veut dire qu'on la pas effacer quand quelqu'un s'est deconnecté, alors on l'efface maintenant
+        #Si il en existe un ça veut dire qu'on la pas effacé quand quelqu'un s'est deconnecté, alors on l'efface maintenant
         if sameDevice is not None:
             db.session.delete(sameDevice)
 

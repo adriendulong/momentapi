@@ -11,6 +11,11 @@ OPEN = 1
 PUBLIC = 2
 
 
+# Male and Female
+MALE = "M"
+FEMALE = "F"
+
+
 
 PROFILE_PATH = "/static/data/users"
 AWS_PROFILE_PATH = "data/users/"
