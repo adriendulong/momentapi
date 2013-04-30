@@ -2207,6 +2207,18 @@ def add_follow(user_id):
 			reponse["error"] = "This user is private thus it can't be followed"
 			return jsonify(reponse), 405
 
+		#Si le user est protégé
+		elif userToFollow.privacy == userConstants.PRIVATE:
+			if not current_user.is_following(userToFollow) and not current_user.is_requesting(userToFollow):
+				current_user.request_follow(userToFollow)
+				reponse["success"] = "Request sent to the user"
+				return jsonify(reponse), 200
+
+			else:
+				reponse["error"] = "This user is already followed or the request is already made"
+				return jsonify(reponse), 405
+
+
 		#Si le user a bien été ajouté
 		#Si le user n'est pas ecnore suivi
 		if not current_user.is_following(userToFollow):
@@ -2224,6 +2236,39 @@ def add_follow(user_id):
 			current_user.remove_follow(userToFollow)
 			reponse["success"] = "This user is no more followed"
 			return jsonify(reponse), 200
+
+
+	else:
+		reponse["error"] = "This user does not exist"
+		return jsonify(reponse), 405
+
+
+
+#####################################################################
+############ Accepter requete de follow ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+#	
+
+
+@app.route('/acceptfollow/<int:user_id>', methods=["GET"])
+@login_required
+def accept_follow(user_id):
+	reponse = {}
+
+	user = User.query.get(user_id)
+
+	if user is not None:
+		
+		
+		if user.validate_request(current_user):
+			reponse["success"] = "The user is now followed"
+			return jsonify(reponse), 200
+
+		else:
+			reponse["error"] = "An error occured. Maybe the user was already followed, or there was no follow request on this user"
+			return jsonify(reponse), 405
 
 
 	else:

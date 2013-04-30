@@ -36,6 +36,11 @@ followers_table = db.Table("followers_table",
     db.Column("followed_id", db.Integer, db.ForeignKey("user.id"), primary_key=True)
 )
 
+waiting_followers_table = db.Table("waiting_followers_table", 
+    db.Column("follower_id", db.Integer, db.ForeignKey("user.id"), primary_key=True),
+    db.Column("followed_id", db.Integer, db.ForeignKey("user.id"), primary_key=True)
+)
+
 feed_photos = db.Table("feed_photos", 
     db.Column("feed", db.Integer, db.ForeignKey("feed.id"), primary_key=True),
     db.Column("photo", db.Integer, db.ForeignKey("photo.id"), primary_key=True)
@@ -126,6 +131,64 @@ class Actu(db.Model):
 
         else:
             self.moment_id = moment.id
+
+
+
+
+
+################################
+##### Une Notification ###########
+################################
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type_notif = db.Column(db.Integer, nullable=False)
+    time = db.Column(db.DateTime, default = datetime.datetime.now())
+
+    #Le user à qui appartient la notif
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    #Le user qui a suivi ou qui a fait la requete de follow
+    follower_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+
+    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'))
+    moment = db.relationship("Moment", backref=db.backref("notifications", cascade="delete, delete-orphan"))
+
+    #Definit si la notif est en cours ou si elle est passée dans l'historique (False)
+    is_active = db.Column(db.Boolean, default=True)
+
+    
+    #__table_args__ = (UniqueConstraint('moment_id', 'user_id', 'type_notif', name='_type_moment_user_uc'),
+    #                 )
+
+
+    def __init__(self, concerned, user, type_notif):
+        self.type_notif = type_notif
+
+        #Si la notif concerne un moment alors concerned sera un moment
+        if self.type_notif != userConstants.NEW_FOLLOWER and self.type_notif != userConstants.NEW_REQUEST:
+            self.moment = concerned
+
+        #Sinon ça sera le user qui suit ou a fait la requete pour
+        else:
+            self.follower = concerned
+
+        self.user = user
+        self.time = datetime.datetime.now()
+
+    def notif_to_send(self):
+        notif = {}
+        notif["time"] = self.time.strftime("%s")
+        if self.type_notif != userConstants.NEW_FOLLOWER and self.type_notif != userConstants.NEW_REQUEST:
+            notif["moment"] = self.moment.moment_to_send(self.user_id)
+        elif self.type_notif == userConstants.NEW_FOLLOWER:
+            notif["follower"] = self.follower.user_to_send_social(self.user)
+        else:
+            notif["request_follower"] = self.follower.user_to_send_social(self.user)
+        notif["type_id"] = self.type_notif
+
+        return notif
 
 
 
@@ -249,7 +312,7 @@ class User(db.Model):
     photos = db.relationship("Photo", backref="user")
     devices = db.relationship("Device", backref="user")
     chats = db.relationship("Chat", backref="user")
-    notifications = db.relationship("Notification", backref="user")
+    notifications = db.relationship("Notification", backref="user", foreign_keys=[Notification.user_id])
 
     #All the actus of this users
     actus = db.relationship("Actu", backref="user", foreign_keys=[Actu.user_id])
@@ -262,6 +325,15 @@ class User(db.Model):
                         backref="followers"
     )
 
+
+    #All the people this user asked to follow
+    waitingFollows = db.relationship("User",
+                        secondary=waiting_followers_table,
+                        primaryjoin=id==waiting_followers_table.c.follower_id,
+                        secondaryjoin=id==waiting_followers_table.c.followed_id,
+                        backref="requestFollowers"
+    )
+
     #The feeds of the user
     feeds = db.relationship("Feed", backref="user", cascade = "delete, delete-orphan", foreign_keys=[Feed.user_id])
 
@@ -270,6 +342,9 @@ class User(db.Model):
 
     #Liens avec toutes les actus dans lesquelles ce user est concerné (parce qu'il a été suivi)
     concerned_actus = db.relationship("Actu", backref="follow", cascade = "delete, delete-orphan", foreign_keys=[Actu.follow_id])
+
+    #liens avec toutes les noftifs dans lesquels ce user apparait
+    concerned_notifs = db.relationship("Notification", backref="follower", cascade = "delete, delete-orphan", foreign_keys=[Notification.follower_id])
 
     # Auth token for Flask Login
     def get_auth_token(self):
@@ -458,6 +533,10 @@ class User(db.Model):
         user["firstname"] = self.firstname
         user["lastname"] = self.lastname
         user["email"] = self.email
+
+        if self.phone is not None:
+            user["phone"] = self.phone
+
         if self.profile_picture_url is not None:
             user["profile_picture_url"] = self.profile_picture_url
 
@@ -486,11 +565,31 @@ class User(db.Model):
 
         user_to_send = self.user_to_send()
         user_to_send["is_followed"] = False
+        user_to_send["request_follower"] = False
+        user_to_send["request_follow_me"] = False
+        user_to_send["privacy"] = user.privacy
+
+        
 
         #On pourcours les gens qui suivent ce user pour voir si y en a un qui correpond au user connecté
         for follow in user.follows:
             if follow.id == self.id:
                 user_to_send["is_followed"] = True
+
+
+        #Renvoit si ce user a demandé de suivre self
+        #Ca ne sert à rien de regarder si ce self n'est pas en private
+        if self.privacy == userConstants.PRIVATE:
+            for requestFollower in self.requestFollowers:
+                if requestFollower.id == user.id:
+                    user_to_send["request_follower"] = True
+
+        #Renvoit si self a demandé à suivre ce user
+        if user.privacy==userConstants.PRIVATE:
+            for waitingFollow in self.waitingFollows:
+                if waitingFollow.id == user.id:
+                    user_to_send["request_follow_me"] = True
+
                 
 
         return user_to_send
@@ -651,6 +750,25 @@ class User(db.Model):
         return True
 
 
+    ###
+    # Fonction qui envoie un requete au user et qui met en attente la demande
+    ###
+
+    def request_follow(self, user):
+
+        for waiting in self.waitingFollows:
+
+            #On verifie que la demande n'est pas déjà en attente
+            if waiting.id == user.id:
+                return False
+
+        self.waitingFollows.append(user)
+        db.session.commit()
+
+        #On notifie d'un nouvelle requete le 'user'
+        user.notify_new_request(self)
+
+
     ####
     ## Fonction qui va renvoyer si ce user est déjà suivi ou pas
     ####
@@ -662,6 +780,36 @@ class User(db.Model):
                 return True
 
         return False
+
+
+    ####
+    ## Fonction qui va renvoyer si la requete de follow a déjà été faites
+    ####
+
+    def is_requesting(self, user):
+
+        for waitingFollow in self.waitingFollows:
+            if waitingFollow.id == user.id:
+                return True
+
+        return False
+
+
+    def validate_request(self, user):
+
+        #On verifie que la demande avait bien été faite
+        if self.is_requesting(user):
+            #On supprime la requete
+            self.waitingFollows.remove(user)
+
+            #On suit le user
+            self.add_follow(user)
+
+            return True
+
+        else:
+            return False
+                
 
 
     ####
@@ -998,10 +1146,12 @@ class User(db.Model):
 
     def notify_new_follower(self, follower):
 
-        #notification = Notification(moment, self, userConstants.NEW_PHOTO)
+        notification = Notification(follower, self, userConstants.NEW_FOLLOWER)
+        
         #On enregistre en base
-        #db.session.add(notification)
-        #db.session.commit()
+        db.session.add(notification)
+        db.session.commit()
+        #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
 
         
 
@@ -1012,6 +1162,34 @@ class User(db.Model):
         #Titre de la notif
         title = "Nouveau Follower"
         contenu = unicode('vous suit maintenant','utf-8')
+        message = "%s %s" % (follower.firstname, contenu)
+
+        for device in self.devices:
+            device.notify_new_follower(title, message.encode("utf-8"), follower)
+
+
+
+    ##
+    ## Notification nouvelle request de follow
+    ##
+
+    def notify_new_request(self, follower):
+
+        notification = Notification(follower, self, userConstants.NEW_REQUEST)
+        
+        #On enregistre en base
+        db.session.add(notification)
+        db.session.commit()
+
+        
+
+        ##
+        ## PUSH NOTIF
+        ##
+
+        #Titre de la notif
+        title = "Nouvelle Requete"
+        contenu = unicode('veut vous suivre','utf-8')
         message = "%s %s" % (follower.firstname, contenu)
 
         for device in self.devices:
@@ -2213,38 +2391,6 @@ class Chat(db.Model):
 
 
 
-
-################################
-##### Une Notification ###########
-################################
-
-class Notification(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    type_notif = db.Column(db.Integer, nullable=False)
-    time = db.Column(db.DateTime, default = datetime.datetime.now())
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), nullable=False)
-
-    #Definit si la notif est en cours ou si elle est passée dans l'historique (False)
-    is_active = db.Column(db.Boolean, default=True)
-
-    moment = db.relationship("Moment", backref=db.backref("notifications", cascade="delete, delete-orphan"))
-    #__table_args__ = (UniqueConstraint('moment_id', 'user_id', 'type_notif', name='_type_moment_user_uc'),
-    #                 )
-
-    def __init__(self, moment, user, type_notif):
-        self.type_notif = type_notif
-        self.moment = moment
-        self.user = user
-        self.time = datetime.datetime.now()
-
-    def notif_to_send(self):
-        notif = {}
-        notif["time"] = self.time.strftime("%s")
-        notif["moment"] = self.moment.moment_to_send(self.user_id)
-        notif["type_id"] = self.type_notif
-
-        return notif
 
 
 
