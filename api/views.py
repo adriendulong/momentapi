@@ -963,15 +963,31 @@ def new_guests(idMoment):
 
 							#On verfie que le user existe pour le rajouter
 							if user_to_add is not None:
-								# On le rajoute et si ça s'est bien passé on incrémente le compteur
-								if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
-									count += 1
 
-									#On enregistre dans l'actu de ce user qu'il a été invité
-									user_to_add.add_actu_invit(moment)
+								#Si le user invité est le meme que celui qui fait l'invit c'est qu'il rajoute de moment à ses moments
+								if user_to_add.id == current_user.id:
+									# On le rajoute et si ça s'est bien passé on incrémente le compteur
+									'''
+									if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
+										count += 1
 
-									#On rajoute ce user à la liste des invités
-									moment_guests.append(user_to_add)
+										#On enregistre dans l'actu de ce user qu'il a été invité
+										user_to_add.add_actu_invit(moment)
+
+										#On rajoute ce user à la liste des invités
+										moment_guests.append(user_to_add)
+									'''
+
+								else:
+									# On le rajoute et si ça s'est bien passé on incrémente le compteur
+									if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
+										count += 1
+
+										#On enregistre dans l'actu de ce user qu'il a été invité
+										user_to_add.add_actu_invit(moment)
+
+										#On rajoute ce user à la liste des invités
+										moment_guests.append(user_to_add)
 
 						#Sinon c'est un prospect
 						else:
@@ -1195,7 +1211,7 @@ def user():
 		###
 
 		if "password" in request.form:
-			user.modify_pass(request.form["password"]) 
+			user.modify_pass(request.form["password"], False) 
 
 			reponse["modified_elements"]["password"] = "Password modified"
 
@@ -2104,15 +2120,48 @@ def search(search):
 
 	#Si le texte est composé d'un seul mot
 	if len(decSearch)==1:
-		users = User.query.filter(or_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[0]+"%"), User.privacy != userConstants.CLOSED)).all()
+
+		#on recupere d'abord les users qu'il follow
+		usersPerso = []
+
+		for user in current_user.follows:
+			if user.firstname.lower().startswith(decSearch[0].lower()):
+				usersPerso.append(user)
+			elif user.lastname.lower().startswith(decSearch[0].lower()):
+				usersPerso.append(user)
+
+		#Puis les users autres classé par gd nb de followers et limité à 20
+		users = User.query.filter(and_(or_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[0]+"%")), User.privacy != userConstants.CLOSED)).limit(20).all()
+		print len(users)
+
 
 	#Sinon on peut avoir nom et prenom
 	else:
-		users = User.query.filter(or_(and_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[1]+"%")), and_(User.lastname.ilike(decSearch[0]+"%"), User.firstname.ilike(decSearch[1]+"%")), User.privacy != userConstants.CLOSED)).all()
+		#on recupere d'abord les users qu'il follow
+		usersPerso = []
 
+		for user in current_user.follows:
+			if user.firstname.lower().startswith(decSearch[0].lower()) and user.lastname.lower().startswith(decSearch[1].lower()):
+				usersPerso.append(user)
+			elif user.lastname.lower().startswith(decSearch[0].lower()) and user.firstname.lower().startswith(decSearch[1].lower()):
+				usersPerso.append(user)
+
+
+		users = User.query.filter(and_(or_(and_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[1]+"%")), and_(User.lastname.ilike(decSearch[0]+"%"), User.firstname.ilike(decSearch[1]+"%"))), User.privacy != userConstants.CLOSED)).limit(20).all()
+
+
+	#On envoie tous les users trouvés
 	reponse["users"] = []
-	for user in users:
+
+	#On met d'abord les user qui sont suivis
+	for user in usersPerso:
 		reponse["users"].append(user.user_to_send_social(current_user))
+
+
+	#Puis les autres
+	for user in users:
+		if not current_user.is_following(user):
+			reponse["users"].append(user.user_to_send_social(current_user))
 
 
 	#######
@@ -2518,11 +2567,46 @@ def lost_pass(email):
 	user = User.query.filter(User.email == email).first()
 
 	new_pass = fonctions.random_pass()
-	user.modify_pass(new_pass)
+	user.modify_pass(new_pass, True)
 
-	reponse["new_pass"] = new_pass
+	reponse["sucess"] = "New password sent to %s" % (user.email)
 
 	return jsonify(reponse), 200
+
+
+
+
+#####################################################################
+############  Logout de l'app  et deconnection du device ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires : 
+# 
+#	
+
+@app.route('/logout/<device_id>', methods=["GET"])
+@login_required
+def logout(device_id):
+	reponse = {}
+
+	deviceRemoved = False
+
+	for device in current_user.devices:
+		if device.device_id == device_id:
+			current_user.devices.remove(device)
+			db.session.commit()
+			deviceRemoved = True
+
+
+
+	if deviceRemoved:
+		reponse["success"] = "One device removed. See you !"
+		return jsonify(reponse), 200
+	else:
+		reponse["error"] = "No device removed"
+		return jsonify(reponse), 405
+
+	
 
 
 

@@ -310,7 +310,7 @@ class User(db.Model):
     is_favoris = db.relationship("Favoris", backref='the_favoris',
                              primaryjoin=id==Favoris.favoris_id)
     photos = db.relationship("Photo", backref="user")
-    devices = db.relationship("Device", backref="user")
+    devices = db.relationship("Device", backref="user", cascade = "delete, delete-orphan")
     chats = db.relationship("Chat", backref="user")
     notifications = db.relationship("Notification", backref="user", foreign_keys=[Notification.user_id])
 
@@ -407,20 +407,26 @@ class User(db.Model):
     # Modify the password
     ##
 
-    def modify_pass(self, new_pass):
+    def modify_pass(self, new_pass, email):
         hashpwd = hashpw(new_pass, gensalt())
         self.pwd = hashpwd
 
         #On construit le tableau de destinataire
-        to_dests = []
-        dest = {
-            "email" : self.email,
-            "name" : "%s %s" % (self.firstname, self.lastname)
-        }
-        to_dests.append(dest)
+        if email:
+            to_dests = []
+            dest = {
+                "email" : self.email,
+                "name" : "%s %s" % (self.firstname, self.lastname)
+            }
+            to_dests.append(dest)
 
-        #On envoie le mail
-        thread.start_new_thread( fonctions.send_new_pass_mail, (to_dests, new_pass,) )
+            #On envoie le mail
+            thread.start_new_thread( fonctions.send_new_pass_mail, (to_dests, new_pass,) )
+
+
+        print new_pass
+
+        
 
         db.session.commit()
 
@@ -1721,7 +1727,8 @@ class Moment(db.Model):
 
         if self.isOpenInvit:
             return True
-
+        elif self.privacy == userConstants.OPEN:
+            return True
         else:
             for guest in self.guests:
                 # On retrouve le user et on vérifie qu'il est owner ou admin
