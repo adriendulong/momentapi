@@ -770,6 +770,26 @@ def moment(id):
 					moment.add_cover_photo_aws(f, name_picture)
 					reponse["photo"] = moment.cover_picture_url
 
+				if "privacy" in request.form:
+					if int(request.form["privacy"]) == constants.PRIVATE:
+						moment.privacy = constants.PRIVATE
+						reponse["privacy"] = "The moment is now private"
+					elif int(request.form["privacy"]) == constants.OPEN:
+						moment.privacy = constants.OPEN
+						reponse["privacy"] = "The moment is now open"
+					elif int(request.form["privacy"]) == constants.PUBLIC:
+						moment.privacy = constants.PUBLIC
+						reponse["privacy"] = "The moment is now public"
+
+				if "isOpenInvit" in request.form:
+					if request.form["isOpenInvit"] == "0":
+						moment.isOpenInvit = False
+						reponse["isOpenInvit"] = "Guests can't invite other people"
+					elif request.form["isOpenInvit"] == "1":
+						moment.isOpenInvit = True
+						reponse["isOpenInvit"] = "Guests can invite other people"
+
+
 				#On enregistre
 				db.session.commit()
 

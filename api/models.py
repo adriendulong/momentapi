@@ -159,8 +159,6 @@ class Notification(db.Model):
     is_active = db.Column(db.Boolean, default=True)
 
     
-    #__table_args__ = (UniqueConstraint('moment_id', 'user_id', 'type_notif', name='_type_moment_user_uc'),
-    #                 )
 
 
     def __init__(self, concerned, user, type_notif):
