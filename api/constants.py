@@ -51,6 +51,13 @@ S3_URL = "https://s3-eu-west-1.amazonaws.com"
 S3_BUCKET = "/apimoment/"
 
 
+#############
+# FACEBOOK #
+#############
+
+FB_ACCESS_TOKEN = "445031162214877|haRhQcYEgIPpXc7hzGSbtK3IBfs"
+
+
 
 #############
 # MANDRILL #

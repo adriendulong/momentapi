@@ -2630,14 +2630,33 @@ def logout(device_id):
 
 
 #####################################################################
-############  LOAD TEST ############################
+############ FACEBOOK REAL TIME ############################
 ######################################################################
 
 
-@app.route('/mu-d15e2e49-bd72d4fd-b5efada7-c5915d76', methods=["GET"])
-def load_test():
+@app.route('/realtime/fb', methods=["GET", "POST"])
+def fb_real_time():
 
-	return "42"
+	if request.method == "GET": 
+
+		mode         = request.values.get('hub.mode')
+		challenge    = request.values.get('hub.challenge')
+		verify_token = request.values.get('hub.verify_token')
+
+
+		#On verifie que c'est bien le verify_token de facebook
+		if verify_token == constants.FB_EVENT_VERIFY_TOKEN:
+			return challenge
+
+		else: 
+			print "PAS FACEBOOK"
+			return "nop"
+
+	elif request.method == "POST":
+		print "FACEBOOK : %s" % request.json
+
+		
+
 
 
 
