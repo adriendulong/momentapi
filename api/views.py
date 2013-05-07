@@ -987,16 +987,14 @@ def new_guests(idMoment):
 								#Si le user invité est le meme que celui qui fait l'invit c'est qu'il rajoute de moment à ses moments
 								if user_to_add.id == current_user.id:
 									# On le rajoute et si ça s'est bien passé on incrémente le compteur
-									'''
-									if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
+									
+									if moment.add_myself_to_moment(user_to_add):
 										count += 1
-
-										#On enregistre dans l'actu de ce user qu'il a été invité
-										user_to_add.add_actu_invit(moment)
+										print "Add myself"
 
 										#On rajoute ce user à la liste des invités
 										moment_guests.append(user_to_add)
-									'''
+									
 
 								else:
 									# On le rajoute et si ça s'est bien passé on incrémente le compteur

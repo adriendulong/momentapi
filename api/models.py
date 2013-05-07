@@ -1719,6 +1719,34 @@ class Moment(db.Model):
             return False
 
 
+    def add_myself_to_moment(self, user):
+
+        #On verifie que le moment est bien un moment public
+        if self.privacy == constants.PUBLIC:
+
+            if user is not None:
+                #Si il n'est pas déjà invité
+                if not self.is_in_guests(user.id):
+                    invitation = Invitation(userConstants.COMING, user)
+                    self.guests.append(invitation)
+
+                    #On increment le compteur pour chaque invité egalement
+                    for guest in self.guests:
+                        if guest.user.id != user.id:
+                            guest.user.increment_favoris(user, userConstants.MOMENT)
+
+                    #On rajoute dans l'actu de la personne
+                    user.add_actu_going(self)
+
+                    return True
+                else:
+                    return False
+
+            else:
+                return False
+
+
+
 
     #Fonction qui dit si ce user peut ajouter des invites
     def can_add_guest(self, user_id):
