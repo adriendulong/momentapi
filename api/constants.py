@@ -56,6 +56,7 @@ S3_BUCKET = "/apimoment/"
 #############
 
 FB_ACCESS_TOKEN = "445031162214877|haRhQcYEgIPpXc7hzGSbtK3IBfs"
+FB_EVENT_VERIFY_TOKEN = "fbeventsMoment"
 
 
 
