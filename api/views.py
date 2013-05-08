@@ -1956,7 +1956,7 @@ def invitations(nb_page = 1):
 	reponse["total_notifs"] = current_user.nb_notif_unread()
 
 	#On recupere le nb de nouvelles notifs et en même temps on les archive
-	reponse["nb_new_notifs"] = current_user.archive_invitations()
+	reponse["nb_new_invits"] = current_user.archive_invitations()
 
 
 	invitationPagination = Notification.query.filter(and_(Notification.user_id == current_user.id, Notification.type_notif == userConstants.INVITATION)).order_by(desc(Notification.time)).paginate(nb_page, constants.NOTIFS_PAGINATION, False)
