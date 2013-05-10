@@ -283,6 +283,7 @@ class User(db.Model):
     lastname = db.Column(db.String(80))
     pwd = db.Column(db.String(80))
     phone = db.Column(db.String(20))
+    phoneCountry = db.Column(db.String(30))
     facebookId = db.Column(db.BigInteger)
     creationDateUser = db.Column(db.Date)
     goldProfileNumber = db.Column(db.Integer)

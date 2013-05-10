@@ -16,6 +16,10 @@ from mail import Mail
 import user.userConstants as userConstants
 import constants
 from instagram.client import InstagramAPI
+import phonenumbers
+from phonenumbers.geocoder import area_description_for_number
+from phonenumbers.geocoder import country_name_for_number
+from phonenumbers.phonenumberutil import region_code_for_number
 
 
 
@@ -519,6 +523,79 @@ def update_moment_tag(update):
 	db.session.commit()
 
 	print hashtag
+
+
+
+
+#######################################
+#######################################
+############# TELEPHONE ###############
+#######################################
+#######################################
+
+
+
+#####
+## Fonction qui controlle que c'est un numéro au bon format (international, sinon on tente FR)
+## et qui renvoit le numero si jamais il est bon, ou None sinon
+####
+
+
+def phone_controll(phone):
+
+	numero_tel = None
+
+	#On controlle qu'il y a un plus au début, sinon il faut donner la localisation
+	if phone[0] == "+":
+
+		#Si jamais il y a un pb avec le parsage
+		try:
+			number = phonenumbers.parse(phone, None)
+
+
+			#On vérifie que le nombre est valide
+			if phonenumbers.is_valid_number(number):
+				numero_tel = {}
+				numero_tel["number"] = phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
+				numero_tel["country"] = region_code_for_number(number)
+
+				return numero_tel
+
+			else:
+				print "Numéro invalide"
+				return numero_tel
+
+		except phonenumbers.phonenumberutil.NumberParseException:
+			print "Problème exception"
+			return numero_tel
+
+
+		
+
+	#Sinon on doit donner une localisation
+	else:
+		print "quelle localisation ?"
+
+		try:
+
+			number = phonenumbers.parse(phone, "FR")
+
+			#On vérifie que le nombre est valide
+			if phonenumbers.is_valid_number(number):
+				numero_tel = {}
+				numero_tel["number"] = phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
+				numero_tel["country"] = region_code_for_number(number)
+
+				return numero_tel
+
+			else:
+				print "Numéro invalide"
+				return numero_tel
+
+
+		except phonenumbers.phonenumberutil.NumberParseException:
+			print "Problème exception"
+			return numero_tel
 
 
 
