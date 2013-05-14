@@ -56,28 +56,6 @@ feed_follows = db.Table("feed_follows",
     db.Column("user", db.Integer, db.ForeignKey("user.id"), primary_key=True)
 )
 
-"""
-moment_owners = db.Table('moment_owners',
-    db.Column('moment_id', db.Integer, db.ForeignKey('moment.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
-)
-
-coming_users = db.Table('coming_users',
-    db.Column('moment_id', db.Integer, db.ForeignKey('moment.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
-)
-
-not_coming_users = db.Table('not_coming_users',
-    db.Column('moment_id', db.Integer, db.ForeignKey('moment.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
-)
-
-maybe_users = db.Table('not_coming_users',
-    db.Column('moment_id', db.Integer, db.ForeignKey('moment.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
-)
-"""
-
 
 
 
@@ -1469,6 +1447,7 @@ class Moment(db.Model):
     owner_facebookId = db.Column(db.BigInteger)
     privacy = db.Column(db.Integer)
     is_sponso = db.Column(db.Boolean, default= False, nullable = False)
+    unique_code = db.Column(db.String(10))
 
     guests = db.relationship("Invitation", backref="moment")
     prospects = db.relationship("Prospect",
@@ -1485,6 +1464,8 @@ class Moment(db.Model):
         self.startDate = startDate
         self.endDate = endDate
         self.privacy = constants.PUBLIC
+
+        self.init_unique_code()
 
         #self.last_modification = datetime.datetime.now()
 
@@ -1508,6 +1489,7 @@ class Moment(db.Model):
         moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
         moment["isOpenInvit"] = self.isOpenInvit
         moment["privacy"] = self.privacy
+        moment["unique_url"] = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
         
         if self.description is not None:
             moment["description"] = self.description
@@ -1964,6 +1946,23 @@ class Moment(db.Model):
         thread.start_new_thread( fonctions.send_invitation_mail, (to_dests, self.name, host_infos,) )
 
 
+    ##
+    # Fonction qui va attribuer un identifiant unique
+    ##
+
+    def init_unique_code(self):
+
+        while True:
+
+            uuid = fonctions.get_uuid()
+
+            momentExist = Moment.query.filter_by(unique_code = uuid).first()
+
+            if momentExist is None:
+                self.unique_code = uuid
+                break
+
+
 
 
 
@@ -2143,6 +2142,7 @@ class Prospect(db.Model):
 
 
 
+
 ################################
 ##### Une photo ###########
 ################################
@@ -2162,8 +2162,8 @@ class Photo(db.Model):
                     secondary=likes_table,
                     backref="photos_liked")
     actus = db.relationship("Actu", backref="photo", cascade = "delete, delete-orphan")
+    unique_code = db.Column(db.String(10))
 
-        
 
     def save_photo(self, f, moment, user):
 
@@ -2230,6 +2230,9 @@ class Photo(db.Model):
         #On met une heure
         self.creation_datetime = datetime.datetime.now()
 
+        #On attribue un identifiant unique
+        self.init_unique_code()
+
 
 
         if db.session.commit():
@@ -2258,6 +2261,7 @@ class Photo(db.Model):
         photo["time"] = self.creation_datetime.strftime("%s")
         photo["original_width"] = self.original_width
         photo["original_height"] = self.original_height
+        photo["unique_url"] = constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
 
         return photo
 
@@ -2271,6 +2275,7 @@ class Photo(db.Model):
         photo["url_thumbnail"] = self.url_thumbnail
         photo["nb_like"] = len(self.likes)
         photo["time"] = self.creation_datetime.strftime("%s")
+        photo["unique_url"] = constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
 
         return photo
 
@@ -2313,6 +2318,23 @@ class Photo(db.Model):
         self.original_height = infos.images["standard_resolution"].height
         self.original_width = infos.images["standard_resolution"].width
         self.url_thumbnail = infos.images["low_resolution"].url
+
+
+    ##
+    # Fonction qui va attribuer un identifiant unique
+    ##
+
+    def init_unique_code(self):
+
+        while True:
+
+            uuid = fonctions.get_uuid()
+
+            photoExist = Photo.query.filter_by(unique_code = uuid).first()
+
+            if photoExist is None:
+                self.unique_code = uuid
+                break
 
 
 

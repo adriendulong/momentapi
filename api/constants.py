@@ -16,6 +16,16 @@ MALE = "M"
 FEMALE = "F"
 
 
+##
+# WEBSITE URL
+##
+
+WEBSITE = "http://appmoment.fr"
+
+
+##
+# DIFFERENT PATHS
+##
 
 PROFILE_PATH = "/static/data/users"
 AWS_PROFILE_PATH = "data/users/"
@@ -24,6 +34,10 @@ MOMENT_PATH = "/static/data/moments"
 AWS_MOMENT_PATH = "data/moments/"
 
 TEMP_PATH = "/static/data/tmp"
+
+UNIQUE_PHOTO_URL = "/p/"
+
+UNIQUE_MOMENT_URL = "/mo/"
 
 #Nombre de chat par page
 CHATS_PAGINATION = 20

@@ -33,6 +33,11 @@ Pour installer ce microframework :
 
 	sudo pip install http://effbot.org/downloads/Imaging-1.1.7.tar.gz
 	
+[shortuuid](https://github.com/stochastic-technologies/shortuuid/)
+Extension pour générer les identifiants uniques necessaires aux url (photos et évènements)
+	
+	pip install shortuuid
+	
 
 ### Configurations
 

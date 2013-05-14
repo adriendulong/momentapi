@@ -17,8 +17,8 @@ class S3:
 
 
 	def upload_progress(self, complete, total):
-		print complete
-		print total
+		#print complete
+		#print total
 
 		if complete > total/2:
 			self.completed = True

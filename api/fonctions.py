@@ -20,6 +20,7 @@ import phonenumbers
 from phonenumbers.geocoder import area_description_for_number
 from phonenumbers.geocoder import country_name_for_number
 from phonenumbers.phonenumberutil import region_code_for_number
+import shortuuid
 
 
 
@@ -133,6 +134,15 @@ def random_identifier():
 		identifier += random.choice(letters[0:26])
 
 	return identifier.upper()
+
+
+##
+# Fonction qui renvoit un uuid (pratiquement unique)
+##
+
+def get_uuid(length = 6):
+
+	return shortuuid.uuid()[:length]
 
 
 ##
