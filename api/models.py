@@ -1489,7 +1489,8 @@ class Moment(db.Model):
         moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
         moment["isOpenInvit"] = self.isOpenInvit
         moment["privacy"] = self.privacy
-        moment["unique_url"] = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
+        if self.unique_code is not None:
+            moment["unique_url"] = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
         
         if self.description is not None:
             moment["description"] = self.description
@@ -2261,7 +2262,8 @@ class Photo(db.Model):
         photo["time"] = self.creation_datetime.strftime("%s")
         photo["original_width"] = self.original_width
         photo["original_height"] = self.original_height
-        photo["unique_url"] = constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
+        if self.unique_code is not None:
+            photo["unique_url"] = constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
 
         return photo
 
@@ -2275,7 +2277,8 @@ class Photo(db.Model):
         photo["url_thumbnail"] = self.url_thumbnail
         photo["nb_like"] = len(self.likes)
         photo["time"] = self.creation_datetime.strftime("%s")
-        photo["unique_url"] = constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
+        if self.unique_code is not None:
+            photo["unique_url"] = constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
 
         return photo
 
