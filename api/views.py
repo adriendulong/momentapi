@@ -18,6 +18,7 @@ import user.userConstants as userConstants
 from sqlalchemy import desc, asc, and_, or_
 import os
 from instagram.client import InstagramAPI
+import random
 
 
 
@@ -525,6 +526,11 @@ def new_moment():
 					#On enregistre en base
 					db.session.commit()
 
+				#Si on pas de photos
+				else:
+					moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,3))
+
+
 				if "photo_url" in request.form:
 					moment.cover_picture_url = request.form["photo_url"]
 					db.session.commit()
@@ -565,6 +571,9 @@ def new_moment():
 				moment.add_cover_photo_aws(f, name_picture)
 				#On enregistre en base
 				db.session.commit()
+		#Si on pas de photos
+		else:
+			moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,3))
 
 
 		#Si le moment a un hashtag, on souscrit à INSTAGRAM
@@ -962,6 +971,7 @@ def new_guests(idMoment):
 
 	#Liste des invités inscrient à Moment (pour envoie mail)
 	moment_guests = []
+	moment_prospects = []
 
 	# Compteur d'invités rajoutés
 	count = 0
@@ -1027,12 +1037,14 @@ def new_guests(idMoment):
 									prospect.init_from_dict(user)
 									moment.prospects.append(prospect)
 									count += 1
+									moment_prospects.append(prospect)
 
 								#Le prospect existe
 								else:
 									prospect.update(user)
 									if moment.add_prospect(prospect):
 										count += 1
+										moment_prospects.append(prospect)
 
 							#Si il esicte on le recupere
 							else:
@@ -1058,6 +1070,15 @@ def new_guests(idMoment):
 					moment.mail_moment_guests(moment_guests, current_user)
 				
 				reponse["nb_user_added"] = count
+				
+				#On renvoit tous les prospects invité afin de les inviter par FB ou SMS 
+				reponse["prospects_invit"] = []
+
+				for prospect in moment_prospects:
+					reponse["prospects_invit"].append(prospect.prospect_to_send())
+
+
+
 				return jsonify(reponse), 200
 
 			else:

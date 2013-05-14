@@ -2036,13 +2036,17 @@ class Prospect(db.Model):
             self.facebookId = user["facebookId"]
 
         if "phone" in user:
-            self.phone = user["phone"]
+            if fonctions.phone_controll(user["phone"]) is not None:
+                phone = fonctions.phone_controll(user["phone"])
+                self.phone = phone["number"]
 
         if "secondEmail" in user:
             self.secondEmail = user["secondEmail"]
 
         if "secondPhone" in user:
-            self.secondPhone = user["secondPhone"]
+            if fonctions.phone_controll(user["secondPhone"]) is not None:
+                phone = fonctions.phone_controll(user["secondPhone"])
+                self.secondPhone = phone["number"]
 
         if "picture_profile_url" in user:
             self.profile_picture_url = user["picture_profile_url"]
@@ -2093,18 +2097,26 @@ class Prospect(db.Model):
 
             #Si le phone est fourni
             if "phone" in user:
-                self.phone = user["phone"]
+                if fonctions.phone_controll(user["phone"]) is not None:
+                    phone = fonctions.phone_controll(user["phone"])
+                    self.phone = phone["number"]
 
          #Si le secondPhone n'est pas rempli 
         if self.secondPhone is None:
 
             #Si le premier email n'est pas le meme que celui enregistré
             if "phone" in user:
-                if user["phone"] != self.phone:
-                    self.secondPhone = user["phone"]
+                if fonctions.phone_controll(user["phone"]) is not None:
+                    phone = fonctions.phone_controll(user["phone"])
+
+                    if user["phone"] != phone["number"]:
+                        self.secondPhone = phone["number"]
 
             elif "secondPhone" in user:
-                self.secondPhone = user["secondPhone"]
+                if fonctions.phone_controll(user["secondPhone"]) is not None:
+                    phone = fonctions.phone_controll(user["secondPhone"])
+
+                    self.secondPhone = phone["number"]
 
         if self.firstname is None:
 
