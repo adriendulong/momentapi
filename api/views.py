@@ -529,6 +529,7 @@ def new_moment():
 				#Si on pas de photos
 				else:
 					moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,3))
+					db.session.commit()
 
 
 				if "photo_url" in request.form:
@@ -574,6 +575,7 @@ def new_moment():
 		#Si on pas de photos
 		else:
 			moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,3))
+			db.session.commit()
 
 
 		#Si le moment a un hashtag, on souscrit à INSTAGRAM
