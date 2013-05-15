@@ -1638,7 +1638,7 @@ def new_photos(moment_id):
 	moment = Moment.query.get(moment_id)
 
 	if "photo" in request.files:
-		image = Image.open(f)
+		image = Image.open(request.files["photo"])
 
 
 		photo = Photo()
