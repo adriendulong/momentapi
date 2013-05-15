@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from api import app
+import fonctions
 
 
 #######
@@ -9,6 +10,18 @@ from api import app
 PRIVATE = 0
 OPEN = 1
 PUBLIC = 2
+
+
+
+##########
+## FAKE MOMENTS
+##########
+
+FAKE_MOMENT_NAME = "Mon premier Moment !"
+FAKE_MOMENT_ADDRESS = "Bordeaux, France"
+FAKE_MOMENT_DESCRIPTION = "Ceci est votre premier Moment. Le but étant de vous montrer tout ce que vous pourrez faire grâce à cette application. Une soirée, une semaine de vacances, un évènement entre proche, etc. Grace à Moment, invitez vos amies, et partager tous ensemble vos photos, discutez et organisez l'événement dans le chat prévu à cet effet !"
+FAKE_MOMENT_COVER = "https://s3-eu-west-1.amazonaws.com/apimoment/default/default_covers/default2.jpg"
+FAKE_MOMENT_CHAT = "Bienvenue sur le chat de l'évènement. Discutez, échangez, commentez, organisez votre évènement avec eux !"
 
 
 # Male and Female

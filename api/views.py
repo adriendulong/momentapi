@@ -299,9 +299,14 @@ def register():
 				#On enregistre en base
 				db.session.commit()
 
+
+			#On créé un faux Moment
+			user.create_fake_moment()
+
 			#On logge le user. On lui renvoit ainsi le token qu'il doit utiliser
 			if login_user(user):
 				session.permanent = True
+
 
 			reponse["id"] = user.id
 
@@ -531,7 +536,7 @@ def new_moment():
 
 				#Si on pas de photos
 				else:
-					moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,4))
+					moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(1,4))
 					db.session.commit()
 
 

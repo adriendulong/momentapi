@@ -882,6 +882,60 @@ class User(db.Model):
 
 
 
+    ###
+    ## Fonction qui va créer un faux moment lors de l'inscription
+    ###
+
+    def create_fake_moment(self):
+
+        #On commence par créer le moment
+
+        #Les valeurs par defaults
+        name = constants.FAKE_MOMENT_NAME
+        address = constants.FAKE_MOMENT_ADDRESS
+        start_date = datetime.date.today()
+        end_date = datetime.date.today() + datetime.timedelta(days=3)
+
+        moment = Moment(name, address, start_date, end_date)
+
+        moment.description = constants.FAKE_MOMENT_DESCRIPTION
+
+        db.session.add(moment)
+        db.session.commit()
+
+        #Puis on y met la cover par defaut
+
+        moment.cover_picture_url = constants.FAKE_MOMENT_COVER
+
+
+        #On y ajoute des photos par defaut
+        ##
+        ##
+        ##
+        ##
+
+
+
+        #On y ajoute un chat
+        chat = Chat(constants.FAKE_MOMENT_CHAT, self, moment)
+
+
+        #On créé l'invitation qui le lie à ce Moment
+        # Il est owner, donc state à 0
+        invitation = Invitation(userConstants.OWNER, self) 
+
+        #On ratache cette invitations aux guests du nouveau Moment
+        moment.guests.append(invitation)
+
+        db.session.commit()
+
+
+
+
+
+
+
+
 
 
 
