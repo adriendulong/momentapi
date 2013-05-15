@@ -1579,7 +1579,7 @@ class Moment(db.Model):
         #Image buffer user to temporary hold the file
         img_buff = StringIO.StringIO()
 
-        im_original = Image.open(f)
+        im_original = f
         im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
         im_original.save(img_buff, "JPEG")
 
@@ -2195,7 +2195,7 @@ class Photo(db.Model):
         ### ORIGINAL #######
         ####################
 
-        im_original = Image.open(f)
+        im_original = f
         im_original.thumbnail(constants.SIZE_ORIGINAL, Image.ANTIALIAS)
 
         #Avant on enregistre la largeur et la hauteur de la photo

@@ -19,6 +19,7 @@ from sqlalchemy import desc, asc, and_, or_
 import os
 from instagram.client import InstagramAPI
 import random
+from PIL import Image
 
 
 
@@ -520,15 +521,17 @@ def new_moment():
 
 				if "photo" in request.files:
 					f = request.files["photo"]
+					image = Image.open(f)
+
 					#On enregistre la photo et son chemin en base
 					name_picture = "cover"
-					moment.add_cover_photo_aws(f, name_picture)
+					moment.add_cover_photo_aws(image, name_picture)
 					#On enregistre en base
 					db.session.commit()
 
 				#Si on pas de photos
 				else:
-					moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,3))
+					moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,4))
 					db.session.commit()
 
 
@@ -556,9 +559,6 @@ def new_moment():
 		#On ratache cette invitations aux guests du nouveau Moment
 		moment.guests.append(invitation)
 
-		#On rajoute à l'actualité de cet utilisateur qu'il a créé un moment
-		user.add_actu_new_moment(moment)
-
 		
 		db.session.commit()
 
@@ -567,15 +567,34 @@ def new_moment():
 
 		if "photo" in request.files:
 				f = request.files["photo"]
+				image = Image.open(f)
+
 				#On enregistre la photo et son chemin en base
 				name_picture = "cover"
-				moment.add_cover_photo_aws(f, name_picture)
+				moment.add_cover_photo_aws(image, name_picture)
 				#On enregistre en base
 				db.session.commit()
+
+
+				#On prend cette image et on la met comme premiere photo pas defaut dans le moment
+				photo = Photo()
+
+				#On enregistre en base l'objet photo
+				db.session.add(photo)
+				db.session.commit()
+
+				#Puis on enregistre en disque la photo
+				photo.save_photo(image, moment, current_user)
+
+				
 		#Si on pas de photos
 		else:
-			moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,3))
+			moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,4))
 			db.session.commit()
+
+
+		#De base on ajoute une photo au Moment (la photo est la cover)
+
 
 
 		#Si le moment a un hashtag, on souscrit à INSTAGRAM
@@ -783,9 +802,10 @@ def moment(id):
 
 				if "photo" in request.files:
 					f = request.files["photo"]
+					image = Image.open(f)
 					#On enregistre la photo et son chemin en base
 					name_picture = "cover"
-					moment.add_cover_photo_aws(f, name_picture)
+					moment.add_cover_photo_aws(image, name_picture)
 					reponse["photo"] = moment.cover_picture_url
 
 				if "privacy" in request.form:
@@ -794,9 +814,17 @@ def moment(id):
 						reponse["privacy"] = "The moment is now private"
 					elif int(request.form["privacy"]) == constants.OPEN:
 						moment.privacy = constants.OPEN
+
+						#On rajoute à l'actualité du User qu'il a créé un Moment
+						current_user.add_actu_new_moment(moment)
+
 						reponse["privacy"] = "The moment is now open"
 					elif int(request.form["privacy"]) == constants.PUBLIC:
 						moment.privacy = constants.PUBLIC
+
+						#On rajoute à l'actualité du User qu'il a créé un Moment
+						current_user.add_actu_new_moment(moment)
+
 						reponse["privacy"] = "The moment is now public"
 
 				if "isOpenInvit" in request.form:
@@ -1610,6 +1638,9 @@ def new_photos(moment_id):
 	moment = Moment.query.get(moment_id)
 
 	if "photo" in request.files:
+		image = Image.open(f)
+
+
 		photo = Photo()
 
 		#On enregistre en base l'objet photo
@@ -1617,7 +1648,7 @@ def new_photos(moment_id):
 		db.session.commit()
 
 		#Puis on enregistre en disque la photo
-		photo.save_photo(request.files["photo"], moment, current_user)
+		photo.save_photo(image, moment, current_user)
 
 		reponse["success"] = photo.photo_to_send()
 
