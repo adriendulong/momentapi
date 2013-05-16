@@ -909,10 +909,25 @@ class User(db.Model):
 
 
         #On y ajoute des photos par defaut
-        ##
-        ##
-        ##
-        ##
+
+        photo = Photo()
+        #On enregistre en base l'objet photo
+        db.session.add(photo)
+        db.session.commit()
+        #Puis on enregistre en disque la photo
+        photo.save_photo_from_url(constants.FAKE_MOMENT_PHOTO1, constants.FAKE_MOMENT_PHOTO1, self, moment)
+
+        #2eme photo
+        photo2 = Photo()
+        db.session.add(photo2)
+        db.session.commit()
+        photo2.save_photo_from_url(constants.FAKE_MOMENT_PHOTO2, constants.FAKE_MOMENT_PHOTO2, self, moment)
+
+        #3eme photo
+        photo3 = Photo()
+        db.session.add(photo3)
+        db.session.commit()
+        photo3.save_photo_from_url(constants.FAKE_MOMENT_PHOTO3, constants.FAKE_MOMENT_PHOTO3, self, moment)
 
 
 
@@ -973,6 +988,32 @@ class User(db.Model):
     ## Paramètres de Notifications
     ###########
 
+    ##
+    # Fonction qui active ou pas (Active est un Boolean) les notifs push dy 'type'
+    ##
+
+    def set_push_notif(self, type_notif, active):
+
+        #On parcourt les parametres de notif du user
+        for param_notif in self.param_notifs:
+
+            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            if param_notif.type_notif == type_notif:
+                param_notif.push = active
+
+
+    ##
+    # Fonction qui desactive toutes les notifs push
+    ##
+
+    def desactivate_all_push_notifs(self):
+        self.set_push_notif(userConstants.NEW_PHOTO, False)
+        self.set_push_notif(userConstants.INVITATION, False)
+        self.set_push_notif(userConstants.NEW_CHAT, False)
+        self.set_push_notif(userConstants.MODIF, False)
+
+
+
 
     ##
     # Fonction qui renvoie si le user veut recevoir les notifications push pour les photos
@@ -988,6 +1029,8 @@ class User(db.Model):
                 return True
 
         return False
+
+
 
 
     ##
@@ -1065,6 +1108,38 @@ class User(db.Model):
 
             #Quand on trouve celle correspondant aux photos, on vérifie que le mail est activé
             if param_notif.type_notif == userConstants.NEW_CHAT and param_notif.mail is True:
+                return True
+
+        return False
+
+
+    ##
+    # Fonction qui renvoie si le user veut recevoir les notifications push pour les chat
+    ##
+
+    def is_push_modif(self):
+
+        #On parcourt les parametres de notif du user
+        for param_notif in self.param_notifs:
+
+            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            if param_notif.type_notif == userConstants.MODIF and param_notif.push is True:
+                return True
+
+        return False
+
+
+    ##
+    # Fonction qui renvoie si le user veut recevoir les notifications mail pour les invit
+    ##
+
+    def is_mail_modif(self):
+
+        #On parcourt les parametres de notif du user
+        for param_notif in self.param_notifs:
+
+            #Quand on trouve celle correspondant aux photos, on vérifie que le mail est activé
+            if param_notif.type_notif == userConstants.MODIF and param_notif.mail is True:
                 return True
 
         return False
@@ -2311,6 +2386,30 @@ class Photo(db.Model):
         user.add_actu_photo(self, moment)
 
         return True
+
+
+    def save_photo_from_url(self, url_original, url_thumb, user, moment):
+
+        name = "%s" %(self.id)
+
+        self.url_original = url_original
+        self.url_thumbnail = url_thumb
+
+
+        moment.photos.append(self)
+        user.photos.append(self)
+
+        #On met une heure
+        self.creation_datetime = datetime.datetime.now()
+
+        #On attribue un identifiant unique
+        self.init_unique_code()
+
+
+        db.session.commit()
+
+        return True
+
 
 
     def photo_to_send(self):

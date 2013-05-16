@@ -281,6 +281,15 @@ def register():
 				#Si on a déjà l'id de notif 
 				if "notif_id" in request.form:
 					device.notif_id = request.form["notif_id"]
+				else:
+					user.desactivate_all_push_notifs()
+
+
+			#Sinon on met à False toutes les notifs push
+			else:
+				user.desactivate_all_push_notifs()
+
+
 
 			
 
