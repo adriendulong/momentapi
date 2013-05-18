@@ -538,6 +538,8 @@ class User(db.Model):
 
         user["nb_follows"] = len(self.follows)
         user["nb_followers"] = len(self.followers)
+        user["nb_photos"] = len(self.photos)
+        user["nb_moments"] = len(self.invitations)
 
         return user
 
@@ -683,6 +685,26 @@ class User(db.Model):
         self.devices.append(deviceTemp)
         db.session.commit()
         return deviceTemp
+
+
+    #Recupere l'objet Device ayant le device_id donné
+
+    def get_device(self, device_id):
+
+        for device in self.devices:
+            if device.device_id == device_id:
+                return device
+
+
+
+    def has_notif_id(self):
+        for device in self.devices:
+            if device.notif_id is not None:
+                return True
+
+        return False
+
+
 
     #Fonction qui update un user en fonction des champs d'un prospect
     def update_from_prospect(self, prospect):
@@ -2559,6 +2581,8 @@ class Device(db.Model):
         if self.os == 0:
             nb_notif_unread = self.user.nb_notif_unread()
             thread.start_new_thread(fonctions.send_ios_follower_notif, (self.notif_id, message, follower.id, nb_notif_unread, ))
+
+
             
 
 

@@ -204,6 +204,8 @@ def register():
 					user.sex = constants.MALE
 				elif request.form["sex"] == constants.FEMALE:
 					user.sex = constants.FEMALE 
+			if "lang" in request.form:
+				user.lang = request.form["lang"]
 
 			#On l'enregistre en base pour avoir un id
 			db.session.add(user)
@@ -680,35 +682,40 @@ def moments():
 @app.route('/momentsofuser/<int:id_user>', methods=["GET"])
 @login_required
 def moments_of_user(id_user):
-	#On créé la réponse qui sera envoyé
-	reponse = {}
+    #On créé la réponse qui sera envoyé
+    reponse = {}
 
-	user = User.query.get(id_user)
+    user = User.query.get(id_user)
 
-	if user is not None:
+    if user is not None:
 
-		moments_of_user_futur = user.get_moments_sup_date(10, datetime.date.today(), True)
-		moments_of_user_past = user.get_moments_inf_date(10, datetime.date.today(), False)
+        moments_of_user_futur = user.get_moments_sup_date(constants.MAX_MOMENTS, datetime.date.today(), True)
+        moments_of_user_past = user.get_moments_inf_date(constants.MAX_MOMENTS, datetime.date.today(), False)
 
-		# On construit le tableau de moments que l'on va renvoyer
-		reponse["moments"] = []
-		for moment in reversed(moments_of_user_past):
-			# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
-			if moment.privacy != constants.PRIVATE:
-				reponse["moments"].append(moment.moment_to_send(current_user.id))
+        # On construit le tableau de moments que l'on va renvoyer
+        reponse["moments"] = []
+        for moment in reversed(moments_of_user_past):
+            # Si prive il faut que le user qui demande y participe
+            if moment.privacy != constants.PRIVATE:
+                reponse["moments"].append(moment.moment_to_send(current_user.id))
+            elif moment.is_in_guests(current_user.id):
+                reponse["moments"].append(moment.moment_to_send(current_user.id))
 
-		for moment in moments_of_user_futur:
-			# Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
-			if moment.privacy != constants.PRIVATE:
-				reponse["moments"].append(moment.moment_to_send(current_user.id))	
 
-		reponse["success"] = "OK"
+        for moment in moments_of_user_futur:
+            # Pour chacun des Moments on injecte que les données que l'on renvoit, et sous la bonne forme
+            if moment.privacy != constants.PRIVATE:
+                reponse["moments"].append(moment.moment_to_send(current_user.id))
+            elif moment.is_in_guests(current_user.id):
+                reponse["moments"].append(moment.moment_to_send(current_user.id))
 
-		return jsonify(reponse), 200
+        reponse["success"] = "OK"
 
-	else:
-		reponse["error"] = "This user does not exist"
-		return jsonify(reponse), 405
+        return jsonify(reponse), 200
+
+    else:
+        reponse["error"] = "This user does not exist"
+        return jsonify(reponse), 405
 
 
 
@@ -720,54 +727,94 @@ def moments_of_user(id_user):
 # - Date : YYYY-MM-DD
 #	
 
+@app.route('/momentsafter/<date>/<int:user_id>', methods=["GET"])
 @app.route('/momentsafter/<int:when>/<date>', methods=["GET"])
 @app.route('/momentsafter/<date>', methods=["GET"])
 @login_required
-def moments_after_date(date, when = 0):
+def moments_after_date(date, when = 0, user_id = 0):
 	#On créé la réponse qui sera envoyé
-	reponse = {}
-	nb_moment = 10
+    reponse = {}
 
-	dateRef = fonctions.cast_date(date)
-	user = User.query.get(current_user.id)
-	moments = []
-	moments_to_send = []
+    dateRef = fonctions.cast_date(date)
 
-	if dateRef is not None:
+    #Si pas de user fournit alors c'est le current user
+    if user_id == 0:
+        user = User.query.get(current_user.id)
 
-		# Si on demande des moments superieur à une date future
-		if dateRef > datetime.date.today():
-			moments = user.get_moments_sup_date(nb_moment, dateRef, False)
-			reponse["success"] = "These are the %s moments after the %s" % (len(moments), date)
-			for moment in moments:
-				moments_to_send.append(moment.moment_to_send(user.id))
-				'''
-		elif dateRef == datetime.date.today():
-			#Si on demande le passé
-			if when == 0:
-				moments = user.get_moments_sup_date(nb_moment, dateRef, False)
-				reponse["success"] = "These are the %s moments after the %s" % (len(moments), date)
-				for moment in moments:
-					moments_to_send.append(moment.moment_to_send(user.id))'''
+    #Sinon on cherche les moments d'un autre user
+    else:
+        user = User.query.get(user_id)
+        #Si le user est ferme on peut pas y acceder
+        if user.privacy == userConstants.CLOSED:
+            reponse["error"] = "This user has a closed profile"
+            return jsonify(reponse), 405
+        #Si le user est prive, le user logge doit le suivre pour voir ses moments
+        elif user.privacy == userConstants.PRIVATE:
+            if not current_user.is_following(user):
+                reponse["error"] = "This user has a private profile, you must follow him in order to see his moments"
+                return jsonify(reponse), 405
 
 
-		else:
-			moments = user.get_moments_inf_date(nb_moment, dateRef, False)
-			reponse["success"] = "These are the %s moments before the %s" % (len(moments), date)
-			for moment in moments:
-				moments_to_send.append(moment.moment_to_send(user.id))
-		
+    moments = []
+    moments_to_send = []
+
+    if dateRef is not None:
+
+        # Si on demande des moments superieur à une date future
+        if dateRef > datetime.date.today():
+            #Compteur de moment
+            count = 0
+
+            #On recupere les moments sup à cette date
+            moments = user.get_moments_sup_date(constants.MAX_MOMENTS, dateRef, False)
+
+            for moment in moments:
+                #On verifie que si le moment est privé, alors le current user soit y etre invite
+                if moment.privacy == constants.PRIVATE:
+                    if moment.is_in_guests(current_user.id):
+                        moments_to_send.append(moment.moment_to_send(current_user.id))
+                        count += 1
+
+                else:
+                    moments_to_send.append(moment.moment_to_send(current_user.id))
+                    count += 1
 
 
-		reponse["moments"] = moments_to_send
+
+            reponse["success"] = "These are the %s moments after the %s" % (len(moments_to_send), date)
 
 
-		return jsonify(reponse), 200
+        else:
+			#Compteur de moment
+            count = 0
 
-	else:
+            moments = user.get_moments_inf_date(constants.MAX_MOMENTS, dateRef, False)
+			
+            for moment in moments:
+                #On verifie que si le moment est privé, alors le current user soit y etre invite
+                if moment.privacy == constants.PRIVATE:
+                    if moment.is_in_guests(current_user.id):
+                        moments_to_send.append(moment.moment_to_send(current_user.id))
+                        count += 1
 
-		reponse["error"] = "The date is in the wrong format"
-		return jsonify(reponse), 405
+                else:
+                    moments_to_send.append(moment.moment_to_send(current_user.id))
+                    count += 1
+
+
+            reponse["success"] = "These are the %s moments before the %s" % (len(moments_to_send), date)
+
+
+
+        reponse["moments"] = moments_to_send
+
+
+        return jsonify(reponse), 200
+
+    else:
+
+        reponse["error"] = "The date is in the wrong format"
+        return jsonify(reponse), 405
 
 
 #####################################################################
@@ -2008,24 +2055,6 @@ def notifications(nb_page = 1):
 
 		reponse["notifications"].append(notification.notif_to_send())
 
-		#Les invitations
-		'''
-		if notification.type_notif == userConstants.INVITATION:
-			reponse["invitations"].append(notification.notif_to_send())
-
-		#Les nouveaux chats
-		if notification.type_notif == userConstants.NEW_CHAT:
-			reponse["new_chats"].append(notification.notif_to_send())
-
-		#Les nouvelles photos
-		if notification.type_notif == userConstants.NEW_PHOTO:
-			reponse["new_photos"].append(notification.notif_to_send())
-
-		#Les modifications
-		if notification.type_notif == userConstants.MODIF:
-			reponse["modif_moment"].append(notification.notif_to_send())
-		'''
-
 
 	return jsonify(reponse), 200
 
@@ -2565,58 +2594,77 @@ def params_notifs():
 #	
 
 
-@app.route('/paramsnotifs/<int:mode>/<int:type_notif>', methods=["GET"])
+@app.route('/paramsnotifs/<int:mode>/<int:type_notif>', methods=["GET", "POST"])
 @login_required
 def params_notifs_modif(mode, type_notif):
-	reponse = {}
+    reponse = {}
 
-	for paramn_notif in current_user.param_notifs:
-		if paramn_notif.type_notif == type_notif:
-			#On modifie les mails
-			if mode == 0:
-				if paramn_notif.mail:
-					paramn_notif.mail = False
+    if request.method == "POST":
+        if 'notif_id' in request.form and "device_id" in request.form:
+            device = current_user.get_device(request.form["device_id"])
 
-					#On enregistre
-					db.session.commit()
+            if device is not None:
+                device.notif_id = request.form["notif_id"]
+            else:
+                reponse["error"] = "This device does not exist"
+                return jsonify(reponse), 405
 
-					reponse["success"] = "Mail desactivated for type_notif = %s" % type_notif
-					return jsonify(reponse), 200
-				else:
-					paramn_notif.mail = True
 
-					#On enregistre
-					db.session.commit()
+    for paramn_notif in current_user.param_notifs:
+        if paramn_notif.type_notif == type_notif:
+            #On modifie les mails
+            if mode == 0:
+                if paramn_notif.mail:
+                    paramn_notif.mail = False
 
-					reponse["success"] = "Mail activated for type_notif = %s" % type_notif
-					return jsonify(reponse), 200
+                    #On enregistre
+                    db.session.commit()
 
-			#On modifie le push
-			elif mode == 1:
-				if paramn_notif.push:
-					paramn_notif.push = False
+                    reponse["success"] = "Mail desactivated for type_notif = %s" % type_notif
+                    return jsonify(reponse), 200
+                else:
+                    paramn_notif.mail = True
 
-					#On enregistre
-					db.session.commit()
+                    #On enregistre
+                    db.session.commit()
 
-					reponse["success"] = "Push desactivated for type_notif = %s" % type_notif
-					return jsonify(reponse), 200
-				else:
-					paramn_notif.push = True
+                    reponse["success"] = "Mail activated for type_notif = %s" % type_notif
+                    return jsonify(reponse), 200
 
-					#On enregistre
-					db.session.commit()
-					
-					reponse["success"] = "Push activated for type_notif = %s" % type_notif
-					return jsonify(reponse), 200
+            #On modifie le push
+            elif mode == 1:
+                #On verifie que l'on a un notif_id
+                if current_user.has_notif_id():
+                    if paramn_notif.push:
+                        paramn_notif.push = False
 
-			#Sinon mode inconnu
-			else:
-				reponse["error"] = "This mode is not known"
-				return jsonify(reponse), 405
+                        #On enregistre
+                        db.session.commit()
 
-	reponse["error"] = "This type of notif is not known"
-	return jsonify(reponse), 405
+                        reponse["success"] = "Push desactivated for type_notif = %s" % type_notif
+                        return jsonify(reponse), 200
+                    else:
+                        paramn_notif.push = True
+
+                        #On enregistre
+                        db.session.commit()
+
+                        reponse["success"] = "Push activated for type_notif = %s" % type_notif
+                        return jsonify(reponse), 200
+                else:
+                    reponse["error"] = "No notif_id"
+                    return jsonify(reponse), 400
+
+
+            #Sinon mode inconnu
+            else:
+                reponse["error"] = "This mode is not known"
+                return jsonify(reponse), 405
+
+    reponse["error"] = "This type of notif is not known"
+    return jsonify(reponse), 405
+
+
 
 
 

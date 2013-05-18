@@ -64,6 +64,9 @@ NOTIFS_PAGINATION = 20
 #Nombre de chat par page
 FEED_PAGINATION = 10
 
+#Nombre de moments futurs ou passés renvoyés au max
+MAX_MOMENTS = 20
+
 #Tailles photos
 SIZE_THUMBNAIL = 250, 250
 SIZE_ORIGINAL = 1500, 1500
