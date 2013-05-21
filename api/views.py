@@ -1099,9 +1099,6 @@ def new_guests(idMoment):
 									if moment.add_myself_to_moment(user_to_add):
 										count += 1
 										print "Add myself"
-
-										#On rajoute ce user à la liste des invités
-										moment_guests.append(user_to_add)
 									
 
 								else:
