@@ -1489,6 +1489,11 @@ class User(db.Model):
                     db.session.add(feed)
                     #On le rajoute à la liste des feed
                     feedsFollow.append(feed)
+
+                elif actu.type_action == userConstants.ACTION_GOING:
+                    feed = Feed(actu.user, actu.type_action, actu.moment_id)
+                    db.session.add(feed)
+                    feedsFollow.append(feed)
                 
                 
                 #Actu de type : a suivi quelqu'un 
