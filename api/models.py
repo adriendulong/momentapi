@@ -1377,11 +1377,24 @@ class User(db.Model):
     #Actu comme quoi le user va à un moment public ou ouvert
     def add_actu_going(self, moment):
 
+        self.remove_going_actu(moment)
+
         #On rajoute cette actu que si le moment est public ou ouvert
         if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
             actu_moment = Actu(moment, self, userConstants.ACTION_GOING)
             self.actus.append(actu_moment)
             db.session.commit()
+
+    def remove_going_actu(self, moment):
+        #Does an actu of this type for this moment already exist
+        sameActu = Actu.query.filter(and_(Actu.moment_id == moment.id, Actu.user_id == self.id, Actu.type_action == userConstants.ACTION_GOING)).first()
+
+        #if it exists an other actu for this moment for this kind of actu, we remove it
+        if sameActu is not None:
+            db.session.delete(sameActu)
+            db.session.commit()
+
+
 
 
     #Actu comme quoi le user a été invité à un moment public ou ouvert
@@ -1921,7 +1934,6 @@ class Moment(db.Model):
     def modify_user_state(self, user, state):
 
         for guest in self.guests:
-            # On retrouve le user et on vérifie qu'il est owner ou admin
             if guest.user == user:
                 guest.state = state
                 db.session.commit()

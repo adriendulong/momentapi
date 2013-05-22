@@ -1451,41 +1451,44 @@ def user_id(id):
 @app.route('/state/<int:moment_id>/<int:state>', methods=["GET"])
 @login_required
 def modifiy_state(moment_id, state):
-	#On créé la réponse qui sera envoyé
-	reponse = {}
+    #On créé la réponse qui sera envoyé
+    reponse = {}
 
-	user = User.query.get(current_user.id)
-	moment = Moment.query.get(moment_id)
+    user = User.query.get(current_user.id)
+    moment = Moment.query.get(moment_id)
 
-	if moment is not None:
-		#On verifie que le user est bien dans les invités
-		if moment.is_in_guests(current_user.id):
-			# On ne modifie que si il n'est pas ADMIN ou OWNER
-			if moment.get_user_state(current_user.id) != userConstants.ADMIN and moment.get_user_state(current_user.id) != userConstants.OWNER:
-				#On essaye de modifier son état
-				if state == userConstants.COMING or state == userConstants.NOT_COMING or state == userConstants.MAYBE:
-					moment.modify_user_state(user, state)
-					if state == userConstants.COMING:
-						user.add_actu_going(moment)
-					reponse["new_state"] = state
+    if moment is not None:
+        #On verifie que le user est bien dans les invités
+        if moment.is_in_guests(current_user.id):
+            # On ne modifie que si il n'est pas ADMIN ou OWNER
+            if moment.get_user_state(current_user.id) != userConstants.ADMIN and moment.get_user_state(current_user.id) != userConstants.OWNER:
+                #On essaye de modifier son état
+                if state == userConstants.COMING or state == userConstants.NOT_COMING or state == userConstants.MAYBE:
+                    moment.modify_user_state(user, state)
+                    if state == userConstants.COMING:
+                        user.add_actu_going(moment)
+                    #we check that we don't has a going actu, if yes we remove it
+                    else:
+                        user.remove_going_actu(moment)
+                    reponse["new_state"] = state
 
-				else:
-					reponse["error"] = "This state is not valid. State possibles : 2 = Coming, 3 = Not coming, 5 = Maybe"
-					return jsonify(reponse), 405
-			else:
-				reponse["error"] = "Not Authorized : you can't modify the Admin or Owner state thanks to this request"
-				return jsonify(reponse), 401
+                else:
+                    reponse["error"] = "This state is not valid. State possibles : 2 = Coming, 3 = Not coming, 5 = Maybe"
+                    return jsonify(reponse), 405
+            else:
+                reponse["error"] = "Not Authorized : you can't modify the Admin or Owner state thanks to this request"
+                return jsonify(reponse), 401
 
-		else:
-			reponse["error"] = "Not Authorized : the user is not a guest of this moment"
-			return jsonify(reponse), 401
+        else:
+            reponse["error"] = "Not Authorized : the user is not a guest of this moment"
+            return jsonify(reponse), 401
 
 
-	else:
-		reponse["error"] = "This moment does not exist"
-		return jsonify(reponse), 405
+    else:
+        reponse["error"] = "This moment does not exist"
+        return jsonify(reponse), 405
 
-	return jsonify(reponse), 200
+    return jsonify(reponse), 200
 
 
 
