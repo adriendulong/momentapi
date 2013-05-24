@@ -605,7 +605,7 @@ def new_moment():
 				
 		#Si on pas de photos
 		else:
-			moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(0,4))
+			moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(1,4))
 			db.session.commit()
 
 
