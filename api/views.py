@@ -1698,7 +1698,6 @@ def new_photos(moment_id):
 	#On recupere le moment en question
 	moment = Moment.query.get(moment_id)
 
-	print "Requete Photo de %s" % current_user.firstname
 
 	if "photo" in request.files:
 		image = Image.open(request.files["photo"])
