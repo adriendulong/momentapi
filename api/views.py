@@ -1197,226 +1197,239 @@ def new_guests(idMoment):
 @login_required
 def user():
 	#On créé la réponse qui sera envoyé
-	reponse = {}
+    reponse = {}
 
-	user = current_user
+    user = current_user
 
-	if request.method == 'GET':
-		reponse = user.user_to_send()
-		return jsonify(reponse), 200
+    if request.method == 'GET':
+        reponse = user.user_to_send()
+        return jsonify(reponse), 200
 
-	else:
-		reponse["modified_elements"] = {}
+    else:
+        reponse["modified_elements"] = {}
 
-		######
-		## On modifie le FB id
-		######
+        ######
+        ## On modifie le FB id
+        ######
 
-		if "facebookId" in  request.form:
-			user.facebookId = request.form["facebookId"]
+        if "facebookId" in  request.form:
+            user.facebookId = request.form["facebookId"]
 
-			#reponse
-			reponse["modified_elements"]["facebookId"] = "Modified with %s" % user.facebookId
+            #reponse
+            reponse["modified_elements"]["facebookId"] = "Modified with %s" % user.facebookId
 
-				#On voit si un prospect avec ce FacebookID existait
-			prospect = Prospect.query.filter(Prospect.facebookId == user.facebookId).first()
+                #On voit si un prospect avec ce FacebookID existait
+            prospect = Prospect.query.filter(Prospect.facebookId == user.facebookId).first()
 
-			#Si un prospect existait on met à jour le profil et on recupere les moments
-			if prospect is not None:
-				#On recupere les moments
-				prospect.match_moments(user)
-				#On met à jour le profil avec les données sur prospect
-				user.update_from_prospect(prospect)
+            #Si un prospect existait on met à jour le profil et on recupere les moments
+            if prospect is not None:
+                #On recupere les moments
+                prospect.match_moments(user)
+                #On met à jour le profil avec les données sur prospect
+                user.update_from_prospect(prospect)
 
-				#On efface le prospect
-				db.session.delete(prospect)
-				db.session.commit()
+                #On efface le prospect
+                db.session.delete(prospect)
+                db.session.commit()
 
-				reponse["modified_elements"]["facebookId"] = "Modified with %s and some moments matched" % user.facebookId
+                reponse["modified_elements"]["facebookId"] = "Modified with %s and some moments matched" % user.facebookId
 
-		####
-		## On modifie le phone
-		####
+        ####
+        ## On modifie le phone
+        ####
 
-		if "phone" in request.form:
+        if "phone" in request.form:
 
-			if fonctions.phone_controll(request.form["phone"]) is None:
-				reponse["error"] = "Wrong phone format"
-				return jsonify(reponse), 405
+            if fonctions.phone_controll(request.form["phone"]) is None:
+                reponse["error"] = "Wrong phone format"
+                return jsonify(reponse), 405
 
-			else:
+            else:
 
-				phone = fonctions.phone_controll(request.form["phone"])
-				user.phone = phone["number"]
-				user.phoneCountry = phone["country"]
+                #if len = 0 we pass it to null
+                if(len(request.form["phone"])==0):
+                    if user.phone is not None:
+                        user.phone = None
+                        reponse["modified_elements"]["phone"] = "phone number removed"
+                else:
+                    phone = fonctions.phone_controll(request.form["phone"])
+                    user.phone = phone["number"]
+                    user.phoneCountry = phone["country"]
 
-				reponse["modified_elements"]["phone"] = "Modified with %s" % user.phone
+                    reponse["modified_elements"]["phone"] = "Modified with %s" % user.phone
 
-				prospect = Prospect.query.filter(Prospect.phone == user.phone).first()
+                    prospect = Prospect.query.filter(Prospect.phone == user.phone).first()
 
-				#Si un prospect existait on met à jour le profil et on recupere les moments
-				if prospect is not None:
-					#On recupere les moments
-					prospect.match_moments(user)
-					#On met à jour le profil avec les données sur prospect
-					user.update_from_prospect(prospect)
+                    #Si un prospect existait on met à jour le profil et on recupere les moments
+                    if prospect is not None:
+                        #On recupere les moments
+                        prospect.match_moments(user)
+                        #On met à jour le profil avec les données sur prospect
+                        user.update_from_prospect(prospect)
 
-					#On efface le prospect
-					db.session.delete(prospect)
-					db.session.commit()
+                        #On efface le prospect
+                        db.session.delete(prospect)
+                        db.session.commit()
 
-					reponse["modified_elements"]["phone"] = "Modified with %s and some moments matched" % user.phone
+                        reponse["modified_elements"]["phone"] = "Modified with %s and some moments matched" % user.phone
 
 
-		####
-		## On modifie le second phone
-		####
+        ####
+        ## On modifie le second phone
+        ####
 
-		if "secondPhone" in request.form:
+        if "secondPhone" in request.form:
 
-			if fonctions.phone_controll(request.form["secondPhone"]) is None:
-				reponse["error"] = "Wrong phone format"
-				return jsonify(reponse), 405
+            if fonctions.phone_controll(request.form["secondPhone"]) is None:
+                reponse["error"] = "Wrong phone format"
+                return jsonify(reponse), 405
 
 
-			else:
+            else:
 
-				phone = fonctions.phone_controll(request.form["secondPhone"])
-				user.secondPhone = phone["number"]
+                #if len = 0 we pass it to null
+                if(len(request.form["secondPhone"])==0):
+                    if user.secondPhone is not None:
+                        user.secondPhone = None
+                        reponse["modified_elements"]["secondPhone"] = "phone number removed"
 
+                else:
+                    phone = fonctions.phone_controll(request.form["secondPhone"])
+                    user.secondPhone = phone["number"]
 
-				reponse["modified_elements"]["secondPhone"] = "Modified with %s" % user.secondPhone
 
-				prospect = Prospect.query.filter(Prospect.secondPhone == user.secondPhone).first()
+                    reponse["modified_elements"]["secondPhone"] = "Modified with %s" % user.secondPhone
 
-				#Si un prospect existait on met à jour le profil et on recupere les moments
-				if prospect is not None:
-					#On recupere les moments
-					prospect.match_moments(user)
-					#On met à jour le profil avec les données sur prospect
-					user.update_from_prospect(prospect)
+                    prospect = Prospect.query.filter(Prospect.secondPhone == user.secondPhone).first()
 
-					#On efface le prospect
-					db.session.delete(prospect)
-					db.session.commit()
+                    #Si un prospect existait on met à jour le profil et on recupere les moments
+                    if prospect is not None:
+                        #On recupere les moments
+                        prospect.match_moments(user)
+                        #On met à jour le profil avec les données sur prospect
+                        user.update_from_prospect(prospect)
 
-					reponse["modified_elements"]["secondPhone"] = "Modified with %s and some moments matched" % user.secondPhone
+                        #On efface le prospect
+                        db.session.delete(prospect)
+                        db.session.commit()
 
+                        reponse["modified_elements"]["secondPhone"] = "Modified with %s and some moments matched" % user.secondPhone
 
-		### 
-		## On modifie l'email
-		###
-		'''
-		if "email" in request.form:
-			user.email = request.form["email"]
 
-			reponse["modified_elements"]["email"] = "Modified with %s" % user.email
+        ###
+        ## On modifie l'email
+        ###
+        '''
+        if "email" in request.form:
+            user.email = request.form["email"]
 
-			prospect = Prospect.query.filter(Prospect.email == user.email).first()
+            reponse["modified_elements"]["email"] = "Modified with %s" % user.email
 
-			#Si un prospect existait on met à jour le profil et on recupere les moments
-			if prospect is not None:
-				#On recupere les moments
-				prospect.match_moments(user)
-				#On met à jour le profil avec les données sur prospect
-				user.update_from_prospect(prospect)
+            prospect = Prospect.query.filter(Prospect.email == user.email).first()
 
-				#On efface le prospect
-				db.session.delete(prospect)
-				db.session.commit()
+            #Si un prospect existait on met à jour le profil et on recupere les moments
+            if prospect is not None:
+                #On recupere les moments
+                prospect.match_moments(user)
+                #On met à jour le profil avec les données sur prospect
+                user.update_from_prospect(prospect)
 
-				reponse["modified_elements"]["email"] = "Modified with %s and some moments matched" % user.email
+                #On efface le prospect
+                db.session.delete(prospect)
+                db.session.commit()
 
-				'''
+                reponse["modified_elements"]["email"] = "Modified with %s and some moments matched" % user.email
 
-		###
-		## On modifie le prénom
-		###
+                '''
 
-		if "firstname" in request.form:
-			user.firstname = request.form["firstname"]
+        ###
+        ## On modifie le prénom
+        ###
 
-			reponse["modified_elements"]["firstname"] = "Modified with %s" % user.firstname
+        if "firstname" in request.form:
+            user.firstname = request.form["firstname"]
 
-		###
-		## On modifie le nom
-		###
+            reponse["modified_elements"]["firstname"] = "Modified with %s" % user.firstname
 
-		if "lastname" in request.form:
-			user.lastname = request.form["lastname"]
+        ###
+        ## On modifie le nom
+        ###
 
-			reponse["modified_elements"]["lastname"] = "Modified with %s" % user.lastname
+        if "lastname" in request.form:
+            user.lastname = request.form["lastname"]
 
+            reponse["modified_elements"]["lastname"] = "Modified with %s" % user.lastname
 
 
-		###
-		## On modifie la description
-		###
 
-		if "description" in request.form:
-			user.description = request.form["description"]
+        ###
+        ## On modifie la description
+        ###
 
-			reponse["modified_elements"]["description"] = "Modified with %s" % user.description
+        if "description" in request.form:
+            user.description = request.form["description"]
 
+            reponse["modified_elements"]["description"] = "Modified with %s" % user.description
 
-		###
-		## On modifie le password
-		###
 
-		if "password" in request.form:
-			user.modify_pass(request.form["password"], False) 
+        ###
+        ## On modifie le password
+        ###
 
-			reponse["modified_elements"]["password"] = "Password modified"
+        if "password" in request.form:
+            user.modify_pass(request.form["password"], False)
 
+            reponse["modified_elements"]["password"] = "Password modified"
 
-		###
-		## On modifie la photo
-		###
 
-		if "photo" in request.files:
-			name_picture = "%s" % current_user.id
-			user.add_profile_picture_aws(request.files["photo"], name_picture)
+        ###
+        ## On modifie la photo
+        ###
 
+        if "photo" in request.files:
+            name_picture = "%s" % current_user.id
+            user.add_profile_picture_aws(request.files["photo"], name_picture)
 
-		###
-		## On modifie la date de naissance
-		###
 
-		if "birth_date" in request.form:
-			user.birth_date = datetime.date.fromtimestamp(int(request.form["birth_date"]))
-			reponse["modified_elements"]["birth_date"] = "The user birth date is %s" % (user.birth_date)
+        ###
+        ## On modifie la date de naissance
+        ###
 
-		###
-		## On modifie le sexe
-		###
+        if "birth_date" in request.form:
+            user.birth_date = datetime.date.fromtimestamp(int(request.form["birth_date"]))
+            reponse["modified_elements"]["birth_date"] = "The user birth date is %s" % (user.birth_date)
 
-		if "sex" in request.form:
-			if request.form["sex"] == constants.MALE:
-					user.sex = constants.MALE
-					reponse["modified_elements"]["sex"] = "The user is now a male !"
-			elif request.form["sex"] == constants.FEMALE:
-				user.sex = constants.FEMALE 
-				reponse["modified_elements"]["sex"] = "The user is now a female !"
+        ###
+        ## On modifie le sexe
+        ###
 
-		###
-		## On modifie la privacy du profil
-		###
+        if "sex" in request.form:
+            if request.form["sex"] == constants.MALE:
+                    user.sex = constants.MALE
+                    reponse["modified_elements"]["sex"] = "The user is now a male !"
+            elif request.form["sex"] == constants.FEMALE:
+                user.sex = constants.FEMALE
+                reponse["modified_elements"]["sex"] = "The user is now a female !"
 
-		if "privacy" in request.form:
-			if int(request.form["privacy"]) == userConstants.OPEN:
-				user.privacy = int(userConstants.OPEN)
-				reponse["modified_elements"]["privacy"] = "The user profile is now open."
-			elif int(request.form["privacy"]) == userConstants.PRIVATE:
-				user.privacy = int(userConstants.PRIVATE)
-				reponse["modified_elements"]["privacy"] = "The user profile is now protected."
-			elif int(request.form["privacy"]) == userConstants.CLOSED:
-				user.privacy = int(userConstants.CLOSED)
-				reponse["modified_elements"]["privacy"] = "The user profile is now closed."
+        ###
+        ## On modifie la privacy du profil
+        ###
 
+        if "privacy" in request.form:
+            if int(request.form["privacy"]) == userConstants.OPEN:
+                user.privacy = int(userConstants.OPEN)
+                reponse["modified_elements"]["privacy"] = "The user profile is now open."
+            elif int(request.form["privacy"]) == userConstants.PRIVATE:
+                user.privacy = int(userConstants.PRIVATE)
+                reponse["modified_elements"]["privacy"] = "The user profile is now protected."
+            elif int(request.form["privacy"]) == userConstants.CLOSED:
+                user.privacy = int(userConstants.CLOSED)
+                reponse["modified_elements"]["privacy"] = "The user profile is now closed."
 
 
-		db.session.commit()
-		return jsonify(reponse), 200
+
+        db.session.commit()
+        return jsonify(reponse), 200
 
 
 #####################################################################
