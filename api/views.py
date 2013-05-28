@@ -1240,38 +1240,37 @@ def user():
 
         if "phone" in request.form:
 
-            if fonctions.phone_controll(request.form["phone"]) is None:
+
+            if(len(request.form["phone"])==0):
+                if user.phone is not None:
+                    user.phone = None
+                    reponse["modified_elements"]["phone"] = "phone number removed"
+
+            elif fonctions.phone_controll(request.form["phone"]) is None:
                 reponse["error"] = "Wrong phone format"
                 return jsonify(reponse), 405
 
             else:
+                phone = fonctions.phone_controll(request.form["phone"])
+                user.phone = phone["number"]
+                user.phoneCountry = phone["country"]
 
-                #if len = 0 we pass it to null
-                if(len(request.form["phone"])==0):
-                    if user.phone is not None:
-                        user.phone = None
-                        reponse["modified_elements"]["phone"] = "phone number removed"
-                else:
-                    phone = fonctions.phone_controll(request.form["phone"])
-                    user.phone = phone["number"]
-                    user.phoneCountry = phone["country"]
+                reponse["modified_elements"]["phone"] = "Modified with %s" % user.phone
 
-                    reponse["modified_elements"]["phone"] = "Modified with %s" % user.phone
+                prospect = Prospect.query.filter(Prospect.phone == user.phone).first()
 
-                    prospect = Prospect.query.filter(Prospect.phone == user.phone).first()
+                #Si un prospect existait on met à jour le profil et on recupere les moments
+                if prospect is not None:
+                    #On recupere les moments
+                    prospect.match_moments(user)
+                    #On met à jour le profil avec les données sur prospect
+                    user.update_from_prospect(prospect)
 
-                    #Si un prospect existait on met à jour le profil et on recupere les moments
-                    if prospect is not None:
-                        #On recupere les moments
-                        prospect.match_moments(user)
-                        #On met à jour le profil avec les données sur prospect
-                        user.update_from_prospect(prospect)
+                    #On efface le prospect
+                    db.session.delete(prospect)
+                    db.session.commit()
 
-                        #On efface le prospect
-                        db.session.delete(prospect)
-                        db.session.commit()
-
-                        reponse["modified_elements"]["phone"] = "Modified with %s and some moments matched" % user.phone
+                    reponse["modified_elements"]["phone"] = "Modified with %s and some moments matched" % user.phone
 
 
         ####
@@ -1280,40 +1279,38 @@ def user():
 
         if "secondPhone" in request.form:
 
-            if fonctions.phone_controll(request.form["secondPhone"]) is None:
+            #If remove phone 
+            if(len(request.form["secondPhone"])==0):
+                if user.secondPhone is not None:
+                    user.secondPhone = None
+                    reponse["modified_elements"]["phone"] = "phone number removed"
+
+            elif fonctions.phone_controll(request.form["secondPhone"]) is None:
                 reponse["error"] = "Wrong phone format"
                 return jsonify(reponse), 405
 
-
             else:
 
-                #if len = 0 we pass it to null
-                if(len(request.form["secondPhone"])==0):
-                    if user.secondPhone is not None:
-                        user.secondPhone = None
-                        reponse["modified_elements"]["secondPhone"] = "phone number removed"
-
-                else:
-                    phone = fonctions.phone_controll(request.form["secondPhone"])
-                    user.secondPhone = phone["number"]
+                phone = fonctions.phone_controll(request.form["secondPhone"])
+                user.secondPhone = phone["number"]
 
 
-                    reponse["modified_elements"]["secondPhone"] = "Modified with %s" % user.secondPhone
+                reponse["modified_elements"]["secondPhone"] = "Modified with %s" % user.secondPhone
 
-                    prospect = Prospect.query.filter(Prospect.secondPhone == user.secondPhone).first()
+                prospect = Prospect.query.filter(Prospect.secondPhone == user.secondPhone).first()
 
-                    #Si un prospect existait on met à jour le profil et on recupere les moments
-                    if prospect is not None:
-                        #On recupere les moments
-                        prospect.match_moments(user)
-                        #On met à jour le profil avec les données sur prospect
-                        user.update_from_prospect(prospect)
+                #Si un prospect existait on met à jour le profil et on recupere les moments
+                if prospect is not None:
+                    #On recupere les moments
+                    prospect.match_moments(user)
+                    #On met à jour le profil avec les données sur prospect
+                    user.update_from_prospect(prospect)
 
-                        #On efface le prospect
-                        db.session.delete(prospect)
-                        db.session.commit()
+                    #On efface le prospect
+                    db.session.delete(prospect)
+                    db.session.commit()
 
-                        reponse["modified_elements"]["secondPhone"] = "Modified with %s and some moments matched" % user.secondPhone
+                    reponse["modified_elements"]["secondPhone"] = "Modified with %s and some moments matched" % user.secondPhone
 
 
         ###
