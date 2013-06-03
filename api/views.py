@@ -2487,6 +2487,38 @@ def accept_follow(user_id):
 
 
 #####################################################################
+############ Refuser requete de follow ############################
+######################################################################
+# Methode acceptées : GET
+# Paramètres obligatoires :
+#
+
+
+@app.route('/refusefollow/<int:user_id>', methods=["GET"])
+@login_required
+def refuse_follow(user_id):
+	reponse = {}
+
+	user = User.query.get(user_id)
+
+	if user is not None:
+
+
+		if user.refuse_request(current_user):
+			reponse["success"] = "The request has been cancelled"
+			return jsonify(reponse), 200
+
+		else:
+			reponse["error"] = "An error occured. Maybe the user was already followed, or there was no follow request on this user"
+			return jsonify(reponse), 405
+
+
+	else:
+		reponse["error"] = "This user does not exist"
+		return jsonify(reponse), 405
+
+
+#####################################################################
 ############ Recuperer les personnes suivis ############################
 ######################################################################
 # Methode acceptées : GET

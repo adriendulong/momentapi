@@ -814,6 +814,18 @@ class User(db.Model):
 
         else:
             return False
+
+    def refuse_request(self, user):
+
+        #On verifie que la demande avait bien Ã©été© faite
+        if self.is_requesting(user):
+            #On supprime la requete
+            self.waitingFollows.remove(user)
+
+            return True
+
+        else:
+            return False
                 
 
 
