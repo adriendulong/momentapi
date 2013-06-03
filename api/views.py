@@ -2410,35 +2410,42 @@ def add_follow(user_id):
 
         #Si le user est protégé
         elif userToFollow.privacy == userConstants.PRIVATE:
-            if not current_user.is_following(userToFollow) and not current_user.is_requesting(userToFollow):
-                current_user.request_follow(userToFollow)
-                reponse["success"] = "Request sent to the user"
-                response["code_follow"] = 1
-                return jsonify(reponse), 200
+            #If the user is not requested
+            if not current_user.is_requesting(userToFollow):
+                #If the user is not followed
+                if not current_user.is_following(userToFollow):
+                    current_user.request_follow(userToFollow)
+                    reponse["success"] = "Request sent to the user"
+                    reponse["code_follow"] = 1
+                    return jsonify(reponse), 200
+                else:
+                    current_user.remove_follow(userToFollow)
+                    reponse["success"] = "This user is no more followed"
+                    return jsonify(reponse), 200
 
             else:
-                reponse["error"] = "This user is already followed or the request is already made"
+                reponse["error"] = "The request is already made"
                 return jsonify(reponse), 405
 
 
-        #Si le user a bien été ajouté
-        #Si le user n'est pas ecnore suivi
-        if not current_user.is_following(userToFollow):
-            if current_user.add_follow(userToFollow):
-                reponse["success"] = "User added to the people followed"
-                response["code_follow"] = 0
-                return jsonify(reponse), 200
-
-            #Sinon (probablement dejà suivi)
-            else:
-                reponse["error"] = "User not followed (probably already followed)"
-                return jsonify(reponse), 405
-
-        #Sinon on le retire de ceux suivis
+        #User OPEN
         else:
-            current_user.remove_follow(userToFollow)
-            reponse["success"] = "This user is no more followed"
-            return jsonify(reponse), 200
+            if not current_user.is_following(userToFollow):
+                if current_user.add_follow(userToFollow):
+                    reponse["success"] = "User added to the people followed"
+                    reponse["code_follow"] = 0
+                    return jsonify(reponse), 200
+
+                #Sinon (probablement dejà suivi)
+                else:
+                    reponse["error"] = "User not followed (probably already followed)"
+                    return jsonify(reponse), 405
+
+            #Sinon on le retire de ceux suivis
+            else:
+                current_user.remove_follow(userToFollow)
+                reponse["success"] = "This user is no more followed"
+                return jsonify(reponse), 200
 
 
     else:
