@@ -1279,7 +1279,7 @@ def user():
 
         if "secondPhone" in request.form:
 
-            #If remove phone 
+            #If remove phone
             if(len(request.form["secondPhone"])==0):
                 if user.secondPhone is not None:
                     user.secondPhone = None
@@ -2393,55 +2393,57 @@ def password(email, passw):
 @app.route('/addfollow/<int:user_id>', methods=["GET"])
 @login_required
 def add_follow(user_id):
-	reponse = {}
+    reponse = {}
 
-	userToFollow = User.query.get(user_id)
-
-
-
-	#Si le user existe
-	#### Ici VOIR EN FONCTION DE LA PRIVACY DE CHAQUE USER  (PUBLIC , SEMI OUVERT, FERME)
-	if userToFollow is not None:
-
-		#On verifie que le user n'est pas fermé
-		if userToFollow.privacy == userConstants.CLOSED:
-			reponse["error"] = "This user is private thus it can't be followed"
-			return jsonify(reponse), 405
-
-		#Si le user est protégé
-		elif userToFollow.privacy == userConstants.PRIVATE:
-			if not current_user.is_following(userToFollow) and not current_user.is_requesting(userToFollow):
-				current_user.request_follow(userToFollow)
-				reponse["success"] = "Request sent to the user"
-				return jsonify(reponse), 200
-
-			else:
-				reponse["error"] = "This user is already followed or the request is already made"
-				return jsonify(reponse), 405
+    userToFollow = User.query.get(user_id)
 
 
-		#Si le user a bien été ajouté
-		#Si le user n'est pas ecnore suivi
-		if not current_user.is_following(userToFollow):
-			if current_user.add_follow(userToFollow):
-				reponse["success"] = "User added to the people followed"
-				return jsonify(reponse), 200
 
-			#Sinon (probablement dejà suivi)
-			else:
-				reponse["error"] = "User not followed (probably already followed)"
-				return jsonify(reponse), 405
+    #Si le user existe
+    #### Ici VOIR EN FONCTION DE LA PRIVACY DE CHAQUE USER  (PUBLIC , SEMI OUVERT, FERME)
+    if userToFollow is not None:
 
-		#Sinon on le retire de ceux suivis
-		else:
-			current_user.remove_follow(userToFollow)
-			reponse["success"] = "This user is no more followed"
-			return jsonify(reponse), 200
+        #On verifie que le user n'est pas fermé
+        if userToFollow.privacy == userConstants.CLOSED:
+            reponse["error"] = "This user is private thus it can't be followed"
+            return jsonify(reponse), 405
+
+        #Si le user est protégé
+        elif userToFollow.privacy == userConstants.PRIVATE:
+            if not current_user.is_following(userToFollow) and not current_user.is_requesting(userToFollow):
+                current_user.request_follow(userToFollow)
+                reponse["success"] = "Request sent to the user"
+                response["code_follow"] = 1
+                return jsonify(reponse), 200
+
+            else:
+                reponse["error"] = "This user is already followed or the request is already made"
+                return jsonify(reponse), 405
 
 
-	else:
-		reponse["error"] = "This user does not exist"
-		return jsonify(reponse), 405
+        #Si le user a bien été ajouté
+        #Si le user n'est pas ecnore suivi
+        if not current_user.is_following(userToFollow):
+            if current_user.add_follow(userToFollow):
+                reponse["success"] = "User added to the people followed"
+                response["code_follow"] = 0
+                return jsonify(reponse), 200
+
+            #Sinon (probablement dejà suivi)
+            else:
+                reponse["error"] = "User not followed (probably already followed)"
+                return jsonify(reponse), 405
+
+        #Sinon on le retire de ceux suivis
+        else:
+            current_user.remove_follow(userToFollow)
+            reponse["success"] = "This user is no more followed"
+            return jsonify(reponse), 200
+
+
+    else:
+        reponse["error"] = "This user does not exist"
+        return jsonify(reponse), 405
 
 
 
