@@ -2895,10 +2895,10 @@ def moment_unique(unique_id):
 
     if moment is None:
         reponse["error"] = "This moment does not exist"
-        return(reponse), 405
+        return jsonify(reponse), 405
     else:
         reponse["moment"] = moment.moment_to_send_ext()
-        return(reponse), 200
+        return jsonify(reponse), 200
 
 
 
