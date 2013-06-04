@@ -1737,6 +1737,43 @@ class Moment(db.Model):
 
         return moment
 
+    #Moment sent when requested from the external website
+    def moment_to_send_ext(self):
+        moment = {}
+        has_owner = False
+
+        moment["name"] = self.name
+        moment["guests_number"] = len(self.guests) + len(self.prospects)
+        moment["address"] = self.address
+        if self.description is not None:
+            moment["description"] = self.description
+        if self.photos is not None:
+            moment["nb_photos"] = len(self.photos)
+        if self.chats is not None:
+            moment["nb_chats"] = len(self.chats)
+        if self.cover_picture_url is not None:
+            moment["cover_photo_url"] = self.cover_picture_url
+
+        #On recupere le Owner
+        for guest in self.guests:
+            if guest.state == 0:
+                moment["owner_name"] = "%s %s" % (guest.user.firstname, guest.user.lastname)
+                moment["owner_photo_url"] = guest.user.profile_picture_url
+                has_owner = True
+
+        if not has_owner:
+            #Si on a associé un facebook Id au owner alors on devrait le retrouver dans les prospect
+            if self.owner_facebookId is not None:
+                ownerProspect = Prospect.query.filter(Prospect.facebookId == self.owner_facebookId).first()
+
+                #Si il y en a bien un
+                if ownerProspect is not None:
+                    moment["owner_name"] = "%s %s" % (ownerProspect.firstname, ownerProspect.lastname)
+                    moment["owner_photo_url"] = ownerProspect.profile_picture_url
+
+
+        return moment
+
 
 
     def add_cover_photo(self, f, name):

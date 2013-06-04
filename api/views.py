@@ -2860,7 +2860,45 @@ def fb_real_time():
 	elif request.method == "POST":
 		print "FACEBOOK : %s" % request.json
 
+
+
+#############################################################
+############ REQUETE API PHOTO ############################
+#############################################################
 		
+
+@app.route('/p/<unique_id>', methods=["GET"])
+def photo_unique():
+    reponse = {}
+
+    photo = Photo.query.filter(unique_code == unique_id).first()
+
+    if photo is None:
+        reponse["error"] = "This photo does not exist"
+        return(reponse), 405
+    else:
+        reponse["photo"] = photo.photo_to_send_short()
+        return(reponse), 200
+
+
+
+#############################################################
+############ REQUETE API MOMENT ############################
+#############################################################
+
+
+@app.route('/mo/<unique_id>', methods=["GET"])
+def moment_unique():
+    reponse = {}
+
+    moment = Moment.query.filter(unique_code == unique_id).first()
+
+    if moment is None:
+        reponse["error"] = "This moment does not exist"
+        return(reponse), 405
+    else:
+        reponse["moment"] = moment.moment_to_send_ext()
+        return(reponse), 200
 
 
 
