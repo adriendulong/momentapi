@@ -2868,7 +2868,7 @@ def fb_real_time():
 		
 
 @app.route('/p/<unique_id>', methods=["GET"])
-def photo_unique():
+def photo_unique(unique_id):
     reponse = {}
 
     photo = Photo.query.filter(unique_code == unique_id).first()
@@ -2888,7 +2888,7 @@ def photo_unique():
 
 
 @app.route('/mo/<unique_id>', methods=["GET"])
-def moment_unique():
+def moment_unique(unique_id):
     reponse = {}
 
     moment = Moment.query.filter(unique_code == unique_id).first()
