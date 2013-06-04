@@ -2871,7 +2871,7 @@ def fb_real_time():
 def photo_unique(unique_id):
     reponse = {}
 
-    photo = Photo.query.filter(unique_code == unique_id).first()
+    photo = Photo.query.filter(Photo.unique_code == unique_id).first()
 
     if photo is None:
         reponse["error"] = "This photo does not exist"
@@ -2891,7 +2891,7 @@ def photo_unique(unique_id):
 def moment_unique(unique_id):
     reponse = {}
 
-    moment = Moment.query.filter(unique_code == unique_id).first()
+    moment = Moment.query.filter(Moment.unique_code == unique_id).first()
 
     if moment is None:
         reponse["error"] = "This moment does not exist"
