@@ -463,7 +463,7 @@ def new_moment():
         if "facebookId" in request.form:
             print request.form["facebookId"]
             #Il faut vérifier qu'un Moment avec ce facebookId n'existe pas
-            momentFb = Moment.query.filter(Moment.facebookId == int(request.form["facebookId"])).first()
+            momentFb = Moment.query.filter(Moment.facebookId == request.form["facebookId"]).first()
 
             #Si ce moment existe déjà
             if momentFb is not None:
@@ -2889,6 +2889,7 @@ def photo_unique(unique_id):
 
 
 @app.route('/mo/<unique_id>', methods=["GET"])
+@fonctions.crossdomain(origin='*')
 def moment_unique(unique_id):
     reponse = {}
 
