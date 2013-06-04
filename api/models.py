@@ -821,6 +821,7 @@ class User(db.Model):
         if self.is_requesting(user):
             #On supprime la requete
             self.waitingFollows.remove(user)
+            db.session.commit()
 
             return True
 
