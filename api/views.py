@@ -2877,7 +2877,7 @@ def photo_unique():
         reponse["error"] = "This photo does not exist"
         return(reponse), 405
     else:
-        reponse["photo"] = photo.photo_to_send_short()
+        reponse["photo"] = photo.photo_to_send_ext()
         return(reponse), 200
 
 

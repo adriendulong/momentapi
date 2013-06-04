@@ -2536,6 +2536,20 @@ class Photo(db.Model):
 
         return photo
 
+    def photo_to_send_ext(self):
+
+        photo = {}
+
+        photo["url_original"] = self.url_original
+        photo["nb_like"] = len(self.likes)
+        photo["time"] = self.creation_datetime.strftime("%s")
+        if self.user is not None:
+            photo["taken_by"] = "%s %s" % (self.user.firstname, self.user.lastname)
+        photo["moment_name"] = self.moment.name
+
+
+        return photo
+
 
 
     #Fonction qui rajoute un like du user "user"
