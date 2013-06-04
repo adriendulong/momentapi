@@ -461,7 +461,7 @@ def new_moment():
 
         #Si on fournit le Facebook Id alors c'est un event importé de Facebook
         if "facebookId" in request.form:
-            print "FACEBOOK ID :"% request.form["facebookId"]
+            print request.form["facebookId"]
             #Il faut vérifier qu'un Moment avec ce facebookId n'existe pas
             momentFb = Moment.query.filter(Moment.facebookId == request.form["facebookId"]).first()
 
