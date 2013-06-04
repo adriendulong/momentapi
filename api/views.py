@@ -2354,22 +2354,33 @@ def search(search):
 #	
 
 @app.route('/changepassword/<email>/<passw>', methods=["GET"])
-def password(email, passw):
+@app.route('/changepassword/<email>/<passw>/<oldpass>', methods=["GET"])
+def password(email, passw, oldpass=None):
 
-	reponse = {}
+    reponse = {}
 
-	user = User.query.filter(User.email == email).first()
+    user = User.query.filter(User.email == email).first()
 
-	if user is not None:
-		user.pwd = hashpw(passw, gensalt())
-		db.session.commit()
+    if oldpass is not None:
+        if hashpw(oldpass, user.pwd) == user.pwd:
+            user.pwd = hashpw(passw, gensalt())
+            db.session.commit()
+            reponse["success"] = "Don't loose your password again (old one given) ! This is the new one : %s" % passw
+            return jsonify(reponse), 200
+        else:
+            reponse["error"] = "Wrong old password"
+            return jsonify(reponse), 400
 
-		reponse["success"] = "Don't loose your password again ! This is the new one : %s" % passw
-		return jsonify(reponse), 200
+    if user is not None:
+        user.pwd = hashpw(passw, gensalt())
+        db.session.commit()
 
-	else:
-		reponse["error"] = "This user does not exist"
-		return jsonify(reponse), 405
+        reponse["success"] = "Don't loose your password again ! This is the new one : %s" % passw
+        return jsonify(reponse), 200
+
+    else:
+        reponse["error"] = "This user does not exist"
+        return jsonify(reponse), 405
 
 
 
