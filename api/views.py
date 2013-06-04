@@ -418,216 +418,217 @@ def login():
 @app.route('/newmoment', methods=["POST"])
 @login_required
 def new_moment():
-	#On créé la réponse qui sera envoyé
-	reponse = {}
+    #On créé la réponse qui sera envoyé
+    reponse = {}
 
-	#On verifie que tous les champs sont renseignes
-	if request.method == "POST" and "name" in request.form and "address" in request.form and "startDate" in request.form and "endDate" in request.form:
-		##
-		# Recupération des valeurs obligatoires transmises
-		##
-		name = request.form["name"]
-		address = request.form["address"]
+    #On verifie que tous les champs sont renseignes
+    if request.method == "POST" and "name" in request.form and "address" in request.form and "startDate" in request.form and "endDate" in request.form:
+        ##
+        # Recupération des valeurs obligatoires transmises
+        ##
+        name = request.form["name"]
+        address = request.form["address"]
 
-		#On recupere et met en forme la date (doit être au format "YYYY-MM-DD")
-		startDate = fonctions.cast_date(request.form["startDate"])
+        #On recupere et met en forme la date (doit être au format "YYYY-MM-DD")
+        startDate = fonctions.cast_date(request.form["startDate"])
 
-		endDate = fonctions.cast_date(request.form["endDate"])
-
-
-
-		#On créé un nouveau moment
-		moment = Moment(name, address, startDate, endDate)
-		#On enregistre en base
-		#db.session.add(moment)
-		#db.session.commit()
-
-		##
-		# Recuperation des autres valeurs (non obligatoires)
-		##
-		if "placeInformations" in request.form:
-			placeInformations = request.form["placeInformations"]
-			moment.placeInformations = placeInformations
-		if "startTime" in request.form:
-			moment.startTime = fonctions.cast_time(request.form["startTime"])
-		if "endTime" in request.form:
-			moment.endTime = fonctions.cast_time(request.form["endTime"])
-		if "description" in request.form:
-			description = request.form["description"]
-			moment.description = description
-		if "hashtag" in request.form:
-			hashtag = request.form["hashtag"]
-			moment.hashtag = hashtag
-
-		#Si on fournit le Facebook Id alors c'est un event importé de Facebook
-		if "facebookId" in request.form:
-			#Il faut vérifier qu'un Moment avec ce facebookId n'existe pas
-			momentFb = Moment.query.filter(Moment.facebookId == request.form["facebookId"]).first()
-
-			#Si ce moment existe déjà
-			if momentFb is not None:
-				#On rajoute ce user comme guest
-				momentFb.add_guest(current_user.id, request.form["state"])
-				db.session.commit()
-
-				reponse = momentFb.moment_to_send(current_user.id)
-				return jsonify(reponse), 200
-
-			#Sinon on créé normalement le moment mais on attribut le state à ce user
-			else:
-				#On créé le Moment
-				#On enregistre en base
-
-				db.session.add(moment)
-				db.session.commit()
-
-
-				facebookId = request.form["facebookId"]
-				moment.facebookId = facebookId
-
-
-				#On rajoute le user en invité
-				moment.add_guest(current_user.id, request.form["state"])
-				print "ok"
-				###############
-				## On nous fournit un owner
-				###############
-
-				owner = {}
-				if  "owner_facebookId" in request.form:
-				 	owner["facebookId"] = request.form["owner_facebookId"]
-
-					#On voit si un user avec ce facebookId existe
-					userPot = User.query.filter(User.facebookId == owner["facebookId"]).first()
-					prospectPot = Prospect.query.filter(Prospect.facebookId == owner["facebookId"]).first()
-
-					if userPot is not None:
-						moment.add_guest(userPot.id, userConstants.OWNER)
-
-					#C est un prospect de notre base
-					elif prospectPot is not None:
-						moment.add_prospect(prospectPot)
-						#Si c'est un prospect on doit retenir quel facebook Id il a afin de le retrouver comme owner
-						moment.owner_facebookId = request.form["owner_facebookId"]
-
-					#Il n'existe pas en base, on créé un prospect en base et on le garde comme owner
-					else:
-						#On recupere les infos et on créé le prospect
-						if "owner_firstname" in request.form:
-						 	owner["firstname"] = request.form["owner_firstname"]
-						if "owner_lastname" in request.form:
-							owner["lastname"] = request.form["owner_lastname"]
-						if "owner_picture_url":
-							owner["photo_url"] = request.form["owner_picture_url"]
-
-						prospect = Prospect()
-						prospect.init_from_dict(owner)
-						moment.owner_facebookId = request.form["owner_facebookId"]
-						db.session.add(prospect)
+        endDate = fonctions.cast_date(request.form["endDate"])
 
 
 
+        #On créé un nouveau moment
+        moment = Moment(name, address, startDate, endDate)
+        #On enregistre en base
+        #db.session.add(moment)
+        #db.session.commit()
 
-				#On enregistre en base
-				#db.session.add(moment)
-				db.session.commit()
+        ##
+        # Recuperation des autres valeurs (non obligatoires)
+        ##
+        if "placeInformations" in request.form:
+            placeInformations = request.form["placeInformations"]
+            moment.placeInformations = placeInformations
+        if "startTime" in request.form:
+            moment.startTime = fonctions.cast_time(request.form["startTime"])
+        if "endTime" in request.form:
+            moment.endTime = fonctions.cast_time(request.form["endTime"])
+        if "description" in request.form:
+            description = request.form["description"]
+            moment.description = description
+        if "hashtag" in request.form:
+            hashtag = request.form["hashtag"]
+            moment.hashtag = hashtag
 
-				#On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
-				moment.create_paths()
+        #Si on fournit le Facebook Id alors c'est un event importé de Facebook
+        if "facebookId" in request.form:
+            print "FACEBOOK ID :"% request.form["facebookId"]
+            #Il faut vérifier qu'un Moment avec ce facebookId n'existe pas
+            momentFb = Moment.query.filter(Moment.facebookId == request.form["facebookId"]).first()
 
-				if "photo" in request.files:
-					f = request.files["photo"]
-					image = Image.open(f)
+            #Si ce moment existe déjà
+            if momentFb is not None:
+                #On rajoute ce user comme guest
+                momentFb.add_guest(current_user.id, request.form["state"])
+                db.session.commit()
 
-					#On enregistre la photo et son chemin en base
-					name_picture = "cover"
-					moment.add_cover_photo_aws(image, name_picture)
-					#On enregistre en base
-					db.session.commit()
+                reponse = momentFb.moment_to_send(current_user.id)
+                return jsonify(reponse), 200
 
-				#Si on pas de photos
-				else:
-					moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(1,4))
-					db.session.commit()
+            #Sinon on créé normalement le moment mais on attribut le state à ce user
+            else:
+                #On créé le Moment
+                #On enregistre en base
 
-
-				if "photo_url" in request.form:
-					moment.cover_picture_url = request.form["photo_url"]
-					db.session.commit()
-
-
-
-				reponse = moment.moment_to_send(current_user.id)
-				return jsonify(reponse), 200
-
-
-		#On créé le Moment
-		db.session.add(moment)
-		db.session.commit()
-
-		# On recupere en base le user qui créé ce Moment
-		user = current_user
-
-		#On créé l'invitation qui le lie à ce Moment
-		# Il est owner, donc state à 0
-		invitation = Invitation(userConstants.OWNER, user) 
-
-		#On ratache cette invitations aux guests du nouveau Moment
-		moment.guests.append(invitation)
-
-		
-		db.session.commit()
-
-		#On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
-		moment.create_paths()
-
-		if "photo" in request.files:
-				f = request.files["photo"]
-				image = Image.open(f)
-
-				#On enregistre la photo et son chemin en base
-				name_picture = "cover"
-				moment.add_cover_photo_aws(image, name_picture)
-				#On enregistre en base
-				db.session.commit()
+                db.session.add(moment)
+                db.session.commit()
 
 
-				#On prend cette image et on la met comme premiere photo pas defaut dans le moment
-				photo = Photo()
-
-				#On enregistre en base l'objet photo
-				db.session.add(photo)
-				db.session.commit()
-
-				#Puis on enregistre en disque la photo
-				photo.save_photo(image, moment, current_user)
-
-				
-		#Si on pas de photos
-		else:
-			moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(1,4))
-			db.session.commit()
+                facebookId = request.form["facebookId"]
+                moment.facebookId = facebookId
 
 
-		#De base on ajoute une photo au Moment (la photo est la cover)
+                #On rajoute le user en invité
+                moment.add_guest(current_user.id, request.form["state"])
+                print "ok"
+                ###############
+                ## On nous fournit un owner
+                ###############
+
+                owner = {}
+                if  "owner_facebookId" in request.form:
+                    owner["facebookId"] = request.form["owner_facebookId"]
+
+                    #On voit si un user avec ce facebookId existe
+                    userPot = User.query.filter(User.facebookId == owner["facebookId"]).first()
+                    prospectPot = Prospect.query.filter(Prospect.facebookId == owner["facebookId"]).first()
+
+                    if userPot is not None:
+                        moment.add_guest(userPot.id, userConstants.OWNER)
+
+                    #C est un prospect de notre base
+                    elif prospectPot is not None:
+                        moment.add_prospect(prospectPot)
+                        #Si c'est un prospect on doit retenir quel facebook Id il a afin de le retrouver comme owner
+                        moment.owner_facebookId = request.form["owner_facebookId"]
+
+                    #Il n'existe pas en base, on créé un prospect en base et on le garde comme owner
+                    else:
+                        #On recupere les infos et on créé le prospect
+                        if "owner_firstname" in request.form:
+                            owner["firstname"] = request.form["owner_firstname"]
+                        if "owner_lastname" in request.form:
+                            owner["lastname"] = request.form["owner_lastname"]
+                        if "owner_picture_url":
+                            owner["photo_url"] = request.form["owner_picture_url"]
+
+                        prospect = Prospect()
+                        prospect.init_from_dict(owner)
+                        moment.owner_facebookId = request.form["owner_facebookId"]
+                        db.session.add(prospect)
 
 
 
-		#Si le moment a un hashtag, on souscrit à INSTAGRAM
-		'''
-		if moment.hashtag is not None:
-			verify_token = "%s" % moment.id
-			instagram_client = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
-			reponse = instagram_client.create_subscription(object='tag', object_id=moment.hashtag, aspect='media', verify_token = verify_token ,callback_url=constants.INSTAGRAM_CALLBACK_URL)
-			print reponse
-		'''
 
-		reponse = moment.moment_to_send(user.id)
-		return jsonify(reponse), 200
+                #On enregistre en base
+                #db.session.add(moment)
+                db.session.commit()
 
-	else:
-		reponse["error"] = "mandatory value missing"
-		return jsonify(reponse), 405
+                #On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
+                moment.create_paths()
+
+                if "photo" in request.files:
+                    f = request.files["photo"]
+                    image = Image.open(f)
+
+                    #On enregistre la photo et son chemin en base
+                    name_picture = "cover"
+                    moment.add_cover_photo_aws(image, name_picture)
+                    #On enregistre en base
+                    db.session.commit()
+
+                #Si on pas de photos
+                else:
+                    moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(1,4))
+                    db.session.commit()
+
+
+                if "photo_url" in request.form:
+                    moment.cover_picture_url = request.form["photo_url"]
+                    db.session.commit()
+
+
+
+                reponse = moment.moment_to_send(current_user.id)
+                return jsonify(reponse), 200
+
+
+        #On créé le Moment
+        db.session.add(moment)
+        db.session.commit()
+
+        # On recupere en base le user qui créé ce Moment
+        user = current_user
+
+        #On créé l'invitation qui le lie à ce Moment
+        # Il est owner, donc state à 0
+        invitation = Invitation(userConstants.OWNER, user)
+
+        #On ratache cette invitations aux guests du nouveau Moment
+        moment.guests.append(invitation)
+
+
+        db.session.commit()
+
+        #On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
+        moment.create_paths()
+
+        if "photo" in request.files:
+                f = request.files["photo"]
+                image = Image.open(f)
+
+                #On enregistre la photo et son chemin en base
+                name_picture = "cover"
+                moment.add_cover_photo_aws(image, name_picture)
+                #On enregistre en base
+                db.session.commit()
+
+
+                #On prend cette image et on la met comme premiere photo pas defaut dans le moment
+                photo = Photo()
+
+                #On enregistre en base l'objet photo
+                db.session.add(photo)
+                db.session.commit()
+
+                #Puis on enregistre en disque la photo
+                photo.save_photo(image, moment, current_user)
+
+
+        #Si on pas de photos
+        else:
+            moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(1,4))
+            db.session.commit()
+
+
+        #De base on ajoute une photo au Moment (la photo est la cover)
+
+
+
+        #Si le moment a un hashtag, on souscrit à INSTAGRAM
+        '''
+        if moment.hashtag is not None:
+            verify_token = "%s" % moment.id
+            instagram_client = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
+            reponse = instagram_client.create_subscription(object='tag', object_id=moment.hashtag, aspect='media', verify_token = verify_token ,callback_url=constants.INSTAGRAM_CALLBACK_URL)
+            print reponse
+        '''
+
+        reponse = moment.moment_to_send(user.id)
+        return jsonify(reponse), 200
+
+    else:
+        reponse["error"] = "mandatory value missing"
+        return jsonify(reponse), 405
 
 
 
