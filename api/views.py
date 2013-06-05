@@ -2869,6 +2869,7 @@ def fb_real_time():
 		
 
 @app.route('/p/<unique_id>', methods=["GET"])
+@fonctions.crossdomain(origin='*')
 def photo_unique(unique_id):
     reponse = {}
 
