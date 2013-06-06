@@ -2877,10 +2877,10 @@ def photo_unique(unique_id):
 
     if photo is None:
         reponse["error"] = "This photo does not exist"
-        return(reponse), 405
+        return jsonify(reponse), 405
     else:
         reponse["photo"] = photo.photo_to_send_ext()
-        return(reponse), 200
+        return jsonify(reponse), 200
 
 
 
