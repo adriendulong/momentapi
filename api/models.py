@@ -1273,13 +1273,32 @@ class User(db.Model):
         #On envoit la notif que si le user a activé l'envoie par push de nouvelles photos
         if self.is_push_photo():
 
-            #Titre de la notif
-            title = "Nouvelle photo"
-            contenu = unicode('Nouvelle photo ajoutée à','utf-8')
-            message = "%s '%s'" % (contenu, moment.name)
+            nbPhotos = len(self.photos)
 
-            for device in self.devices:
-                device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
+            if(nbPhotos>1):
+                #We see if the timestamp of the previous photo is sup of 2 min to the new one
+                oldTime = photos[nbPhotos-2].time
+                newTime = photos[nbPhotos-1].time
+                delta = oldTime - newTime
+
+                if(delta.seconds > constants.DELAY_PUSH_PHOTO):
+                    #Titre de la notif
+                    title = "Nouvelle photo"
+                    contenu = unicode('Nouvelle photo ajoutée à','utf-8')
+                    message = "%s '%s'" % (contenu, moment.name)
+
+                    for device in self.devices:
+                        device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
+
+            else:
+                title = "Nouvelle photo"
+                contenu = unicode('Nouvelle photo ajoutée à','utf-8')
+                message = "%s '%s'" % (contenu, moment.name)
+
+                for device in self.devices:
+                    device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
+
+
 
 
         ##

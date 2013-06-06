@@ -12,6 +12,13 @@ OPEN = 1
 PUBLIC = 2
 
 
+##########
+## DELAY PUSH PHOTO
+#########
+
+DELAY_PUSH_PHOTO = 120
+
+
 
 ##########
 ## FAKE MOMENTS
