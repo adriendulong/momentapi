@@ -1277,14 +1277,14 @@ class User(db.Model):
 
             if(nbPhotos>1):
                 #We see if the timestamp of the previous photo is sup of 2 min to the new one
-                oldTime = self.photos[nbPhotos-2].time
-                newTime = self.photos[nbPhotos-1].time
+                oldTime = self.photos[nbPhotos-2].creation_datetime
+                newTime = self.photos[nbPhotos-1].creation_datetime
                 delta = oldTime - newTime
 
                 if(delta.seconds > constants.DELAY_PUSH_PHOTO):
                     #Titre de la notif
                     title = "Nouvelle photo"
-                    contenu = unicode('Nouvelle photo ajoutée à','utf-8')
+                    contenu = unicode('Nouvelle photo ajout�e à','utf-8')
                     message = "%s '%s'" % (contenu, moment.name)
 
                     for device in self.devices:
@@ -1292,7 +1292,7 @@ class User(db.Model):
 
             else:
                 title = "Nouvelle photo"
-                contenu = unicode('Nouvelle photo ajoutée à','utf-8')
+                contenu = unicode('Nouvelle photo ajout�e à','utf-8')
                 message = "%s '%s'" % (contenu, moment.name)
 
                 for device in self.devices:
