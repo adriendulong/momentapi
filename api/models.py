@@ -223,15 +223,14 @@ class Feed(db.Model):
             reponse["moment"] = self.moment.moment_to_send_short()
 
             for photo in self.photos:
-                 reponse["photos"].append(photo.photo_to_send_short())  
+                 reponse["photos"].append(photo.photo_to_send_short())
+
+            reponse["nb_photos"] = len(self.photos)
 
         elif self.type_action == userConstants.ACTION_CHAT:
             reponse["moment"] = self.moment.moment_to_send_short()
-            if len(self.chats) == 1:
-                reponse["chats"] = []
-
-                for chat in self.chats:
-                     reponse["chats"].append(chat.chat_to_send_short())  
+            reponse["chats"].append(self.chats[len(self.chats)-1])
+            reponse["nb_chats"] = len(self.chats)
 
         elif self.type_action == userConstants.ACTION_FOLLOW:
             reponse["follows"] = []
