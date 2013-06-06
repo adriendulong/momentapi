@@ -1277,8 +1277,8 @@ class User(db.Model):
 
             if(nbPhotos>1):
                 #We see if the timestamp of the previous photo is sup of 2 min to the new one
-                oldTime = photos[nbPhotos-2].time
-                newTime = photos[nbPhotos-1].time
+                oldTime = self.photos[nbPhotos-2].time
+                newTime = self.photos[nbPhotos-1].time
                 delta = oldTime - newTime
 
                 if(delta.seconds > constants.DELAY_PUSH_PHOTO):
