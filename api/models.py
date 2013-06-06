@@ -1746,6 +1746,8 @@ class Moment(db.Model):
         moment["name"] = self.name
         moment["guests_number"] = len(self.guests) + len(self.prospects)
         moment["address"] = self.address
+        moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
+        moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
         if self.description is not None:
             moment["description"] = self.description
         if self.photos is not None:
