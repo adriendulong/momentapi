@@ -516,6 +516,7 @@ class User(db.Model):
         user["firstname"] = self.firstname
         user["lastname"] = self.lastname
         user["email"] = self.email
+        user["privacy"] = self.privacy
 
         if self.phone is not None:
             user["phone"] = self.phone
