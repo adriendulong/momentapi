@@ -1323,7 +1323,7 @@ def user():
 
             reponse["modified_elements"]["secondEmail"] = "Modified with %s" % user.secondEmail
 
-            prospect = Prospect.query.filter(__or(Prospect.email == user.secondEmail, Prospect.secondEmail == user.secondEmail)).first()
+            prospect = Prospect.query.filter(or_(Prospect.email == user.secondEmail, Prospect.secondEmail == user.secondEmail)).first()
 
             #Si un prospect existait on met à jour le profil et on recupere les moments
             if prospect is not None:
