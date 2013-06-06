@@ -228,6 +228,7 @@ class Feed(db.Model):
             reponse["nb_photos"] = len(self.photos)
 
         elif self.type_action == userConstants.ACTION_CHAT:
+            reponse["chats"] = []
             reponse["moment"] = self.moment.moment_to_send_short()
             reponse["chats"].append(self.chats[len(self.chats)-1])
             reponse["nb_chats"] = len(self.chats)
