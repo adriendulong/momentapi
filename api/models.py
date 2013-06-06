@@ -230,7 +230,7 @@ class Feed(db.Model):
         elif self.type_action == userConstants.ACTION_CHAT:
             reponse["chats"] = []
             reponse["moment"] = self.moment.moment_to_send_short()
-            reponse["chats"].append(self.chats[len(self.chats)-1])
+            reponse["chats"].append(self.chats[len(self.chats)-1].chat_to_send())
             reponse["nb_chats"] = len(self.chats)
 
         elif self.type_action == userConstants.ACTION_FOLLOW:
