@@ -1317,13 +1317,13 @@ def user():
         ###
         ## On modifie l'email
         ###
-        '''
-        if "email" in request.form:
-            user.email = request.form["email"]
 
-            reponse["modified_elements"]["email"] = "Modified with %s" % user.email
+        if "secondEmail" in request.form:
+            user.secondEmail = request.form["secondEmail"]
 
-            prospect = Prospect.query.filter(Prospect.email == user.email).first()
+            reponse["modified_elements"]["secondEmail"] = "Modified with %s" % user.secondEmail
+
+            prospect = Prospect.query.filter(__or(Prospect.email == user.secondEmail, Prospect.secondEmail == user.secondEmail)).first()
 
             #Si un prospect existait on met à jour le profil et on recupere les moments
             if prospect is not None:
@@ -1336,9 +1336,9 @@ def user():
                 db.session.delete(prospect)
                 db.session.commit()
 
-                reponse["modified_elements"]["email"] = "Modified with %s and some moments matched" % user.email
+                reponse["modified_elements"]["secondEmail"] = "Modified with %s and some moments matched" % user.secondEmail
 
-                '''
+
 
         ###
         ## On modifie le prénom
