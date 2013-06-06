@@ -1284,7 +1284,7 @@ class User(db.Model):
                 if(delta.seconds > constants.DELAY_PUSH_PHOTO):
                     #Titre de la notif
                     title = "Nouvelle photo"
-                    contenu = unicode('Nouvelle photo ajoutée Ã ','utf-8')
+                    contenu = unicode('Nouvelle photo ajoutée à ','utf-8')
                     message = "%s '%s'" % (contenu, moment.name)
 
                     for device in self.devices:
@@ -1292,7 +1292,7 @@ class User(db.Model):
 
             else:
                 title = "Nouvelle photo"
-                contenu = unicode('Nouvelle photo ajoutée Ã ','utf-8')
+                contenu = unicode('Nouvelle photo ajoutée à ','utf-8')
                 message = "%s '%s'" % (contenu, moment.name)
 
                 for device in self.devices:
