@@ -1281,7 +1281,10 @@ class User(db.Model):
                 newTime = self.photos[nbPhotos-1].creation_datetime
                 delta = oldTime - newTime
 
+                print "Delta : "+ delta.seconds
+
                 if(delta.seconds > constants.DELAY_PUSH_PHOTO):
+                    print "PUSH DELTA"
                     #Titre de la notif
                     title = "Nouvelle photo"
                     contenu = unicode("Nouvelle photo dans ",'utf-8')
@@ -1291,6 +1294,7 @@ class User(db.Model):
                         device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
 
             else:
+                print "PUSH"
                 title = "Nouvelle photo"
                 contenu = unicode("Nouvelle photo dans ",'utf-8')
                 message = "%s '%s'" % (contenu, moment.name)
