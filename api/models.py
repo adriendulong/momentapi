@@ -1303,7 +1303,7 @@ class User(db.Model):
                 #We see if the timestamp of the previous photo is sup of 2 min to the new one
                 oldTime = moment.photos[nbPhotos-2].creation_datetime
                 newTime = moment.photos[nbPhotos-1].creation_datetime
-                delta = oldTime - newTime
+                delta = newTime - oldTime
 
                 print "Delta : %s" % delta.seconds
 
