@@ -1235,11 +1235,33 @@ class User(db.Model):
         ##
 
         if self.is_push_chat():
-            #Titre de la notif
-            title = "Nouveau Message de %s" % (chat.user.firstname)
 
-            for device in self.devices:
-                device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat, self)
+            #Boolean to know if the user has connected since the last chat
+            hasConnected = False
+            nb_chats = len(self.chats)
+
+            if nb_chats > 1:
+                last_connection = self.lastConnection
+                lastchatTime = self.chats[nb_chats-2].time
+
+                #If user has connected since the last chat, hasConencted if True
+                if last_connection>lastchatTime:
+                    hasConnected = True
+
+                #If the user has connected since the last time we send a push, otherwise no because he didn't even read the last one
+                if hasConnected:
+                    #Titre de la notif
+                    title = "Nouveau Message de %s" % (chat.user.firstname)
+
+                    for device in self.devices:
+                        device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat, self)
+
+            else:
+                #Titre de la notif
+                title = "Nouveau Message de %s" % (chat.user.firstname)
+
+                for device in self.devices:
+                    device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat, self)
 
 
 
@@ -1283,7 +1305,8 @@ class User(db.Model):
 
                 print "Delta : %s" % delta.seconds
 
-                if(delta.seconds > constants.DELAY_PUSH_PHOTO):
+                #Send notif only if the last photos was posted more than two minutes or if it was posted by the user
+                if(delta.seconds > constants.DELAY_PUSH_PHOTO) or self.photos[nbPhotos-2].user.id == self.id:
                     print "PUSH DELTA"
                     #Titre de la notif
                     title = "Nouvelle photo"
