@@ -1406,8 +1406,8 @@ class User(db.Model):
     ###
 
     def notify_follow_accepted(self, user):
-        title = "Requete acceptée"
-        contenu = unicode('a accepté votre requete !','utf-8')
+        title = "Requete acceptee"
+        contenu = unicode('a accepte votre requete !','utf-8')
         message = "%s %s" % (user.firstname, contenu)
 
         for device in self.devices:
