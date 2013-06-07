@@ -811,6 +811,8 @@ class User(db.Model):
             #On suit le user
             self.add_follow(user)
 
+            self.notify_follow_accepted(user)
+
             return True
 
         else:
@@ -1397,6 +1399,19 @@ class User(db.Model):
     def notify_insciption(self):
 
         thread.start_new_thread( fonctions.send_inscrption_mail, (self.firstname, self.lastname, self.email,) )
+
+
+    ###
+    ## Notify a user has accepted our request to follow him
+    ###
+
+    def notify_follow_accepted(self, user):
+        title = "Requete acceptée"
+        contenu = unicode('a accepté votre requete !','utf-8')
+        message = "%s %s" % (user.firstname, contenu)
+
+        for device in self.devices:
+            device.notify_new_follower(title, message.encode("utf-8"), user)
 
 
 
