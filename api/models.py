@@ -2137,17 +2137,17 @@ class Moment(db.Model):
 
         for guest in self.guests:
             #On envoit pas la notif à celui qui a envoyé le message
-            #if guest.user.id != photo.user.id:
-            guest.user.notify_new_photo(self, photo)
+            if guest.user.id != photo.user.id:
+                guest.user.notify_new_photo(self, photo)
 
-            #Si le user accepte les notifs mail pour les photos
-            if guest.user.is_mail_photo():
-                #On le rajoute à la liste des destinaires
-                dest = {
-                    "email" : guest.user.email,
-                    "name" : "%s %s" % (guest.user.firstname, guest.user.lastname)
-                }
-                to_dests.append(dest)
+                #Si le user accepte les notifs mail pour les photos
+                if guest.user.is_mail_photo():
+                    #On le rajoute à la liste des destinaires
+                    dest = {
+                        "email" : guest.user.email,
+                        "name" : "%s %s" % (guest.user.firstname, guest.user.lastname)
+                    }
+                    to_dests.append(dest)
 
 
         #### On envoit le mail aux destinataires
