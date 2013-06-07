@@ -1281,7 +1281,7 @@ class User(db.Model):
                 newTime = self.photos[nbPhotos-1].creation_datetime
                 delta = oldTime - newTime
 
-                print "Delta : "+ delta.seconds
+                print "Delta : %s" % delta.seconds
 
                 if(delta.seconds > constants.DELAY_PUSH_PHOTO):
                     print "PUSH DELTA"
