@@ -1297,18 +1297,18 @@ class User(db.Model):
         #On envoit la notif que si le user a activé l'envoie par push de nouvelles photos
         if self.is_push_photo():
 
-            nbPhotos = len(self.photos)
+            nbPhotos = len(moment.photos)
 
             if(nbPhotos>1):
                 #We see if the timestamp of the previous photo is sup of 2 min to the new one
-                oldTime = self.photos[nbPhotos-2].creation_datetime
-                newTime = self.photos[nbPhotos-1].creation_datetime
+                oldTime = moment.photos[nbPhotos-2].creation_datetime
+                newTime = moment.photos[nbPhotos-1].creation_datetime
                 delta = oldTime - newTime
 
                 print "Delta : %s" % delta.seconds
 
                 #Send notif only if the last photos was posted more than two minutes or if it was posted by the user
-                if(delta.seconds > constants.DELAY_PUSH_PHOTO) or self.photos[nbPhotos-2].user.id == self.id:
+                if(delta.seconds > constants.DELAY_PUSH_PHOTO) or moment.photos[nbPhotos-2].user.id == self.id:
                     print "PUSH DELTA"
                     #Titre de la notif
                     title = "Nouvelle photo"
