@@ -829,106 +829,112 @@ def moments_after_date(date, when = 0, user_id = 0):
 @app.route('/moment/<int:id>', methods=["GET", "POST"])
 @login_required
 def moment(id):
-	#On créé la réponse qui sera envoyé
-	reponse = {}
+    #On créé la réponse qui sera envoyé
+    reponse = {}
 
-	# Si c est une requete POST on modofie le moment
-	if request.method == "POST":
-		# On recupere le moment
-		moment = Moment.query.get(id)
+    # Si c est une requete POST on modofie le moment
+    if request.method == "POST":
+        # On recupere le moment
+        moment = Moment.query.get(id)
 
-		#Si un moment avec cet id existe
-		if moment is not None:
+        #Si un moment avec cet id existe
+        if moment is not None:
 
-			# Si le user peut modifier le moment
-			if moment.can_be_modified_by(current_user.id):
-				#On voit quelles valeurs sont présentes et on modifie le moment en fonction
-				if "name" in request.form:
-					moment.name = request.form["name"]
-					reponse["name"] = moment.name
-				if "address" in request.form:
-					moment.address = request.form["address"]
-					reponse["address"] = moment.address
-				if "startDate" in request.form:
-					moment.startDate = fonctions.cast_date(request.form["startDate"])
-					reponse["startDate"] = fonctions.date_to_string(moment.startDate)
-				if "endDate" in request.form:
-					moment.endDate = fonctions.cast_date(request.form["endDate"])
-					reponse["endDate"] = fonctions.date_to_string(moment.endDate)
-				if "startTime" in request.form:
-					moment.startTime = fonctions.cast_time(request.form["startTime"])
-					reponse["startTime"] = fonctions.time_to_string(moment.startTime)
-				if "endTime" in request.form:
-					moment.endTime = fonctions.cast_time(request.form["endTime"])
-					reponse["endTime"] = fonctions.time_to_string(moment.endTime)
+            # Si le user peut modifier le moment
+            if moment.can_be_modified_by(current_user.id):
+                #On voit quelles valeurs sont présentes et on modifie le moment en fonction
+                if "name" in request.form:
+                    moment.name = request.form["name"]
+                    reponse["name"] = moment.name
+                if "description" in request.form:
+                    moment.description = request.form["description"]
+                    reponse["name"] = moment.name
+                if "address" in request.form:
+                    moment.address = request.form["address"]
+                    reponse["address"] = moment.address
+                if "placeInformations" in request.form:
+                    moment.placeInformations = request.form["placeInformations"]
+                    reponse["placeInformations"] = moment.placeInformations
+                if "startDate" in request.form:
+                    moment.startDate = fonctions.cast_date(request.form["startDate"])
+                    reponse["startDate"] = fonctions.date_to_string(moment.startDate)
+                if "endDate" in request.form:
+                    moment.endDate = fonctions.cast_date(request.form["endDate"])
+                    reponse["endDate"] = fonctions.date_to_string(moment.endDate)
+                if "startTime" in request.form:
+                    moment.startTime = fonctions.cast_time(request.form["startTime"])
+                    reponse["startTime"] = fonctions.time_to_string(moment.startTime)
+                if "endTime" in request.form:
+                    moment.endTime = fonctions.cast_time(request.form["endTime"])
+                    reponse["endTime"] = fonctions.time_to_string(moment.endTime)
 
-				if "photo" in request.files:
-					f = request.files["photo"]
-					image = Image.open(f)
-					#On enregistre la photo et son chemin en base
-					name_picture = "cover"
-					moment.add_cover_photo_aws(image, name_picture)
-					reponse["photo"] = moment.cover_picture_url
+                if "photo" in request.files:
+                    f = request.files["photo"]
+                    image = Image.open(f)
+                    #On enregistre la photo et son chemin en base
+                    name_picture = "cover"
+                    moment.add_cover_photo_aws(image, name_picture)
+                    reponse["photo"] = moment.cover_picture_url
 
-				if "privacy" in request.form:
-					if int(request.form["privacy"]) == constants.PRIVATE:
-						moment.privacy = constants.PRIVATE
-						reponse["privacy"] = "The moment is now private"
-					elif int(request.form["privacy"]) == constants.OPEN:
-						moment.privacy = constants.OPEN
+                if "privacy" in request.form:
+                    if int(request.form["privacy"]) == constants.PRIVATE:
+                        moment.privacy = constants.PRIVATE
+                        reponse["privacy"] = "The moment is now private"
+                    elif int(request.form["privacy"]) == constants.OPEN:
+                        moment.privacy = constants.OPEN
 
-						#On rajoute à l'actualité du User qu'il a créé un Moment
-						current_user.add_actu_new_moment(moment)
+                        #On rajoute à l'actualité du User qu'il a créé un Moment
+                        current_user.add_actu_new_moment(moment)
 
-						reponse["privacy"] = "The moment is now open"
-					elif int(request.form["privacy"]) == constants.PUBLIC:
-						moment.privacy = constants.PUBLIC
+                        reponse["privacy"] = "The moment is now open"
+                    elif int(request.form["privacy"]) == constants.PUBLIC:
+                        moment.privacy = constants.PUBLIC
 
-						#On rajoute à l'actualité du User qu'il a créé un Moment
-						current_user.add_actu_new_moment(moment)
+                        #On rajoute à l'actualité du User qu'il a créé un Moment
+                        current_user.add_actu_new_moment(moment)
 
-						reponse["privacy"] = "The moment is now public"
+                        reponse["privacy"] = "The moment is now public"
 
-				if "isOpenInvit" in request.form:
-					if request.form["isOpenInvit"] == "0":
-						moment.isOpenInvit = False
-						reponse["isOpenInvit"] = "Guests can't invite other people"
-					elif request.form["isOpenInvit"] == "1":
-						moment.isOpenInvit = True
-						reponse["isOpenInvit"] = "Guests can invite other people"
+                if "isOpenInvit" in request.form:
+                    if request.form["isOpenInvit"] == "0":
+                        moment.isOpenInvit = False
+                        reponse["isOpenInvit"] = "Guests can't invite other people"
+                    elif request.form["isOpenInvit"] == "1":
+                        moment.isOpenInvit = True
+                        reponse["isOpenInvit"] = "Guests can invite other people"
 
 
-				#On enregistre
-				db.session.commit()
+                #On enregistre
+                db.session.commit()
 
-				return jsonify(reponse), 200
+                return jsonify(reponse), 200
 
-			else:
-				reponse["error"] = "Not Authorized"
-				return jsonify(reponse), 401
+            else:
+                reponse["error"] = "Not Authorized"
+                return jsonify(reponse), 401
 
-		else:
-			reponse["error"] = "Moment doesn't exist"
-			return jsonify(reponse), 400
-		
+        else:
+            reponse["error"] = "Moment doesn't exist"
+            return jsonify(reponse), 400
 
-	# Sinon on recupere le moment
-	elif request.method == "GET":
-		moment = Moment.query.get(id)
 
-		#Si le moment existe
-		if moment is not None:
-			#Si le user fait partie des invité (sinon pas accès à ce moment)
-			if moment.is_in_guests(current_user.id):
-				reponse = moment.moment_to_send(current_user.id)
-			elif moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
-				reponse = moment.moment_to_send(current_user.id)
-			else:
-				reponse["error"] = "Not Authorized"
-				return jsonify(reponse), 401
-			
+    # Sinon on recupere le moment
+    elif request.method == "GET":
+        moment = Moment.query.get(id)
 
-	return jsonify(reponse), 200
+        #Si le moment existe
+        if moment is not None:
+            #Si le user fait partie des invité (sinon pas accès à ce moment)
+            if moment.is_in_guests(current_user.id):
+                reponse = moment.moment_to_send(current_user.id)
+            elif moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+                reponse = moment.moment_to_send(current_user.id)
+            else:
+                reponse["error"] = "Not Authorized"
+                return jsonify(reponse), 401
+
+
+    return jsonify(reponse), 200
 
 
 
