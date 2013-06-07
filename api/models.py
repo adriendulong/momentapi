@@ -1240,11 +1240,11 @@ class User(db.Model):
 
             #Boolean to know if the user has connected since the last chat
             hasConnected = False
-            nb_chats = len(self.chats)
+            nb_chats = len(moment.chats)
 
             if nb_chats > 1:
                 last_connection = self.lastConnection
-                lastchatTime = self.chats[nb_chats-2].time
+                lastchatTime = moment.chats[nb_chats-2].time
 
                 #If user has connected since the last chat, hasConencted if True
                 if last_connection>lastchatTime:
@@ -1407,7 +1407,7 @@ class User(db.Model):
 
     def notify_follow_accepted(self, user):
         title = "Requete acceptee"
-        contenu = unicode('a accepte votre requete !','utf-8')
+        contenu = unicode("a accepte votre demande d'abonnement !",'utf-8')
         message = "%s %s" % (user.firstname, contenu)
 
         for device in self.devices:
