@@ -1190,7 +1190,7 @@ class User(db.Model):
     # Fonctions pour envoyer une notification lors d'un nouvel évènement
     ##
 
-    def notify_new_moment(self, moment):
+    def notify_new_moment(self, moment, user_inviting):
         #On place une notifiation en base (pour le volet)
         notification = Notification(moment, self, userConstants.INVITATION)
 
@@ -1206,7 +1206,7 @@ class User(db.Model):
 
             title = "Nouvelle invitation"
             contenu = unicode('vous invite à participer à','utf-8')
-            message = "%s %s '%s'" % (moment.get_owner().firstname, contenu, moment.name)
+            message = "%s %s '%s'" % (user_inviting.firstname, contenu, moment.name)
 
             for device in self.devices:
                 device.notify_simple(moment, userConstants.INVITATION, title, message.encode('utf-8'), self)
@@ -1964,7 +1964,7 @@ class Moment(db.Model):
                 self.guests.append(invitation)
 
                 #On le notifie (dans un thread different pour pas ralentir la requete)
-                user.notify_new_moment(self)
+                user.notify_new_moment(self, user_inviting)
                 
 
 
