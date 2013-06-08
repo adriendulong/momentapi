@@ -226,7 +226,7 @@ def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
 
 	# Send a notification
 	token_hex = reg_id
-	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread)
+	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread, custom={'type_id':type_notif})
 	apns.gateway_server.send_notification(token_hex, payload)
 
 

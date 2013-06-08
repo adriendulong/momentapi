@@ -553,7 +553,7 @@ class User(db.Model):
         user_to_send["is_followed"] = False
         user_to_send["request_follower"] = False
         user_to_send["request_follow_me"] = False
-        user_to_send["privacy"] = user.privacy
+        user_to_send["privacy"] = self.privacy
 
         
 
