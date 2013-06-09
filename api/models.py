@@ -869,6 +869,8 @@ class User(db.Model):
             if notif.is_active:
                 count += 1
 
+        print "Nb Notifs : "+count
+
         return count
 
 
