@@ -2360,13 +2360,13 @@ def search(search):
 # Paramètres obligatoires : 
 #	
 
-@app.route('/changepassword/<email>/<passw>', methods=["GET"])
-@app.route('/changepassword/<email>/<passw>/<oldpass>', methods=["GET"])
-def password(email, passw, oldpass=None):
+@app.route('/changepassword//<passw>/<oldpass>', methods=["GET"])
+@login_required
+def password(passw, oldpass):
 
     reponse = {}
 
-    user = User.query.filter(User.email == email).first()
+    user = current_user
 
     if oldpass is not None:
         if hashpw(oldpass, user.pwd) == user.pwd:
