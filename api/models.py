@@ -2608,7 +2608,7 @@ class Photo(db.Model):
 
         photo["url_original"] = self.url_original
         photo["nb_like"] = len(self.likes)
-        photo["time"] = self.creation_datetime.strftime("%s")
+        photo["time"] = "%s/%s à %s:%s" % (self.creation_datetime.day, self.creation_datetime.month, self.creation_datetime.hour, self.creation_datetime.minute)
         if self.user is not None:
             photo["taken_by"] = "%s %s" % (self.user.firstname, self.user.lastname)
         photo["moment_name"] = self.moment.name

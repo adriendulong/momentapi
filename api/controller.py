@@ -2,6 +2,7 @@
 from api import db
 from models import User, Moment, Invitation, Prospect
 from sqlalchemy import or_
+import fonctions
 
 
 # Fonction qui renvoie si un utilisateur existe en fonction de son email
@@ -30,39 +31,47 @@ def user_exist_fb(facebookId):
 
 def user_exist(user):
 
-	found_user = None
+    found_user = None
 
-	if "email" in user:
-		found_user = User.query.filter(or_(User.email == user["email"], User.secondEmail == user["email"])).first()
+    if "email" in user:
+        found_user = User.query.filter(or_(User.email == user["email"], User.secondEmail == user["email"])).first()
 
-		if found_user is not None:
-			return True 
+        if found_user is not None:
+            return True
 
-	if "facebookId" in user:
-		found_user = User.query.filter_by(facebookId = user["facebookId"]).first()
+    if "facebookId" in user:
+        found_user = User.query.filter_by(facebookId=user["facebookId"]).first()
 
-		if found_user is not None:
-			return True 
+        if found_user is not None:
+            return True
 
-	if "phone" in user:
-		found_user = User.query.filter(or_(User.phone == user["phone"], User.secondPhone == user["phone"])).first()
+    if "phone" in user:
+        if fonctions.phone_controll(user["phone"]) is not None:
+            phone = fonctions.phone_controll(user["phone"])["number"]
+            found_user = User.query.filter(or_(User.phone == phone, User.secondPhone == phone)).first()
 
-		if found_user is not None:
-			return True 
+            if found_user is not None:
+                return True
+        else:
+            return False
 
-	if "secondEmail" in user:
-		found_user = User.query.filter(or_(User.email == user["secondEmail"], User.secondEmail == user["secondEmail"])).first()
+    if "secondEmail" in user:
+        found_user = User.query.filter(or_(User.email == user["secondEmail"], User.secondEmail == user["secondEmail"])).first()
 
-		if found_user is not None:
-			return True 
+        if found_user is not None:
+            return True
 
-	if "secondPhone" in user:
-		found_user = User.query.filter(or_(User.phone == user["secondPhone"], User.secondPhone == user["secondPhone"])).first()
+    if "secondPhone" in user:
+        if fonctions.phone_controll(user["secondPhone"]) is not None:
+            phone = fonctions.phone_controll(user["secondPhone"])["number"]
+            found_user = User.query.filter(or_(User.phone == phone, User.secondPhone == phone)).first()
 
-		if found_user is not None:
-			return True 
+            if found_user is not None:
+                return True
+        else:
+            return False
 
-	return False
+    return False
 
 
 
@@ -73,39 +82,47 @@ def user_exist(user):
 
 def user_from_dict(user):
 
-	found_user = None
+    found_user = None
 
-	if "email" in user:
-		found_user = User.query.filter(or_(User.email == user["email"], User.secondEmail == user["email"])).first()
+    if "email" in user:
+        found_user = User.query.filter(or_(User.email == user["email"], User.secondEmail == user["email"])).first()
 
-		if found_user is not None:
-			return found_user 
+        if found_user is not None:
+            return found_user
 
-	if "facebookId" in user:
-		found_user = User.query.filter_by(facebookId = user["facebookId"]).first()
+    if "facebookId" in user:
+        found_user = User.query.filter_by(facebookId = user["facebookId"]).first()
 
-		if found_user is not None:
-			return found_user 
+        if found_user is not None:
+            return found_user
 
-	if "phone" in user:
-		found_user = User.query.filter(or_(User.phone == user["phone"], User.secondPhone == user["phone"])).first()
+    if "phone" in user:
+        if fonctions.phone_controll(user["phone"]) is not None:
+            phone = fonctions.phone_controll(user["phone"])["number"]
+            found_user = User.query.filter(or_(User.phone == phone, User.secondPhone == phone)).first()
 
-		if found_user is not None:
-			return found_user 
+            if found_user is not None:
+                return found_user
+        else:
+            return None
 
-	if "secondEmail" in user:
-		found_user = User.query.filter(or_(User.email == user["secondEmail"], User.secondEmail == user["secondEmail"])).first()
+    if "secondEmail" in user:
+        found_user = User.query.filter(or_(User.email == user["secondEmail"], User.secondEmail == user["secondEmail"])).first()
 
-		if found_user is not None:
-			return found_user 
+        if found_user is not None:
+            return found_user
 
-	if "secondPhone" in user:
-		found_user = User.query.filter(or_(User.phone == user["secondPhone"], User.secondPhone == user["secondPhone"])).first()
+    if "secondPhone" in user:
+        if fonctions.phone_controll(user["secondPhone"]) is not None:
+            phone = fonctions.phone_controll(user["secondPhone"])["number"]
+            found_user = User.query.filter(or_(User.phone == phone, User.secondPhone == phone)).first()
 
-		if found_user is not None:
-			return found_user 
+            if found_user is not None:
+                return found_user
+        else:
+            return None
 
-	return found_user
+    return found_user
 
 
 
@@ -121,40 +138,50 @@ def user_from_dict(user):
 
 def get_prospect(user):
 
-	found_prospect = None
+    found_prospect = None
 
 
-	if "email" in user:
-		found_prospect = Prospect.query.filter(or_(Prospect.email == user["email"], Prospect.secondEmail == user["email"])).first()
+    if "email" in user:
+        found_prospect = Prospect.query.filter(or_(Prospect.email == user["email"], Prospect.secondEmail == user["email"])).first()
 
-		if found_prospect is not None:
-			return found_prospect 
+        if found_prospect is not None:
+            return found_prospect
 
-	if "facebookId" in user:
-		found_prospect = Prospect.query.filter_by(facebookId = user["facebookId"]).first()
+    if "facebookId" in user:
+        found_prospect = Prospect.query.filter_by(facebookId = user["facebookId"]).first()
 
-		if found_prospect is not None:
-			return found_prospect 
+        if found_prospect is not None:
+            return found_prospect
 
-	if "phone" in user:
-		found_prospect = Prospect.query.filter(or_(Prospect.phone == user["phone"], Prospect.secondPhone == user["phone"])).first()
+    if "phone" in user:
+        if fonctions.phone_controll(user["phone"]) is not None:
+            phone = fonctions.phone_controll(user["phone"])["number"]
+            found_prospect = Prospect.query.filter(or_(Prospect.phone == phone, Prospect.secondPhone == phone)).first()
 
-		if found_prospect is not None:
-			return found_prospect 
+            if found_prospect is not None:
+                return found_prospect
 
-	if "secondEmail" in user:
-		found_prospect = Prospect.query.filter(or_(Prospect.email == user["secondEmail"], Prospect.secondEmail == user["secondEmail"])).first()
+        else:
+            return None
 
-		if found_prospect is not None:
-			return found_prospect 
+    if "secondEmail" in user:
+        found_prospect = Prospect.query.filter(or_(Prospect.email == user["secondEmail"], Prospect.secondEmail == user["secondEmail"])).first()
 
-	if "secondPhone" in user:
-		found_prospect = Prospect.query.filter(or_(Prospect.phone == user["secondPhone"], Prospect.secondPhone == user["secondPhone"])).first()
+        if found_prospect is not None:
+            return found_prospect
 
-		if found_prospect is not None:
-			return found_prospect 
+    if "secondPhone" in user:
+        if fonctions.phone_controll(user["secondPhone"]) is not None:
+            phone = fonctions.phone_controll(user["secondPhone"])["number"]
+            found_prospect = Prospect.query.filter(or_(Prospect.phone == phone, Prospect.secondPhone == phone)).first()
 
-	return found_prospect
+            if found_prospect is not None:
+                return found_prospect
+
+        else:
+            return None
+
+    return found_prospect
 
 
 #Fonction qui renvoit les nb_moments futurs du user ayant l'email email_user
