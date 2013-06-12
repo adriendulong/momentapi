@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 from api import db, app
 import user.userConstants as userConstants
 import datetime
@@ -123,7 +123,7 @@ class Notification(db.Model):
     type_notif = db.Column(db.Integer, nullable=False)
     time = db.Column(db.DateTime, default = datetime.datetime.now())
 
-    #Le user à qui appartient la notif
+    #Le user Ã  qui appartient la notif
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     #Le user qui a suivi ou qui a fait la requete de follow
@@ -133,7 +133,7 @@ class Notification(db.Model):
     moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'))
     moment = db.relationship("Moment", backref=db.backref("notifications", cascade="delete, delete-orphan"))
 
-    #Definit si la notif est en cours ou si elle est passée dans l'historique (False)
+    #Definit si la notif est en cours ou si elle est passÃ©e dans l'historique (False)
     is_active = db.Column(db.Boolean, default=True)
 
     
@@ -146,7 +146,7 @@ class Notification(db.Model):
         if self.type_notif != userConstants.NEW_FOLLOWER and self.type_notif != userConstants.NEW_REQUEST:
             self.moment = concerned
 
-        #Sinon ça sera le user qui suit ou a fait la requete pour
+        #Sinon Ã§a sera le user qui suit ou a fait la requete pour
         else:
             self.follower = concerned
 
@@ -277,7 +277,7 @@ class User(db.Model):
     sex = db.Column(db.String(1))
     privacy = db.Column(db.Integer, default = userConstants.OPEN)
 
-    #Les paramètres de notifications
+    #Les paramÃ¨tres de notifications
     param_notifs = db.relationship("ParamNotifs", backref="user")
 
     #Les favoris du user
@@ -317,7 +317,7 @@ class User(db.Model):
     #Liens avec tous les feed dans lesquel ce user apparait
     concerned_feeds = db.relationship("Feed", backref="followed", cascade = "delete, delete-orphan", foreign_keys=[Feed.followed_id])
 
-    #Liens avec toutes les actus dans lesquelles ce user est concerné (parce qu'il a été suivi)
+    #Liens avec toutes les actus dans lesquelles ce user est concernÃ© (parce qu'il a Ã©tÃ© suivi)
     concerned_actus = db.relationship("Actu", backref="follow", cascade = "delete, delete-orphan", foreign_keys=[Actu.follow_id])
 
     #liens avec toutes les noftifs dans lesquels ce user apparait
@@ -353,7 +353,7 @@ class User(db.Model):
         self.creationDateUser = datetime.date.today()
         self.last_feed_update = datetime.datetime.now()
 
-        #On créé tous les paramtres pour controller les notifs
+        #On crÃ©Ã© tous les paramtres pour controller les notifs
         self.create_params_notifs()
 
     def __cmp__(self, other):
@@ -409,18 +409,18 @@ class User(db.Model):
 
 
 
-    #Fonction qui renvoit les nb_moments sup à date
+    #Fonction qui renvoit les nb_moments sup Ã  date
     def get_moments_sup_date(self, nb_moments, date, equal):
 
         if equal:
             moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate >= date).order_by(Moment.startDate.asc()).limit(nb_moments).all()
 
-            #Si on a recupéré des moments
+            #Si on a recupÃ©rÃ© des moments
             if len(moments) > 0:
 
                 last_moment = moments[len(moments)-1]
 
-                #Si il y en a on recupere aussi les moments de la derniere journée
+                #Si il y en a on recupere aussi les moments de la derniere journÃ©e
                 moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.asc()).all()
 
                 for moment in moments_day:
@@ -436,12 +436,12 @@ class User(db.Model):
         else:
             moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate > date).order_by(Moment.startDate.asc()).limit(nb_moments).all()
 
-            #Si on a recupéré des moments
+            #Si on a recupÃ©rÃ© des moments
             if len(moments) > 0:
 
                 last_moment = moments[len(moments)-1]
 
-                #Si il y en a on recupere aussi les moments de la derniere journée
+                #Si il y en a on recupere aussi les moments de la derniere journÃ©e
                 moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.asc()).all()
 
                 for moment in moments_day:
@@ -459,18 +459,18 @@ class User(db.Model):
 
 
 
-    #Fonction qui renvoit les nb_moments inf à date
+    #Fonction qui renvoit les nb_moments inf Ã  date
     def get_moments_inf_date(self, nb_moments, date, equal):
 
         if equal:
             moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate <= date).order_by(Moment.startDate.desc()).limit(nb_moments).all()
 
-            #Si on a recupéré des moments
+            #Si on a recupÃ©rÃ© des moments
             if len(moments) > 0:
 
                 last_moment = moments[0]
 
-                #Si il y en a on recupere aussi les moments de la derniere journée
+                #Si il y en a on recupere aussi les moments de la derniere journÃ©e
                 moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.desc()).all()
 
                 for moment in moments_day:
@@ -486,12 +486,12 @@ class User(db.Model):
         else:
             moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate < date).order_by(Moment.startDate.desc()).limit(nb_moments).all()
 
-            #Si on a recupéré des moments
+            #Si on a recupÃ©rÃ© des moments
             if len(moments) > 0:
 
                 last_moment = moments[0]
 
-                #Si il y en a on recupere aussi les moments de la derniere journée
+                #Si il y en a on recupere aussi les moments de la derniere journÃ©e
                 moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.desc()).all()
 
                 for moment in moments_day:
@@ -506,12 +506,12 @@ class User(db.Model):
         return moments
 
 
-    #Fonction qui met en forme un user pour le renvoyé
+    #Fonction qui met en forme un user pour le renvoyÃ©
     def user_to_send(self):
         
         user = {}
 
-        # Valeurs obligatoire donc toujours présentes
+        # Valeurs obligatoire donc toujours prÃ©sentes
         user["id"] = self.id
         user["firstname"] = self.firstname
         user["lastname"] = self.lastname
@@ -545,7 +545,7 @@ class User(db.Model):
         return user
 
     ####
-    # Fonction qui renvoit en plus de user_to_send l'info si le user suit déjà un user donné
+    # Fonction qui renvoit en plus de user_to_send l'info si le user suit dÃ©jÃ  un user donnÃ©
 
     def user_to_send_social(self, user):
 
@@ -557,20 +557,20 @@ class User(db.Model):
 
         
 
-        #On pourcours les gens qui suivent ce user pour voir si y en a un qui correpond au user connecté
+        #On pourcours les gens qui suivent ce user pour voir si y en a un qui correpond au user connectÃ©
         for follow in user.follows:
             if follow.id == self.id:
                 user_to_send["is_followed"] = True
 
 
-        #Renvoit si ce user a demandé de suivre self
-        #Ca ne sert à rien de regarder si ce self n'est pas en private
+        #Renvoit si ce user a demandÃ© de suivre self
+        #Ca ne sert Ã  rien de regarder si ce self n'est pas en private
         if self.privacy == userConstants.PRIVATE:
             for requestFollower in self.requestFollowers:
                 if requestFollower.id == user.id:
                     user_to_send["request_follower"] = True
 
-        #Renvoit si self a demandé à suivre ce user
+        #Renvoit si self a demandÃ© Ã  suivre ce user
         if user.privacy==userConstants.PRIVATE:
             for waitingFollow in self.waitingFollows:
                 if waitingFollow.id == user.id:
@@ -589,13 +589,13 @@ class User(db.Model):
         user["is_followed"]
 
 
-    #Renvoie le chemin vers le dossiers de ce user, Créé si il n'existe pas
+    #Renvoie le chemin vers le dossiers de ce user, CrÃ©Ã© si il n'existe pas
     def get_user_dir(self):
         #On verifie que le dossier existe
         path_user = "%s/%s" % (constants.PROFILE_PATH, self.id)
         if os.path.exists(app.root_path + path_user):
             return path_user
-        #Sinon on le créé
+        #Sinon on le crÃ©Ã©
         else:
             os.mkdir(app.root_path + path_user)
             return path_user
@@ -606,13 +606,13 @@ class User(db.Model):
         #On recupere le path du user
         user_path = self.get_user_dir()
 
-        # On vérifie que le chemin pour enregistrer sa photo de profil existe
+        # On vÃ©rifie que le chemin pour enregistrer sa photo de profil existe
         if os.path.exists(app.root_path + user_path+"/profile_pictures"):
             im_original = Image.open(f)
             im_original.thumbnail(constants.SIZE_MEDIUM, Image.ANTIALIAS)
             im_original.save(app.root_path + user_path+"/profile_pictures/"+name+".jpg", "JPEG")
             return user_path+"/profile_pictures/"+name+".jpg"
-        #sinon on créé le chemin en question
+        #sinon on crÃ©Ã© le chemin en question
         else:
             os.mkdir(app.root_path + user_path+"/profile_pictures")
             im_original = Image.open(f)
@@ -647,10 +647,10 @@ class User(db.Model):
             return False
 
 
-    #fonctions qui créé un favoris si il n'existe pas, ou increment son score si il existe
+    #fonctions qui crÃ©Ã© un favoris si il n'existe pas, ou increment son score si il existe
     def increment_favoris(self, user, score):
         
-        #On regarde si c'est déjà un favoris
+        #On regarde si c'est dÃ©jÃ  un favoris
         for favoris_user in self.favoris:
             #Si on le trouve on augmente son score
             if favoris_user.favoris_id == user.id:
@@ -658,7 +658,7 @@ class User(db.Model):
                 return True
 
 
-        #Sinon on en créé un nouveau 
+        #Sinon on en crÃ©Ã© un nouveau 
         new_fav = Favoris(user)
         new_fav.score += score
         self.favoris.append(new_fav)
@@ -666,7 +666,7 @@ class User(db.Model):
         return True
 
 
-    #Fonction qui verifie que le device n'est pas dejà associé à ce user, et le créé sinon
+    #Fonction qui verifie que le device n'est pas dejÃ  associÃ© Ã  ce user, et le crÃ©Ã© sinon
     def add_device(self, device_id, os, os_version, model):
         for device in self.devices:
             if device.device_id == device_id:
@@ -675,9 +675,9 @@ class User(db.Model):
                 device.model = model
                 return device
 
-        #On verifie qu'il existe pas déjà un device avec ce meme device_id
+        #On verifie qu'il existe pas dÃ©jÃ  un device avec ce meme device_id
         sameDevice = Device.query.filter(Device.device_id == device_id).first()
-        #Si il en existe un ça veut dire qu'on la pas effacé quand quelqu'un s'est deconnecté, alors on l'efface maintenant
+        #Si il en existe un Ã§a veut dire qu'on la pas effacÃ© quand quelqu'un s'est deconnectÃ©, alors on l'efface maintenant
         if sameDevice is not None:
             db.session.delete(sameDevice)
 
@@ -688,7 +688,7 @@ class User(db.Model):
         return deviceTemp
 
 
-    #Recupere l'objet Device ayant le device_id donn�
+    #Recupere l'objet Device ayant le device_id donné
 
     def get_device(self, device_id):
 
@@ -740,7 +740,7 @@ class User(db.Model):
 
     def add_follow(self, user):
 
-        #On verifie que le user est pas déjà suivi
+        #On verifie que le user est pas dÃ©jÃ  suivi
         for follow in self.follows:
             if follow.id == user.id:
                 return False
@@ -764,7 +764,7 @@ class User(db.Model):
 
         for waiting in self.waitingFollows:
 
-            #On verifie que la demande n'est pas déjà en attente
+            #On verifie que la demande n'est pas dÃ©jÃ  en attente
             if waiting.id == user.id:
                 return False
 
@@ -776,7 +776,7 @@ class User(db.Model):
 
 
     ####
-    ## Fonction qui va renvoyer si ce user est déjà suivi ou pas
+    ## Fonction qui va renvoyer si ce user est dÃ©jÃ  suivi ou pas
     ####
 
     def is_following(self, user):
@@ -789,7 +789,7 @@ class User(db.Model):
 
 
     ####
-    ## Fonction qui va renvoyer si la requete de follow a déjà été faites
+    ## Fonction qui va renvoyer si la requete de follow a dÃ©jÃ  Ã©tÃ© faites
     ####
 
     def is_requesting(self, user):
@@ -803,7 +803,7 @@ class User(db.Model):
 
     def validate_request(self, user):
 
-        #On verifie que la demande avait bien été faite
+        #On verifie que la demande avait bien Ã©tÃ© faite
         if self.is_requesting(user):
             #On supprime la requete
             self.waitingFollows.remove(user)
@@ -820,7 +820,7 @@ class User(db.Model):
 
     def refuse_request(self, user):
 
-        #On verifie que la demande avait bien é�t� faite
+        #On verifie que la demande avait bien Ã©été© faite
         if self.is_requesting(user):
             #On supprime la requete
             self.waitingFollows.remove(user)
@@ -923,12 +923,12 @@ class User(db.Model):
 
 
     ###
-    ## Fonction qui va créer un faux moment lors de l'inscription
+    ## Fonction qui va crÃ©er un faux moment lors de l'inscription
     ###
 
     def create_fake_moment(self):
 
-        #On commence par créer le moment
+        #On commence par crÃ©er le moment
 
         #Les valeurs par defaults
         name = constants.FAKE_MOMENT_NAME
@@ -975,8 +975,8 @@ class User(db.Model):
         chat = Chat(constants.FAKE_MOMENT_CHAT, self, moment)
 
 
-        #On créé l'invitation qui le lie à ce Moment
-        # Il est owner, donc state à 0
+        #On crÃ©Ã© l'invitation qui le lie Ã  ce Moment
+        # Il est owner, donc state Ã  0
         invitation = Invitation(userConstants.OWNER, self) 
 
         #On ratache cette invitations aux guests du nouveau Moment
@@ -1003,29 +1003,29 @@ class User(db.Model):
     ##############################################
 
 
-    #Fonction qui créé les paramètres de notifications en base
+    #Fonction qui crÃ©Ã© les paramÃ¨tres de notifications en base
     def create_params_notifs(self):
 
-        #On créé le paramètre associé aux notifs d'invitation
+        #On crÃ©Ã© le paramÃ¨tre associÃ© aux notifs d'invitation
         param_invit = ParamNotifs(userConstants.INVITATION)
         self.param_notifs.append(param_invit)
 
-        #On créé le paramètre associé aux notifs d'invitation
+        #On crÃ©Ã© le paramÃ¨tre associÃ© aux notifs d'invitation
         param_photo = ParamNotifs(userConstants.NEW_PHOTO)
         self.param_notifs.append(param_photo)
 
-        #On créé le paramètre associé aux notifs d'invitation
+        #On crÃ©Ã© le paramÃ¨tre associÃ© aux notifs d'invitation
         param_chat = ParamNotifs(userConstants.NEW_CHAT)
         self.param_notifs.append(param_chat)
 
-        #On créé le paramètre associé aux notifs d'invitation
+        #On crÃ©Ã© le paramÃ¨tre associÃ© aux notifs d'invitation
         param_modif = ParamNotifs(userConstants.MODIF)
         self.param_notifs.append(param_modif)
 
 
 
     #########
-    ## Paramètres de Notifications
+    ## ParamÃ¨tres de Notifications
     ###########
 
     ##
@@ -1037,7 +1037,7 @@ class User(db.Model):
         #On parcourt les parametres de notif du user
         for param_notif in self.param_notifs:
 
-            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            #Quand on trouve celle correspondant aux photos, on vÃ©rifie que le push est activÃ©
             if param_notif.type_notif == type_notif:
                 param_notif.push = active
 
@@ -1064,7 +1064,7 @@ class User(db.Model):
         #On parcourt les parametres de notif du user
         for param_notif in self.param_notifs:
 
-            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            #Quand on trouve celle correspondant aux photos, on vÃ©rifie que le push est activÃ©
             if param_notif.type_notif == userConstants.NEW_PHOTO and param_notif.push is True:
                 return True
 
@@ -1082,7 +1082,7 @@ class User(db.Model):
         #On parcourt les parametres de notif du user
         for param_notif in self.param_notifs:
 
-            #Quand on trouve celle correspondant aux photos, on vérifie que le mail est activé
+            #Quand on trouve celle correspondant aux photos, on vÃ©rifie que le mail est activÃ©
             if param_notif.type_notif == userConstants.NEW_PHOTO and param_notif.mail is True:
                 return True
 
@@ -1098,7 +1098,7 @@ class User(db.Model):
         #On parcourt les parametres de notif du user
         for param_notif in self.param_notifs:
 
-            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            #Quand on trouve celle correspondant aux photos, on vÃ©rifie que le push est activÃ©
             if param_notif.type_notif == userConstants.INVITATION and param_notif.push is True:
                 return True
 
@@ -1114,7 +1114,7 @@ class User(db.Model):
         #On parcourt les parametres de notif du user
         for param_notif in self.param_notifs:
 
-            #Quand on trouve celle correspondant aux photos, on vérifie que le mail est activé
+            #Quand on trouve celle correspondant aux photos, on vÃ©rifie que le mail est activÃ©
             if param_notif.type_notif == userConstants.INVITATION and param_notif.mail is True:
                 return True
 
@@ -1130,7 +1130,7 @@ class User(db.Model):
         #On parcourt les parametres de notif du user
         for param_notif in self.param_notifs:
 
-            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            #Quand on trouve celle correspondant aux photos, on vÃ©rifie que le push est activÃ©
             if param_notif.type_notif == userConstants.NEW_CHAT and param_notif.push is True:
                 return True
 
@@ -1146,7 +1146,7 @@ class User(db.Model):
         #On parcourt les parametres de notif du user
         for param_notif in self.param_notifs:
 
-            #Quand on trouve celle correspondant aux photos, on vérifie que le mail est activé
+            #Quand on trouve celle correspondant aux photos, on vÃ©rifie que le mail est activÃ©
             if param_notif.type_notif == userConstants.NEW_CHAT and param_notif.mail is True:
                 return True
 
@@ -1162,7 +1162,7 @@ class User(db.Model):
         #On parcourt les parametres de notif du user
         for param_notif in self.param_notifs:
 
-            #Quand on trouve celle correspondant aux photos, on vérifie que le push est activé
+            #Quand on trouve celle correspondant aux photos, on vÃ©rifie que le push est activÃ©
             if param_notif.type_notif == userConstants.MODIF and param_notif.push is True:
                 return True
 
@@ -1178,7 +1178,7 @@ class User(db.Model):
         #On parcourt les parametres de notif du user
         for param_notif in self.param_notifs:
 
-            #Quand on trouve celle correspondant aux photos, on vérifie que le mail est activé
+            #Quand on trouve celle correspondant aux photos, on vÃ©rifie que le mail est activÃ©
             if param_notif.type_notif == userConstants.MODIF and param_notif.mail is True:
                 return True
 
@@ -1189,7 +1189,7 @@ class User(db.Model):
 
 
     ##
-    # Fonctions pour envoyer une notification lors d'un nouvel évènement
+    # Fonctions pour envoyer une notification lors d'un nouvel Ã©vÃ¨nement
     ##
 
     def notify_new_moment(self, moment, user_inviting):
@@ -1207,7 +1207,7 @@ class User(db.Model):
         if self.is_push_invit():
 
             title = "Nouvelle invitation"
-            contenu = unicode('vous invite à participer à','utf-8')
+            contenu = unicode('vous invite Ã  participer Ã ','utf-8')
             message = "%s %s '%s'" % (user_inviting.firstname, contenu, moment.name)
 
             for device in self.devices:
@@ -1219,7 +1219,7 @@ class User(db.Model):
     ##
 
     def notify_new_chat(self, moment, chat):
-        #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
+        #On enregistre la notif en base (si pas dÃ©jÃ  n'existe pas dÃ©jÃ  pour ce moment)
         notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_CHAT, Notification.is_active == True)).first()
 
 
@@ -1276,7 +1276,7 @@ class User(db.Model):
     ##
 
     def notify_new_photo(self, moment, photo):
-        #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
+        #On enregistre la notif en base (si pas dÃ©jÃ  n'existe pas dÃ©jÃ  pour ce moment)
         notif = Notification.query.filter(and_(Notification.moment_id == moment.id , Notification.user_id == self.id, Notification.type_notif == userConstants.NEW_PHOTO, Notification.is_active == True)).first()
 
 
@@ -1296,7 +1296,7 @@ class User(db.Model):
         ## PUSH NOTIF
         ##
 
-        #On envoit la notif que si le user a activé l'envoie par push de nouvelles photos
+        #On envoit la notif que si le user a activÃ© l'envoie par push de nouvelles photos
         if self.is_push_photo():
 
             nbPhotos = len(moment.photos)
@@ -1349,7 +1349,7 @@ class User(db.Model):
         #On enregistre en base
         db.session.add(notification)
         db.session.commit()
-        #On enregistre la notif en base (si pas déjà n'existe pas déjà pour ce moment)
+        #On enregistre la notif en base (si pas dÃ©jÃ  n'existe pas dÃ©jÃ  pour ce moment)
 
         
 
@@ -1423,7 +1423,7 @@ class User(db.Model):
     ###########     ACTUS USER      ########################
     ##############################################
 
-    #Actu comme quoi le user a rajouté une photo sur un moment OPEN ou PUBLIC
+    #Actu comme quoi le user a rajoutÃ© une photo sur un moment OPEN ou PUBLIC
     def add_actu_photo(self, photo, moment):
 
         if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
@@ -1433,7 +1433,7 @@ class User(db.Model):
                 db.session.commit()
 
 
-    #Actu comme quoi le user a rajouté un chat sur un moment OPEN ou PUBLIC
+    #Actu comme quoi le user a rajoutÃ© un chat sur un moment OPEN ou PUBLIC
     def add_actu_chat(self, chat, moment):
 
         if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
@@ -1442,7 +1442,7 @@ class User(db.Model):
             db.session.commit()
 
 
-    #Actu comme quoi le user a créé un moment public
+    #Actu comme quoi le user a crÃ©Ã© un moment public
     def add_actu_new_moment(self, moment):
 
         #On rajoute cette actu que si le moment est public ou ouvert
@@ -1451,7 +1451,7 @@ class User(db.Model):
             self.actus.append(actu_moment)
 
 
-    #Actu comme quoi le user va à un moment public ou ouvert
+    #Actu comme quoi le user va Ã  un moment public ou ouvert
     def add_actu_going(self, moment):
 
         self.remove_going_actu(moment)
@@ -1474,7 +1474,7 @@ class User(db.Model):
 
 
 
-    #Actu comme quoi le user a été invité à un moment public ou ouvert
+    #Actu comme quoi le user a Ã©tÃ© invitÃ© Ã  un moment public ou ouvert
     def add_actu_invit(self, moment):
         #On rajoute cette actu que si le moment est public ou ouvert
         if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
@@ -1507,12 +1507,12 @@ class User(db.Model):
     #Fonction qui va recuperer les actus de tous les users suivis et va construire la suite du feed
     def update_feed(self):
 
-        #On parcours l'actualité de tous les follows 
+        #On parcours l'actualitÃ© de tous les follows 
         for follow in self.follows:
-            #On recupere les actus de ce user qui sont sup à last_feed_update
+            #On recupere les actus de ce user qui sont sup Ã  last_feed_update
             actus = Actu.query.filter(and_(Actu.time > self.last_feed_update, Actu.user_id == follow.id)).all()
 
-            #On initialise un tableau de feed associé à ce user
+            #On initialise un tableau de feed associÃ© Ã  ce user
             feedsFollow = []
 
             #On partcourt les actus
@@ -1521,46 +1521,46 @@ class User(db.Model):
                 #Si c est une actu de photo
                 if actu.type_action == userConstants.ACTION_PHOTO:
 
-                    #Boolean pour savoir si on rajoute à un feed ou en créé un
+                    #Boolean pour savoir si on rajoute Ã  un feed ou en crÃ©Ã© un
                     is_exist = False
 
-                    #On regarde si dans les feed précédents il y a avait une actu photo pour ce même moment
+                    #On regarde si dans les feed prÃ©cÃ©dents il y a avait une actu photo pour ce mÃªme moment
                     for feedFollow in feedsFollow:
 
-                        #Si un des feed est un feed photo du même moment, on rajoute la photo
+                        #Si un des feed est un feed photo du mÃªme moment, on rajoute la photo
                         if feedFollow.type_action == userConstants.ACTION_PHOTO and feedFollow.moment_id == actu.moment_id:
                             feedFollow.photos.append(actu.photo)
                             is_exist = True
 
-                    #Si finalement aucun feed ne correspondait on en créé un
+                    #Si finalement aucun feed ne correspondait on en crÃ©Ã© un
                     if not is_exist:
                         feed = Feed(actu.user, actu.type_action, actu.moment_id)
                         feed.photos.append(actu.photo)
                         db.session.add(feed)
-                        #On le rajoute à la liste des feed
+                        #On le rajoute Ã  la liste des feed
                         feedsFollow.append(feed)
 
 
                 #Si c est une actu de chat
                 elif actu.type_action == userConstants.ACTION_CHAT:
 
-                    #Boolean pour savoir si on rajoute à un feed ou en créé un
+                    #Boolean pour savoir si on rajoute Ã  un feed ou en crÃ©Ã© un
                     is_exist = False
 
-                    #On regarde si dans les feed précédents il y a avit une actu chat pour ce même moment
+                    #On regarde si dans les feed prÃ©cÃ©dents il y a avit une actu chat pour ce mÃªme moment
                     for feedFollow in feedsFollow:
 
-                        #Si un des feed est un feed photo du même moment, on rajoute la photo
+                        #Si un des feed est un feed photo du mÃªme moment, on rajoute la photo
                         if feedFollow.type_action == userConstants.ACTION_CHAT and feedFollow.moment_id == actu.moment_id:
                             feedFollow.chats.append(actu.chat)
                             is_exist = True
 
-                    #Si finalement aucun feed ne correspondait on en créé un
+                    #Si finalement aucun feed ne correspondait on en crÃ©Ã© un
                     if not is_exist:
                         feed = Feed(actu.user, actu.type_action, actu.moment_id)
                         feed.chats.append(actu.chat)
                         db.session.add(feed)
-                        #On le rajoute à la liste des feed
+                        #On le rajoute Ã  la liste des feed
                         feedsFollow.append(feed)
 
 
@@ -1570,14 +1570,14 @@ class User(db.Model):
                 elif actu.type_action == userConstants.ACTION_INVITED:
                     feed = Feed(actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
-                    #On le rajoute à la liste des feed
+                    #On le rajoute Ã  la liste des feed
                     feedsFollow.append(feed)
 
 
                 elif actu.type_action == userConstants.ACTION_CREATION_EVENT:
                     feed = Feed(actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
-                    #On le rajoute à la liste des feed
+                    #On le rajoute Ã  la liste des feed
                     feedsFollow.append(feed)
 
                 elif actu.type_action == userConstants.ACTION_GOING:
@@ -1589,19 +1589,19 @@ class User(db.Model):
                 #Actu de type : a suivi quelqu'un 
                 elif actu.type_action == userConstants.ACTION_FOLLOW:
 
-                    #Boolean pour savoir si on rajoute à un feed ou en créé un
+                    #Boolean pour savoir si on rajoute Ã  un feed ou en crÃ©Ã© un
                     is_exist = False
 
-                    #Boolean pour  savoir si cette news de follow pour ce user a déjà été mise
+                    #Boolean pour  savoir si cette news de follow pour ce user a dÃ©jÃ  Ã©tÃ© mise
                     already_follow = False
 
-                    #On regarde si dans les feed précédents il y a avait une actu "follow"
+                    #On regarde si dans les feed prÃ©cÃ©dents il y a avait une actu "follow"
                     for feedFollow in feedsFollow:
 
-                        #Si un des feed est un feed follow on regarde si ce user est déjà pas dedans
+                        #Si un des feed est un feed follow on regarde si ce user est dÃ©jÃ  pas dedans
                         if feedFollow.type_action == userConstants.ACTION_FOLLOW:
 
-                            #On regarde si ce user etait déjà dans ce feed
+                            #On regarde si ce user etait dÃ©jÃ  dans ce feed
                             for follow in feedFollow.follows:
                                 if follow.id == actu.follow.id:
                                     already_follow = True
@@ -1618,7 +1618,7 @@ class User(db.Model):
                         feed = Feed(actu.user, actu.type_action)
                         feed.follows.append(actu.follow)
                         db.session.add(feed)
-                        #On le rajoute à la liste des feed
+                        #On le rajoute Ã  la liste des feed
                         feedsFollow.append(feed)
                         
                 
@@ -1627,7 +1627,7 @@ class User(db.Model):
             self.feeds.extend(feedsFollow)
 
 
-        #On met à jour l'heure de la derniere construction du feed
+        #On met Ã  jour l'heure de la derniere construction du feed
         self.last_feed_update = datetime.datetime.now()
 
         #On sauvegarde
@@ -1720,10 +1720,10 @@ class Moment(db.Model):
 
     def moment_to_send(self, user_id):
 
-        #On construit le Moment tel qu'on va le renvoyer à l'app
+        #On construit le Moment tel qu'on va le renvoyer Ã  l'app
         moment = {}
 
-        #Variable qui nous permets de savoir si on a rajouté un owner
+        #Variable qui nous permets de savoir si on a rajoutÃ© un owner
         has_owner = False
 
         if self.is_in_guests(user_id):
@@ -1766,9 +1766,9 @@ class Moment(db.Model):
                 moment["owner"] = guest.user.user_to_send()
                 has_owner = True
 
-        #Si on a pas recupére de Owner parmis les user Moment alors c est peut etre un prospect (si le moment provient d'un evenement FB)
+        #Si on a pas recupÃ©re de Owner parmis les user Moment alors c est peut etre un prospect (si le moment provient d'un evenement FB)
         if not has_owner:
-            #Si on a associé un facebook Id au owner alors on devrait le retrouver dans les prospect
+            #Si on a associÃ© un facebook Id au owner alors on devrait le retrouver dans les prospect
             if self.owner_facebookId is not None:
                 ownerProspect = Prospect.query.filter(Prospect.facebookId == self.owner_facebookId).first()
 
@@ -1777,11 +1777,11 @@ class Moment(db.Model):
                     moment["owner"] = ownerProspect.prospect_to_send()
                    
 
-        #Si il est sponsorisé
+        #Si il est sponsorisÃ©
         moment["is_sponso"] = self.is_sponso
 
 
-        # Les invités
+        # Les invitÃ©s
         moment["guests_number"] = len(self.guests) + len(self.prospects)
         moment["guests_coming"] = self.nb_guest_coming()
         moment["guests_not_coming"] = self.nb_guest_not_coming()
@@ -1828,7 +1828,7 @@ class Moment(db.Model):
                 has_owner = True
 
         if not has_owner:
-            #Si on a associé un facebook Id au owner alors on devrait le retrouver dans les prospect
+            #Si on a associÃ© un facebook Id au owner alors on devrait le retrouver dans les prospect
             if self.owner_facebookId is not None:
                 ownerProspect = Prospect.query.filter(Prospect.facebookId == self.owner_facebookId).first()
 
@@ -1890,7 +1890,7 @@ class Moment(db.Model):
 
 
 
-    #Fonction qui renvoit si un user fait partie des invité et donc si il peut voir ce moment
+    #Fonction qui renvoit si un user fait partie des invitÃ© et donc si il peut voir ce moment
     def is_in_guests(self, user_id):
 
         for guest in self.guests:
@@ -1904,7 +1904,7 @@ class Moment(db.Model):
     def can_be_modified_by(self, user_id):
 
         for guest in self.guests:
-            # On retrouve le user et on vérifie qu'il est owner ou admin
+            # On retrouve le user et on vÃ©rifie qu'il est owner ou admin
             if guest.user.id == user_id:
                 if guest.state == userConstants.OWNER:
                     return True
@@ -1917,7 +1917,7 @@ class Moment(db.Model):
     def create_paths(self):
 
         path_moment = "%s%s/%s" % (app.root_path, constants.MOMENT_PATH , self.id)
-        # On créé tous les dossiers necessaires à ce Moment
+        # On crÃ©Ã© tous les dossiers necessaires Ã  ce Moment
         if not os.path.exists(path_moment):
             os.mkdir(path_moment)
             os.mkdir(path_moment+"/photos")
@@ -1932,8 +1932,8 @@ class Moment(db.Model):
 
 
 
-    # Fonction qui rajoute un user en invité
-    # Renvoit True si rajouté correctement 
+    # Fonction qui rajoute un user en invitÃ©
+    # Renvoit True si rajoutÃ© correctement 
     # False sinon
     def add_guest(self, user_id, state):
 
@@ -1941,7 +1941,7 @@ class Moment(db.Model):
 
 
         if user is not None:
-            #Si il n'est pas déjà invité
+            #Si il n'est pas dÃ©jÃ  invitÃ©
             if not self.is_in_guests(user.id):
                 invitation = Invitation(state, user)
                 self.guests.append(invitation)
@@ -1954,13 +1954,13 @@ class Moment(db.Model):
             return False
 
 
-    # Fonction qui rajoute un user en invité à partir d'un objet user
-    # Renvoit True si rajouté correctement 
+    # Fonction qui rajoute un user en invitÃ© Ã  partir d'un objet user
+    # Renvoit True si rajoutÃ© correctement 
     # False sinon
     def add_guest_user(self, user, user_inviting, state):
 
         if user is not None:
-            #Si il n'est pas déjà invité
+            #Si il n'est pas dÃ©jÃ  invitÃ©
             if not self.is_in_guests(user.id):
                 invitation = Invitation(state, user)
                 self.guests.append(invitation)
@@ -1975,7 +1975,7 @@ class Moment(db.Model):
                     user_inviting.increment_favoris(user, userConstants.AJOUT)
                     user.increment_favoris(user_inviting, userConstants.INVITE)
 
-                #On increment le compteur pour chaque invité egalement
+                #On increment le compteur pour chaque invitÃ© egalement
                 for guest in self.guests:
                     if guest.user.id != user.id and guest.user.id != user_inviting.id:
                         guest.user.increment_favoris(user, userConstants.MOMENT)
@@ -1994,12 +1994,12 @@ class Moment(db.Model):
         if self.privacy == constants.PUBLIC:
 
             if user is not None:
-                #Si il n'est pas déjà invité
+                #Si il n'est pas dÃ©jÃ  invitÃ©
                 if not self.is_in_guests(user.id):
                     invitation = Invitation(userConstants.COMING, user)
                     self.guests.append(invitation)
 
-                    #On increment le compteur pour chaque invité egalement
+                    #On increment le compteur pour chaque invitÃ© egalement
                     for guest in self.guests:
                         if guest.user.id != user.id:
                             guest.user.increment_favoris(user, userConstants.MOMENT)
@@ -2026,7 +2026,7 @@ class Moment(db.Model):
             return True
         else:
             for guest in self.guests:
-                # On retrouve le user et on vérifie qu'il est owner ou admin
+                # On retrouve le user et on vÃ©rifie qu'il est owner ou admin
                 if guest.user.id == user_id:
                     if guest.state == userConstants.OWNER or guest.state == userConstants.ADMIN:
                         return True
@@ -2036,11 +2036,11 @@ class Moment(db.Model):
             return False
 
 
-    # Fonction qui renvoit l'état de ce user (user_id) pour ce moment
+    # Fonction qui renvoit l'Ã©tat de ce user (user_id) pour ce moment
     def get_user_state(self, user_id):
 
         for guest in self.guests:
-            # On retrouve le user et on vérifie qu'il est owner ou admin
+            # On retrouve le user et on vÃ©rifie qu'il est owner ou admin
             if guest.user.id == user_id:
                 return guest.state
 
@@ -2071,7 +2071,7 @@ class Moment(db.Model):
         return False
 
 
-    #Fonction qui dit si le user est déjà ADMIN ou pas
+    #Fonction qui dit si le user est dÃ©jÃ  ADMIN ou pas
     def is_admin(self, user):
 
         for guest in self.guests:
@@ -2082,7 +2082,7 @@ class Moment(db.Model):
         return False
 
 
-    #Nb d'invités qui viennent au moment
+    #Nb d'invitÃ©s qui viennent au moment
     def nb_guest_coming(self):
         count = 0
 
@@ -2100,7 +2100,7 @@ class Moment(db.Model):
         return count
 
 
-    #Nb d'invités ne venant pas au moment
+    #Nb d'invitÃ©s ne venant pas au moment
     def nb_guest_not_coming(self):
         count = 0
 
@@ -2150,17 +2150,17 @@ class Moment(db.Model):
     #Fonction qui prend en charge de notifier tout le monde qu'il y a un nouveau message
     def notify_users_new_chat(self, chat):
 
-        #La liste des destinataires à qui on va envoyer un mail 
+        #La liste des destinataires Ã  qui on va envoyer un mail 
         to_dests = []
 
         for guest in self.guests:
-            #On envoit pas la notif à celui qui a envoyé le message
+            #On envoit pas la notif Ã  celui qui a envoyÃ© le message
             if guest.user.id != chat.user.id:
                 guest.user.notify_new_chat(self, chat)
 
                 #Si le user accepte les notifs mail pour les photos
                 if guest.user.is_mail_chat():
-                    #On le rajoute à la liste des destinaires
+                    #On le rajoute Ã  la liste des destinaires
                     dest = {
                         "email" : guest.user.email,
                         "name" : "%s %s" % (guest.user.firstname, guest.user.lastname)
@@ -2172,17 +2172,17 @@ class Moment(db.Model):
 
     def notify_users_new_photo(self, photo):
 
-        #La liste des destinataires à qui on va envoyer un mail 
+        #La liste des destinataires Ã  qui on va envoyer un mail 
         to_dests = []
 
         for guest in self.guests:
-            #On envoit pas la notif à celui qui a envoyé le message
+            #On envoit pas la notif Ã  celui qui a envoyÃ© le message
             if guest.user.id != photo.user.id:
                 guest.user.notify_new_photo(self, photo)
 
                 #Si le user accepte les notifs mail pour les photos
                 if guest.user.is_mail_photo():
-                    #On le rajoute à la liste des destinaires
+                    #On le rajoute Ã  la liste des destinaires
                     dest = {
                         "email" : guest.user.email,
                         "name" : "%s %s" % (guest.user.firstname, guest.user.lastname)
@@ -2192,7 +2192,7 @@ class Moment(db.Model):
 
         #### On envoit le mail aux destinataires
 
-        #On met les infos de celui qui a posté la photo dans un dict
+        #On met les infos de celui qui a postÃ© la photo dans un dict
         host_infos = {}
         host_infos["firstname"] = photo.user.firstname
         host_infos["lastname"] = photo.user.lastname
@@ -2201,7 +2201,7 @@ class Moment(db.Model):
 
         thread.start_new_thread( fonctions.send_single_photo_mail, (to_dests, self.name, host_infos, photo.url_original,) )
 
-    #Fcontion qui selectionne à quel user on va envoyer le mail d'invit
+    #Fcontion qui selectionne Ã  quel user on va envoyer le mail d'invit
     def mail_moment_guests(self, guests, host):
 
         to_dests = []
@@ -2361,7 +2361,7 @@ class Prospect(db.Model):
         #Si le secondEmail n'est pas rempli 
         if self.secondEmail is None:
 
-            #Si le premier email n'est pas le meme que celui enregistré
+            #Si le premier email n'est pas le meme que celui enregistrÃ©
             if "email" in user:
                 if user["email"] != self.email:
                     self.secondEmail = user["email"]
@@ -2388,7 +2388,7 @@ class Prospect(db.Model):
          #Si le secondPhone n'est pas rempli 
         if self.secondPhone is None:
 
-            #Si le premier email n'est pas le meme que celui enregistré
+            #Si le premier email n'est pas le meme que celui enregistrÃ©
             if "phone" in user:
                 if fonctions.phone_controll(user["phone"]) is not None:
                     phone = fonctions.phone_controll(user["phone"])
@@ -2421,15 +2421,15 @@ class Prospect(db.Model):
 
 
     #Fonction qui match tous les moments de ce prospect :
-    # - Ajoute le nouveau user à ces moments (comme invité)
-    # - Enleve ce prospect des prospects invité à ces moments
+    # - Ajoute le nouveau user Ã  ces moments (comme invitÃ©)
+    # - Enleve ce prospect des prospects invitÃ© Ã  ces moments
     def match_moments(self, user):
 
         #On parcourt toutes les invitations
         for moment in self.invitations:
 
             #On ajoute le user dans les invite
-            #Et on met egalement à jour les favoris
+            #Et on met egalement Ã  jour les favoris
             moment.add_guest_user(user, moment.get_owner(), userConstants.UNKNOWN)
 
             #On supprime ce Prospect des prospects
@@ -2472,7 +2472,7 @@ class Photo(db.Model):
         original_path = moment.get_moment_path()+"photos/original/"
         thumbnail_path = moment.get_moment_path()+"photos/thumbnail/"
 
-        #On se connect à S3
+        #On se connect Ã  S3
         s3 = S3()
 
         #####################
@@ -2535,7 +2535,7 @@ class Photo(db.Model):
         if db.session.commit():
             print "TRUE PHOTO"
 
-        # Le Moment s'occupe de notifier tous les invités qu'une nouvelle photo a été ajoutée
+        # Le Moment s'occupe de notifier tous les invitÃ©s qu'une nouvelle photo a Ã©tÃ© ajoutÃ©e
         moment.notify_users_new_photo(self)
 
         user.add_actu_photo(self, moment)
@@ -2608,7 +2608,7 @@ class Photo(db.Model):
 
         photo["url_original"] = self.url_original
         photo["nb_like"] = len(self.likes)
-        photo["time"] = "%s/%s � %s:%s" % (self.creation_datetime.day, self.creation_datetime.month, self.creation_datetime.hour, self.creation_datetime.minute)
+        photo["time"] = "%s/%s à %s:%s" % (self.creation_datetime.day, self.creation_datetime.month, self.creation_datetime.hour, self.creation_datetime.minute)
         if self.user is not None:
             photo["taken_by"] = "%s %s" % (self.user.firstname, self.user.lastname)
         photo["moment_name"] = self.moment.name
@@ -2620,7 +2620,7 @@ class Photo(db.Model):
 
     #Fonction qui rajoute un like du user "user"
     def like(self, user):
-        #On verifie que le user a pas déjà liké la photo
+        #On verifie que le user a pas dÃ©jÃ  likÃ© la photo
         for like in self.likes:
             #Si il existe on l'enleve (toggle)
             if like.id == user.id:
@@ -2758,10 +2758,10 @@ class Chat(db.Model):
         db.session.add(self)
         db.session.commit()
 
-        #On notifie tous les gens invités à ce moment que quelqu'un a ecrit un message
+        #On notifie tous les gens invitÃ©s Ã  ce moment que quelqu'un a ecrit un message
         moment.notify_users_new_chat(self)
 
-        #Si l'evènement est PUBLIC ou OPEN on enregistre cette actu
+        #Si l'evÃ¨nement est PUBLIC ou OPEN on enregistre cette actu
         user.add_actu_chat(self, moment)
     
         
@@ -2790,7 +2790,7 @@ class Chat(db.Model):
 
 
 ##
-# Paramètres de notifications permettant de savoir si le user veut recevoir des notifs par mail ou push
+# ParamÃ¨tres de notifications permettant de savoir si le user veut recevoir des notifs par mail ou push
 #
 ##
 
