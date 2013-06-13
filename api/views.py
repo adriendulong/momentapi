@@ -728,11 +728,11 @@ def moments_of_user(id_user):
 # - Date : YYYY-MM-DD
 #	
 
-@app.route('/momentsafter/<date>/<int:user_id>', methods=["GET"])
-@app.route('/momentsafter/<int:when>/<date>', methods=["GET"])
+@app.route('/momentsafter/<date>/<int:when>/<int:user_id>', methods=["GET"])
+@app.route('/momentsafter/<date>/<int:when>', methods=["GET"])
 @app.route('/momentsafter/<date>', methods=["GET"])
 @login_required
-def moments_after_date(date, when = 0, user_id = 0):
+def moments_after_date(date, when = 1, user_id = 0):
 	#On créé la réponse qui sera envoyé
     reponse = {}
 
@@ -761,8 +761,8 @@ def moments_after_date(date, when = 0, user_id = 0):
 
     if dateRef is not None:
 
-        # Si on demande des moments superieur à une date future
-        if dateRef > datetime.date.today():
+        # Si on demande des moments future
+        if when == 1:
             #Compteur de moment
             count = 0
 
