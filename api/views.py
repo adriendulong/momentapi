@@ -2360,7 +2360,7 @@ def search(search):
 # Paramètres obligatoires : 
 #	
 
-@app.route('/changepassword//<passw>/<oldpass>', methods=["GET"])
+@app.route('/changepassword/<passw>/<oldpass>', methods=["GET"])
 @login_required
 def password(passw, oldpass):
 
@@ -2844,7 +2844,7 @@ def logout(device_id):
 #####################################################################
 ############ FACEBOOK REAL TIME ############################
 ######################################################################
-
+'''
 
 @app.route('/realtime/fb', methods=["GET", "POST"])
 def fb_real_time():
@@ -2866,6 +2866,8 @@ def fb_real_time():
 
 	elif request.method == "POST":
 		print "FACEBOOK : %s" % request.json
+
+'''
 
 
 
