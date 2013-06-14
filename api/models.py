@@ -1837,6 +1837,9 @@ class Moment(db.Model):
                     moment["owner_name"] = "%s %s" % (ownerProspect.firstname, ownerProspect.lastname)
                     moment["owner_photo_url"] = ownerProspect.profile_picture_url
 
+        if self.unique_code is not None:
+            moment["unique_url"] = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
+
 
         return moment
 
@@ -2612,6 +2615,8 @@ class Photo(db.Model):
         if self.user is not None:
             photo["taken_by"] = "%s %s" % (self.user.firstname, self.user.lastname)
         photo["moment_name"] = self.moment.name
+        if self.unique_code is not None:
+            photo["unique_url"] = constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
 
 
         return photo
