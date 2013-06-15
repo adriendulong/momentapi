@@ -557,6 +557,23 @@ def new_moment():
                     db.session.commit()
 
 
+                if "privacy" in request.form:
+                    if int(request.form["privacy"]) == constants.PRIVATE:
+                        moment.privacy = constants.PRIVATE
+                    elif int(request.form["privacy"]) == constants.OPEN:
+                        moment.privacy = constants.OPEN
+
+                        #On rajoute à l'actualité du User qu'il a créé un Moment
+                        current_user.add_actu_new_moment(moment)
+
+                    elif int(request.form["privacy"]) == constants.PUBLIC:
+                        moment.privacy = constants.PUBLIC
+
+                        #On rajoute à l'actualité du User qu'il a créé un Moment
+                        current_user.add_actu_new_moment(moment)
+
+
+
 
                 reponse = moment.moment_to_send(current_user.id)
                 return jsonify(reponse), 200
