@@ -541,7 +541,7 @@ def new_moment():
                     image = Image.open(f)
 
                     #On enregistre la photo et son chemin en base
-                    name_picture = "cover"
+                    name_picture = "cover_%s" % datetime.datetime.now().strftime("%s")
                     moment.add_cover_photo_aws(image, name_picture)
                     #On enregistre en base
                     db.session.commit()
@@ -604,7 +604,7 @@ def new_moment():
                 image = Image.open(f)
 
                 #On enregistre la photo et son chemin en base
-                name_picture = "cover"
+                name_picture = "cover_%s" % datetime.datetime.now().strftime("%s")
                 moment.add_cover_photo_aws(image, name_picture)
                 #On enregistre en base
                 db.session.commit()
@@ -890,7 +890,7 @@ def moment(id):
                     image = Image.open(f)
                     #On enregistre la photo et son chemin en base
                     name_picture = "cover"
-                    moment.add_cover_photo_aws(image, name_picture)
+                    moment.modify_cover_photo(image)
                     reponse["photo"] = moment.cover_picture_url
 
                 if "privacy" in request.form:

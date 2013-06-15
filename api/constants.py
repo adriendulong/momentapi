@@ -88,7 +88,12 @@ GCM_APP_KEY = "AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0"
 #############
 
 S3_URL = "https://s3-eu-west-1.amazonaws.com"
-S3_BUCKET = "/apimoment/"
+
+if app.config["TYPE"] == 1:
+    S3_BUCKET = "/apimomentdev/"
+else:
+    S3_BUCKET = "/apimoment/"
+
 
 S3_DEFAULT_COVERS = "https://s3-eu-west-1.amazonaws.com/apimoment/default/default_covers/"
 

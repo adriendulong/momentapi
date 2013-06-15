@@ -1860,7 +1860,6 @@ class Moment(db.Model):
 
 
     def add_cover_photo_aws(self, f, name):
-        name = "cover"
         path_moment = "%s%s/" % (constants.AWS_MOMENT_PATH , self.id)
 
 
@@ -1889,6 +1888,14 @@ class Moment(db.Model):
     def delete_cover_file(self):
         s3 = S3()
         s3.delete_file(self.cover_picture_path)
+
+
+    def modify_cover_photo(self, f):
+
+        self.delete_cover_file()
+
+        name = "cover_%s" % datetime.datetime.now().strftime("%s")
+        self.add_cover_photo_aws(f, name)
 
 
 
