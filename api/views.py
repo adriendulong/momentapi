@@ -427,7 +427,6 @@ def new_moment():
         # Recupération des valeurs obligatoires transmises
         ##
         name = request.form["name"]
-        print name
         address = request.form["address"]
 
         #On recupere et met en forme la date (doit être au format "YYYY-MM-DD")
@@ -561,7 +560,6 @@ def new_moment():
 
 
                 if "privacy" in request.form:
-                    print request.form["privacy"]
                     if int(request.form["privacy"]) == constants.PRIVATE:
                         moment.privacy = constants.PRIVATE
                     elif int(request.form["privacy"]) == constants.OPEN:
