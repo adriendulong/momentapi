@@ -427,6 +427,7 @@ def new_moment():
         # Recupération des valeurs obligatoires transmises
         ##
         name = request.form["name"]
+        print name
         address = request.form["address"]
 
         #On recupere et met en forme la date (doit être au format "YYYY-MM-DD")
@@ -536,6 +537,7 @@ def new_moment():
                 #On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
                 moment.create_paths()
 
+                '''
                 if "photo" in request.files:
                     f = request.files["photo"]
                     image = Image.open(f)
@@ -550,14 +552,16 @@ def new_moment():
                 else:
                     moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(1,4))
                     db.session.commit()
-
+                '''
 
                 if "photo_url" in request.form:
                     moment.cover_picture_url = request.form["photo_url"]
                     db.session.commit()
 
 
+
                 if "privacy" in request.form:
+                    print request.form["privacy"]
                     if int(request.form["privacy"]) == constants.PRIVATE:
                         moment.privacy = constants.PRIVATE
                     elif int(request.form["privacy"]) == constants.OPEN:
@@ -571,6 +575,8 @@ def new_moment():
 
                         #On rajoute à l'actualité du User qu'il a créé un Moment
                         current_user.add_actu_new_moment(moment)
+
+                    db.session.commit()
 
 
 
