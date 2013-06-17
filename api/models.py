@@ -200,10 +200,10 @@ class Feed(db.Model):
                     cascade = "delete")
 
 
-    def __init__(self, followed, type_action, moment_id = None):
+    def __init__(self, time,  followed, type_action, moment_id = None):
         self.followed = followed
         self.type_action = type_action
-        self.time = datetime.datetime.now()
+        self.time = time
 
         if type_action != userConstants.ACTION_FOLLOW:
             self.moment_id = moment_id
@@ -1544,7 +1544,7 @@ class User(db.Model):
 
                     #Si finalement aucun feed ne correspondait on en crÃ©Ã© un
                     if not is_exist:
-                        feed = Feed(actu.user, actu.type_action, actu.moment_id)
+                        feed = Feed(actu.time, actu.user, actu.type_action, actu.moment_id)
                         feed.photos.append(actu.photo)
                         db.session.add(feed)
                         #On le rajoute Ã  la liste des feed
@@ -1567,7 +1567,7 @@ class User(db.Model):
 
                     #Si finalement aucun feed ne correspondait on en crÃ©Ã© un
                     if not is_exist:
-                        feed = Feed(actu.user, actu.type_action, actu.moment_id)
+                        feed = Feed(actu.time, actu.user, actu.type_action, actu.moment_id)
                         feed.chats.append(actu.chat)
                         db.session.add(feed)
                         #On le rajoute Ã  la liste des feed
@@ -1578,20 +1578,20 @@ class User(db.Model):
 
 
                 elif actu.type_action == userConstants.ACTION_INVITED:
-                    feed = Feed(actu.user, actu.type_action, actu.moment_id)
+                    feed = Feed(actu.time, actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
                     #On le rajoute Ã  la liste des feed
                     feedsFollow.append(feed)
 
 
                 elif actu.type_action == userConstants.ACTION_CREATION_EVENT:
-                    feed = Feed(actu.user, actu.type_action, actu.moment_id)
+                    feed = Feed(actu.time, actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
                     #On le rajoute Ã  la liste des feed
                     feedsFollow.append(feed)
 
                 elif actu.type_action == userConstants.ACTION_GOING:
-                    feed = Feed(actu.user, actu.type_action, actu.moment_id)
+                    feed = Feed(actu.time, actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
                     feedsFollow.append(feed)
                 
@@ -1625,7 +1625,7 @@ class User(db.Model):
 
 
                     if not is_exist:
-                        feed = Feed(actu.user, actu.type_action)
+                        feed = Feed(actu.time, actu.user, actu.type_action)
                         feed.follows.append(actu.follow)
                         db.session.add(feed)
                         #On le rajoute Ã  la liste des feed
@@ -1719,7 +1719,7 @@ class Moment(db.Model):
         self.address = address
         self.startDate = startDate
         self.endDate = endDate
-        self.privacy = constants.PUBLIC
+        self.privacy = constants.PRIVATE
 
         self.init_unique_code()
 

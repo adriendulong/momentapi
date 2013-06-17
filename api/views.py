@@ -882,6 +882,14 @@ def moment(id):
                     moment.modify_cover_photo(image)
                     reponse["photo"] = moment.cover_picture_url
 
+                if "isOpenInvit" in request.form:
+                    if request.form["isOpenInvit"] == "0":
+                        moment.isOpenInvit = False
+                        reponse["isOpenInvit"] = "Guests can't invite other people"
+                    elif request.form["isOpenInvit"] == "1":
+                        moment.isOpenInvit = True
+                        reponse["isOpenInvit"] = "Guests can invite other people"
+
                 if "privacy" in request.form:
                     if int(request.form["privacy"]) == constants.PRIVATE:
                         moment.privacy = constants.PRIVATE
@@ -902,14 +910,6 @@ def moment(id):
                         moment.isOpenInvit = True
 
                         reponse["privacy"] = "The moment is now public"
-
-                if "isOpenInvit" in request.form:
-                    if request.form["isOpenInvit"] == "0":
-                        moment.isOpenInvit = False
-                        reponse["isOpenInvit"] = "Guests can't invite other people"
-                    elif request.form["isOpenInvit"] == "1":
-                        moment.isOpenInvit = True
-                        reponse["isOpenInvit"] = "Guests can invite other people"
 
 
                 #On enregistre
