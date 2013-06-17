@@ -897,16 +897,18 @@ def moment(id):
                     elif int(request.form["privacy"]) == constants.OPEN:
                         #On rajoute à l'actualité du User qu'il a créé un Moment
                         if moment.privacy != constants.OPEN:
+                            moment.privacy = constants.OPEN
                             current_user.add_actu_new_moment(moment)
 
-                        moment.privacy = constants.OPEN
+
                         reponse["privacy"] = "The moment is now open"
 
                     elif int(request.form["privacy"]) == constants.PUBLIC:
                         if moment.privacy != constants.PUBLIC:
+                            moment.privacy = constants.PUBLIC
                             current_user.add_actu_new_moment(moment)
 
-                        moment.privacy = constants.PUBLIC
+
                         moment.isOpenInvit = True
 
                         reponse["privacy"] = "The moment is now public"
