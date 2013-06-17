@@ -1454,11 +1454,12 @@ class User(db.Model):
 
     #Actu comme quoi le user a crÃ©Ã© un moment public
     def add_actu_new_moment(self, moment):
-
+        print "CREATION"
         #On rajoute cette actu que si le moment est public ou ouvert
         if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
             actu_moment = Actu(moment, self, userConstants.ACTION_CREATION_EVENT)
             self.actus.append(actu_moment)
+            db.session.commit()
 
 
     #Actu comme quoi le user va Ã  un moment public ou ouvert
