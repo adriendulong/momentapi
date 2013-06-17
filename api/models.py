@@ -1207,7 +1207,7 @@ class User(db.Model):
         if self.is_push_invit():
 
             title = "Nouvelle invitation"
-            contenu = unicode('vous invite Ã  participer Ã ','utf-8')
+            contenu = unicode('vous invite à  participer à ','utf-8')
             message = "%s %s '%s'" % (user_inviting.firstname, contenu, moment.name)
 
             for device in self.devices:
@@ -1311,7 +1311,6 @@ class User(db.Model):
 
                 #Send notif only if the last photos was posted more than two minutes or if it was posted by the user
                 if(delta.seconds > constants.DELAY_PUSH_PHOTO) or moment.photos[nbPhotos-2].user.id == self.id:
-                    print "PUSH DELTA"
                     #Titre de la notif
                     title = "Nouvelle photo"
                     contenu = unicode("Nouvelle photo dans ",'utf-8')
@@ -1321,7 +1320,6 @@ class User(db.Model):
                         device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
 
             else:
-                print "PUSH"
                 title = "Nouvelle photo"
                 contenu = unicode("Nouvelle photo dans ",'utf-8')
                 message = "%s '%s'" % (contenu, moment.name)
@@ -1335,6 +1333,20 @@ class User(db.Model):
         ##
         # Mail Notif
         ##
+
+
+    def notify_add_photo(self, moment):
+        #On envoit la notif que si le user a activÃ© l'envoie par push de nouvelles photos
+        #if self.is_push_photo():
+
+        title = "Partage tes photos !"
+        contenu = unicode("Pense à partager tes ",'utf-8')
+        message = "%s '%s'" % (contenu, "test")
+
+        print "SEND NOTIF TO ADD"
+
+        for device in self.devices:
+            device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
 
 
 
@@ -2210,6 +2222,15 @@ class Moment(db.Model):
         host_infos["photo"] = photo.user.profile_picture_url
 
         thread.start_new_thread( fonctions.send_single_photo_mail, (to_dests, self.name, host_infos, photo.url_original,) )
+
+
+    #Notif sent the day after an event in order to people to think about posting photo
+    def notify_users_to_add_photos(self):
+
+        for guest in self.guests:
+            #On envoit pas la notif Ã  celui qui a envoyé le message
+            guest.user.notify_add_photo(self)
+
 
     #Fcontion qui selectionne Ã  quel user on va envoyer le mail d'invit
     def mail_moment_guests(self, guests, host):

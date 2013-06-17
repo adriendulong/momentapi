@@ -189,45 +189,46 @@ def send_message_device(reg_id, titre, message):
 
 #Push notification to iOS
 def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
-	'''PAYLOAD = {
-			'aps': {
-			   	'alert': message,
-		    	'sound': 'bingbong.aiff'
-			},
-			'type_id' : type_notif,
-			'id_moment': id_moment
-	}
+    '''PAYLOAD = {
+            'aps': {
+                'alert': message,
+                'sound': 'bingbong.aiff'
+            },
+            'type_id' : type_notif,
+            'id_moment': id_moment
+    }
 
 
-	payload = json.dumps(PAYLOAD)
+    payload = json.dumps(PAYLOAD)
 
-	print os.getcwd()
+    print os.getcwd()
 
-	# Your certificate file
-	cert = app.root_path+"/pushCertificates/cert.pem"
-	# APNS development server
-	apns_address = ('gateway.sandbox.push.apple.com', 2195)
+    # Your certificate file
+    cert = app.root_path+"/pushCertificates/cert.pem"
+    # APNS development server
+    apns_address = ('gateway.sandbox.push.apple.com', 2195)
 
-	# Use a socket to connect to APNS over SSL
-	s = socket.socket()
-	sock = ssl.wrap_socket(s, ssl_version=ssl.PROTOCOL_SSLv3, certfile=cert)
-	sock.connect(apns_address)
+    # Use a socket to connect to APNS over SSL
+    s = socket.socket()
+    sock = ssl.wrap_socket(s, ssl_version=ssl.PROTOCOL_SSLv3, certfile=cert)
+    sock.connect(apns_address)
 
-	# Generate a notification packet
-	token = binascii.unhexlify(reg_id)
-	fmt = '!cH32sH{0:d}s'.format(len(payload))
-	cmd = '\x00'
-	message = struct.pack(fmt, cmd, len(token), token, len(payload), payload)
-	sock.write(message)
-	sock.close()'''
+    # Generate a notification packet
+    token = binascii.unhexlify(reg_id)
+    fmt = '!cH32sH{0:d}s'.format(len(payload))
+    cmd = '\x00'
+    message = struct.pack(fmt, cmd, len(token), token, len(payload), payload)
+    sock.write(message)
+    sock.close()'''
 
 
-	apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
+    apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
 
-	# Send a notification
-	token_hex = reg_id
-	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread, custom={'type_id':type_notif, 'id_moment':id_moment})
-	apns.gateway_server.send_notification(token_hex, payload)
+    # Send a notification
+    token_hex = reg_id
+    payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread, custom={'type_id':type_notif, 'id_moment':id_moment})
+    print reg_id
+    apns.gateway_server.send_notification(token_hex, payload)
 
 
 

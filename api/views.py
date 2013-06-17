@@ -536,22 +536,6 @@ def new_moment():
                 #On créé tous les chemins necessaires au Moment (pour la sauvegarde des photos et de la cover)
                 moment.create_paths()
 
-                '''
-                if "photo" in request.files:
-                    f = request.files["photo"]
-                    image = Image.open(f)
-
-                    #On enregistre la photo et son chemin en base
-                    name_picture = "cover_%s" % datetime.datetime.now().strftime("%s")
-                    moment.add_cover_photo_aws(image, name_picture)
-                    #On enregistre en base
-                    db.session.commit()
-
-                #Si on pas de photos
-                else:
-                    moment.cover_picture_url = constants.S3_DEFAULT_COVERS + "default%s.jpg" % (random.randint(1,4))
-                    db.session.commit()
-                '''
 
                 if "photo_url" in request.form:
                     moment.cover_picture_url = request.form["photo_url"]
@@ -564,6 +548,7 @@ def new_moment():
                         moment.privacy = constants.PRIVATE
                     elif int(request.form["privacy"]) == constants.OPEN:
                         moment.privacy = constants.OPEN
+                        moment.isOpenInvit = True
 
                         #On rajoute à l'actualité du User qu'il a créé un Moment
                         current_user.add_actu_new_moment(moment)
@@ -903,6 +888,7 @@ def moment(id):
                         reponse["privacy"] = "The moment is now private"
                     elif int(request.form["privacy"]) == constants.OPEN:
                         moment.privacy = constants.OPEN
+                        moment.isOpenInvit = True
 
                         #On rajoute à l'actualité du User qu'il a créé un Moment
                         current_user.add_actu_new_moment(moment)
