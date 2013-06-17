@@ -1340,7 +1340,7 @@ class User(db.Model):
         #if self.is_push_photo():
 
         title = "Partage tes photos !"
-        contenu = unicode("Ajoutes les photos prises lors de ",'utf-8')
+        contenu = unicode("Ajoutes tes photos prises lors de ",'utf-8')
         message = "%s '%s'" % (contenu, "test")
 
         for device in self.devices:
