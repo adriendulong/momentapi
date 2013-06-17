@@ -1340,10 +1340,8 @@ class User(db.Model):
         #if self.is_push_photo():
 
         title = "Partage tes photos !"
-        contenu = unicode("Pense à partager tes ",'utf-8')
+        contenu = unicode("Pense à partager  ",'utf-8')
         message = "%s '%s'" % (contenu, "test")
-
-        print "SEND NOTIF TO ADD"
 
         for device in self.devices:
             device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)

@@ -18,7 +18,6 @@ print endDate
 momentsToNotify = Moment.query.filter(Moment.endDate==endDate).all()
 
 for moment in momentsToNotify:
-    print "Boom notif"
     moment.notify_users_to_add_photos()
 
 
