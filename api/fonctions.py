@@ -220,6 +220,7 @@ def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
     message = struct.pack(fmt, cmd, len(token), token, len(payload), payload)
     sock.write(message)
     sock.close()'''
+    print app.root_path+constants.CERT_PUSH
 
     apns = APNs(use_sandbox=True, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
@@ -505,7 +506,7 @@ def send_new_pass_mail(to_dest, new_pass):
 ## RAPPORT CRONTAB
 #####
 
-def send_report_cron(to_dest, time_spent, nb_moment):
+def send_report_cron(to_dest, time_spent, nb_moment, nb_users):
 
     m = Mail()
 
@@ -529,8 +530,14 @@ def send_report_cron(to_dest, time_spent, nb_moment):
         "content" : nb_moment
     }
 
+    global_nb_users = {
+        "name" : "nb_user",
+        "content" : nb_users
+    }
+
     global_merge_vars.append(global_time_spent)
     global_merge_vars.append(global_nb_moment)
+    global_merge_vars.append(global_nb_users)
 
 
 

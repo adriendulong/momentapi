@@ -11,6 +11,7 @@ from sqlalchemy import desc, asc, and_, or_
 now = datetime.now()
 #Nb Moment ended yesterday
 count = 0
+nb_users = 0
 
 #Yesterday
 deltaOneDay = timedelta(days=1)
@@ -21,8 +22,9 @@ print endDate
 momentsToNotify = Moment.query.filter(Moment.endDate==endDate).all()
 
 for moment in momentsToNotify:
-    moment.notify_users_to_add_photos()
+    nb_users += moment.notify_users_to_add_photos()
     count += 1
+
 
 
 #Time when we end the script
@@ -40,7 +42,7 @@ dest_adri = {
 to_dests.append(dest_adri)
 
 #Send the report
-fonctions.send_report_cron(to_dests, spentTime.seconds, count)
+fonctions.send_report_cron(to_dests, spentTime.seconds, count, nb_users)
 
 
 

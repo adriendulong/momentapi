@@ -2228,10 +2228,14 @@ class Moment(db.Model):
 
     #Notif sent the day after an event in order to people to think about posting photo
     def notify_users_to_add_photos(self):
+        nb_users = 0
 
         for guest in self.guests:
             #On envoit pas la notif Ã  celui qui a envoyé le message
             guest.user.notify_add_photo(self)
+            nb_users += 1
+
+        return nb_users
 
 
     #Fcontion qui selectionne Ã  quel user on va envoyer le mail d'invit
