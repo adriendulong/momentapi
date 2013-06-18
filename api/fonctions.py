@@ -222,28 +222,32 @@ def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
     sock.close()'''
 
 
-    apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
+    apns = APNs(use_sandbox=True, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
     # Send a notification
     token_hex = reg_id
-    payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread, custom={'type_id':type_notif, 'id_moment':id_moment})
-    print reg_id
+    payload = Payload(alert=message, sound="default", badge=nb_notif_unread, custom={'type_id':type_notif, 'id_moment':id_moment})
+    print token_hex
     apns.gateway_server.send_notification(token_hex, payload)
+
+    for (token_hex, fail_time) in apns.feedback_server.items():
+	    print token_hex
+	    print fail_time
 
 
 
 #Push notification to iOS
 def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat_id, nb_notif_unread):
 
-	apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
+	apns = APNs(use_sandbox=True, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
 	#ON limite la taille du message
 	if len(message) > 100:
-		message = message[0:100]
+		message = message[0:150]
 
 	# Send a notification
 	token_hex = reg_id
-	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread, custom={'type_id': type_notif, 'id_moment' : id_moment, 'chat_id' : chat_id})
+	payload = Payload(alert=message, sound="default", badge=nb_notif_unread, custom={'type_id': type_notif, 'id_moment' : id_moment, 'chat_id' : chat_id})
 	apns.gateway_server.send_notification(token_hex, payload)
 
 
@@ -255,7 +259,7 @@ def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat_id, nb_noti
 
 #Push notif ios for a new follower
 def send_ios_follower_notif(reg_id, message, id_user, nb_notif_unread):
-	apns = APNs(use_sandbox=True, cert_file=app.root_path+'/pushCertificates/MomentCert.pem', key_file=app.root_path+'/pushCertificates/MomentKey.pem')
+	apns = APNs(use_sandbox=True, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
 	#ON limite la taille du message
 	if len(message) > 100:

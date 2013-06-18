@@ -128,4 +128,21 @@ SINGLE_PHOTO_TEMPLATE = "NouvellePhoto"
 ################
 INSTAGRAM_CLIENT_ID = "926e99d034a443af9f6a70a1dff69af1"
 INSTAGRAM_CLIENT_SECRET = "d05fe5f51ede4f31b88bc797821fb212"
-INSTAGRAM_CALLBACK_URL = "http://api.appmoment.fr/updateinstagram/tag" 
+INSTAGRAM_CALLBACK_URL = "http://api.appmoment.fr/updateinstagram/tag"
+
+
+
+######################
+## PUSH CERTIFICATE ##
+######################
+DEV_CERT = "/pushCertificates/MomentCert.pem"
+DEV_KEY = "/pushCertificates/MomentKey.pem"
+PROD_CERT = "/pushCertificates/prod/MomentCert.pem"
+PROD_KEY = "/pushCertificates/prod/MomentKey.pem"
+
+if app.config["TYPE"] == 2:
+    CERT_PUSH = PROD_CERT
+    KEY_PUSH = PROD_KEY
+else:
+    CERT_PUSH = DEV_CERT
+    CERT_KEY = DEV_KEY

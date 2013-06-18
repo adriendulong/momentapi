@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 OWNER = 0
 ADMIN = 1
 COMING = 2
@@ -53,3 +54,11 @@ ACTION_FOLLOW = 5
 CLOSED = 0
 PRIVATE = 1
 OPEN = 2
+
+
+##
+# LABELS NOTIFS
+##
+
+PUSH_REMEMBER_ADD_PHOTO_FR = "Penses à rajouter les photos que tu as prises durant "
+NEW_CHAT_FR = ""

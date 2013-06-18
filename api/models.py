@@ -1256,16 +1256,18 @@ class User(db.Model):
                 if hasConnected:
                     #Titre de la notif
                     title = "Nouveau Message de %s" % (chat.user.firstname)
+                    contenu = "% : %s" % (chat.user.firstname, chat.message)
 
                     for device in self.devices:
-                        device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat, self)
+                        device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
 
             else:
                 #Titre de la notif
                 title = "Nouveau Message de %s" % (chat.user.firstname)
+                contenu = "% : %s" % (chat.user.firstname, chat.message)
 
                 for device in self.devices:
-                    device.notify_chat(moment, userConstants.NEW_CHAT,title, chat.message.encode('utf-8'), chat, self)
+                    device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
 
 
 
@@ -1340,11 +1342,11 @@ class User(db.Model):
         #if self.is_push_photo():
 
         title = "Partage tes photos !"
-        contenu = unicode("Ajoutes tes photos prises lors de ",'utf-8')
-        message = "%s '%s'" % (contenu, "test")
+        contenu = userConstants.PUSH_REMEMBER_ADD_PHOTO_FR
+        message = "%s '%s'" % (contenu, moment.name)
 
         for device in self.devices:
-            device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
+            device.notify_simple(moment, userConstants.NEW_PHOTO,title, message, self)
 
 
 
