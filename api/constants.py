@@ -145,4 +145,4 @@ if app.config["TYPE"] == 2:
     KEY_PUSH = PROD_KEY
 else:
     CERT_PUSH = DEV_CERT
-    CERT_KEY = DEV_KEY
+    KEY_PUSH = DEV_KEY

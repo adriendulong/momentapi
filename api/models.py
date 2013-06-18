@@ -1342,8 +1342,9 @@ class User(db.Model):
         #if self.is_push_photo():
 
         title = "Partage tes photos !"
-        contenu = userConstants.PUSH_REMEMBER_ADD_PHOTO_FR
-        message = "%s '%s'" % (contenu, moment.name)
+        contenu = unicode(userConstants.PUSH_REMEMBER_ADD_PHOTO_FR, "utf8")
+        name = moment.name
+        message = contenu+" '"+name+"'"
 
         for device in self.devices:
             device.notify_simple(moment, userConstants.NEW_PHOTO,title, message, self)
@@ -1375,7 +1376,7 @@ class User(db.Model):
         message = "%s %s" % (follower.firstname, contenu)
 
         for device in self.devices:
-            device.notify_new_follower(title, message.encode("utf-8"), follower)
+            device.notify_new_follower(title, message, follower)
 
 
 

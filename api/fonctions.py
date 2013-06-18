@@ -220,19 +220,19 @@ def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
     message = struct.pack(fmt, cmd, len(token), token, len(payload), payload)
     sock.write(message)
     sock.close()'''
-
+    print "%s" % app.root_path+constants.CERT_PUSH
 
     apns = APNs(use_sandbox=True, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
     # Send a notification
-    token_hex = reg_id
     payload = Payload(alert=message, sound="default", badge=nb_notif_unread, custom={'type_id':type_notif, 'id_moment':id_moment})
-    print token_hex
-    apns.gateway_server.send_notification(token_hex, payload)
+    #print reg_id
+    apns.gateway_server.send_notification(reg_id, payload)
 
     for (token_hex, fail_time) in apns.feedback_server.items():
 	    print token_hex
 	    print fail_time
+
 
 
 
