@@ -1347,7 +1347,7 @@ class User(db.Model):
         message = contenu+" '"+name+"'"
 
         for device in self.devices:
-            device.notify_simple(moment, userConstants.NEW_PHOTO,title, message, self)
+            device.notify_from_cron(moment, userConstants.NEW_PHOTO,title, message, self)
 
 
 
@@ -2733,10 +2733,11 @@ class Device(db.Model):
     def notify_simple(self, moment, type_id, titre, message, user):
         #C'est un Android
         if self.os==1:
-
+            print "ANDROID"
             thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
         #C'est un iPhone
         if self.os == 0:
+            print "IPHONE"
             nb_notif_unread = user.nb_notif_unread()
             thread.start_new_thread(fonctions.send_ios_notif, (moment.id, type_id, self.notif_id, message, nb_notif_unread, ))
 
@@ -2763,6 +2764,17 @@ class Device(db.Model):
         if self.os == 0:
             nb_notif_unread = self.user.nb_notif_unread()
             thread.start_new_thread(fonctions.send_ios_follower_notif, (self.notif_id, message, follower.id, nb_notif_unread, ))
+
+
+    def notify_from_cron(self, moment, type_id, titre, message, user):
+        #C'est un Android
+        if self.os==1:
+            print "ANDROID"
+            #thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
+        #C'est un iPhone
+        if self.os == 0:
+            nb_notif_unread = user.nb_notif_unread()
+            fonctions.send_ios_notif(moment.id, type_id, self.notif_id, message, nb_notif_unread)
 
 
             

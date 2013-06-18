@@ -220,7 +220,6 @@ def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
     message = struct.pack(fmt, cmd, len(token), token, len(payload), payload)
     sock.write(message)
     sock.close()'''
-    print "%s" % app.root_path+constants.CERT_PUSH
 
     apns = APNs(use_sandbox=True, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
