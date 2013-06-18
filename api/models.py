@@ -1347,7 +1347,7 @@ class User(db.Model):
         message = contenu+" '"+name+"'"
 
         for device in self.devices:
-            device.notify_from_cron(moment, userConstants.NEW_PHOTO,title, message, self)
+            device.notify_from_cron(moment, userConstants.OTHER_REQUEST,title, message, self)
 
 
 
