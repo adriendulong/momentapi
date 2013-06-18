@@ -8,7 +8,7 @@ from sqlalchemy import desc, asc, and_, or_
 
 
 #Today time
-now = datetime.now()
+now = datetime(year=2013, month=2, day=13)
 #Nb Moment ended yesterday
 count = 0
 nb_users = 0
