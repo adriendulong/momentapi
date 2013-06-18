@@ -501,6 +501,41 @@ def send_new_pass_mail(to_dest, new_pass):
 	m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
 
 
+#####
+## RAPPORT CRONTAB
+#####
+
+def send_report_cron(to_dest, time_spent, nb_moment):
+
+    m = Mail()
+
+    contenu = unicode("Rapport du crontab",'utf-8')
+    subject = "%s" % contenu
+
+    template_name = constants.REPORT_CRON
+
+    template_args = []
+
+    #Global Var
+    global_merge_vars = []
+
+    global_time_spent = {
+        "name" : "time_spent",
+        "content" : time_spent
+    }
+
+    global_nb_moment = {
+        "name" : "nb_moment",
+        "content" : nb_moment
+    }
+
+    global_merge_vars.append(global_time_spent)
+    global_merge_vars.append(global_nb_moment)
+
+
+
+    m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+
 
 
 
