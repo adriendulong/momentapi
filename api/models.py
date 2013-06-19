@@ -1256,7 +1256,7 @@ class User(db.Model):
                 if hasConnected:
                     #Titre de la notif
                     title = "Nouveau Message de %s" % (chat.user.firstname)
-                    contenu = "% : %s" % (chat.user.firstname, chat.message)
+                    contenu = "%s : %s" % (chat.user.firstname, chat.message)
 
                     for device in self.devices:
                         device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
@@ -1264,7 +1264,7 @@ class User(db.Model):
             else:
                 #Titre de la notif
                 title = "Nouveau Message de %s" % (chat.user.firstname)
-                contenu = "% : %s" % (chat.user.firstname, chat.message)
+                contenu = "%s : %s" % (chat.user.firstname, chat.message)
 
                 for device in self.devices:
                     device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
