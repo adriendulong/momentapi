@@ -1074,131 +1074,134 @@ def del_photo(id_photo):
 @app.route('/newguests/<int:idMoment>', methods=["POST"])
 @login_required
 def new_guests(idMoment):
-	#On créé la réponse qui sera envoyé
-	reponse = {}
+    #On créé la réponse qui sera envoyé
+    reponse = {}
 
-	#Liste des invités inscrient à Moment (pour envoie mail)
-	moment_guests = []
-	moment_prospects = []
+    #Liste des invités inscrient à Moment (pour envoie mail)
+    moment_guests = []
+    moment_prospects = []
 
-	# Compteur d'invités rajoutés
-	count = 0
+    # Compteur d'invités rajoutés
+    count = 0
 
-	if "users" in request.json:
-		# On recupere le Moment en question
-		moment = Moment.query.get(idMoment)
+    if "users" in request.json:
+        # On recupere le Moment en question
+        moment = Moment.query.get(idMoment)
 
-		if moment is not None:
-
-
-			if moment.can_add_guest(current_user.id):
-
-				# On recupere les users fournis dans la requete
-				users = request.json["users"]
-
-				#On parcourt la liste des users envoyés
-				for user in users:
-					#On verifie qu'on a des infos sur le user
-					if "id" in user or "email" in user or "phone" in user or "facebookId" in user:
-
-						#Si l'id est fourni normalement il existe dans Moment
-						# On va donc le chercher et le rajouté en invité
-						if "id" in user:
-							user_to_add = User.query.get(user["id"])
-
-							#On verfie que le user existe pour le rajouter
-							if user_to_add is not None:
-
-								#Si le user invité est le meme que celui qui fait l'invit c'est qu'il rajoute de moment à ses moments
-								if user_to_add.id == current_user.id:
-									# On le rajoute et si ça s'est bien passé on incrémente le compteur
-									
-									if moment.add_myself_to_moment(user_to_add):
-										count += 1
-										print "Add myself"
-									
-
-								else:
-									# On le rajoute et si ça s'est bien passé on incrémente le compteur
-									if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
-										count += 1
-
-										#On enregistre dans l'actu de ce user qu'il a été invité
-										user_to_add.add_actu_invit(moment)
-
-										#On rajoute ce user à la liste des invités
-										moment_guests.append(user_to_add)
-
-						#Sinon c'est un prospect
-						else:
-							#On verifie que le user n'existe pas quand meme
-							if not controller.user_exist(user):
-								prospect = controller.get_prospect(user)
-
-								#Pas de prospect
-								if prospect is None:
-									##
-									prospect = Prospect()
-									prospect.init_from_dict(user)
-									moment.prospects.append(prospect)
-									count += 1
-									moment_prospects.append(prospect)
-
-								#Le prospect existe
-								else:
-									prospect.update(user)
-									if moment.add_prospect(prospect):
-										count += 1
-										moment_prospects.append(prospect)
-
-							#Si il esicte on le recupere
-							else:
-								moment_user = controller.user_from_dict(user)
-								if moment.add_guest_user(moment_user, current_user, userConstants.UNKNOWN):
-									count += 1
-									#On enregistre dans l'actu de ce user qu'il a été invité
-									moment_user.add_actu_invit(moment)
-
-									#On rajoute ce user à la liste des invités
-									moment_guests.append(moment_user)
+        if moment is not None:
 
 
-				#On enregistre en base
-				db.session.commit()
+            if moment.can_add_guest(current_user.id):
 
-				##
-				# Mail Notif
-				##
+                # On recupere les users fournis dans la requete
+                users = request.json["users"]
 
-				if len(moment_guests) > 0:
-					#On envoit le mail à tous les invités inscris à Moment
-					moment.mail_moment_guests(moment_guests, current_user)
-				
-				reponse["nb_user_added"] = count
-				
-				#On renvoit tous les prospects invité afin de les inviter par FB ou SMS 
-				reponse["prospects_invit"] = []
+                #On parcourt la liste des users envoyés
+                for user in users:
+                    #On verifie qu'on a des infos sur le user
+                    if "id" in user or "email" in user or "phone" in user or "facebookId" in user:
 
-				for prospect in moment_prospects:
-					reponse["prospects_invit"].append(prospect.prospect_to_send())
+                        #Si l'id est fourni normalement il existe dans Moment
+                        # On va donc le chercher et le rajouté en invité
+                        if "id" in user:
+                            user_to_add = User.query.get(user["id"])
 
+                            #On verfie que le user existe pour le rajouter
+                            if user_to_add is not None:
 
+                                #Si le user invité est le meme que celui qui fait l'invit c'est qu'il rajoute de moment à ses moments
+                                if user_to_add.id == current_user.id:
+                                    # On le rajoute et si ça s'est bien passé on incrémente le compteur
 
-				return jsonify(reponse), 200
-
-			else:
-				reponse["error"] = "Not Aothorized"
-				return jsonify(reponse), 401
-
-
-		else:
-			reponse["error"] = "This Moment does not exist"
-			return jsonify(reponse), 405
+                                    if moment.add_myself_to_moment(user_to_add):
+                                        count += 1
+                                        print "Add myself"
 
 
-	else:
-		reponse["error"] = "mandatory value missing"
-		return jsonify(reponse), 405
+                                else:
+                                    # On le rajoute et si ça s'est bien passé on incrémente le compteur
+                                    if moment.add_guest_user(user_to_add, current_user, userConstants.UNKNOWN):
+                                        count += 1
+
+                                        #On enregistre dans l'actu de ce user qu'il a été invité
+                                        user_to_add.add_actu_invit(moment)
+
+                                        #On rajoute ce user à la liste des invités
+                                        moment_guests.append(user_to_add)
+
+                        #Sinon c'est un prospect
+                        else:
+                            #On verifie que le user n'existe pas quand meme
+                            if not controller.user_exist(user):
+                                prospect = controller.get_prospect(user)
+
+                                #Pas de prospect
+                                if prospect is None:
+                                    ##
+                                    prospect = Prospect()
+                                    prospect.init_from_dict(user)
+                                    moment.prospects.append(prospect)
+                                    count += 1
+                                    moment_prospects.append(prospect)
+
+                                #Le prospect existe
+                                else:
+                                    prospect.update(user)
+                                    if moment.add_prospect(prospect):
+                                        count += 1
+                                        moment_prospects.append(prospect)
+
+                            #Si il esicte on le recupere
+                            else:
+                                moment_user = controller.user_from_dict(user)
+                                if moment.add_guest_user(moment_user, current_user, userConstants.UNKNOWN):
+                                    count += 1
+                                    #On enregistre dans l'actu de ce user qu'il a été invité
+                                    moment_user.add_actu_invit(moment)
+
+                                    #On rajoute ce user à la liste des invités
+                                    moment_guests.append(moment_user)
+
+
+                #On enregistre en base
+                db.session.commit()
+
+                ##
+                # Mail Notif
+                ##
+
+                if len(moment_guests) > 0:
+                    #On envoit le mail à tous les invités inscris à Moment
+                    moment.mail_moment_guests(moment_guests, current_user)
+
+                if len(moment_prospects) > 0:
+                    moment.mail_moment_prospects(moment_prospects, current_user)
+
+                reponse["nb_user_added"] = count
+
+                #On renvoit tous les prospects invité afin de les inviter par FB ou SMS
+                reponse["prospects_invit"] = []
+
+                for prospect in moment_prospects:
+                    reponse["prospects_invit"].append(prospect.prospect_to_send())
+
+
+
+                return jsonify(reponse), 200
+
+            else:
+                reponse["error"] = "Not Aothorized"
+                return jsonify(reponse), 401
+
+
+        else:
+            reponse["error"] = "This Moment does not exist"
+            return jsonify(reponse), 405
+
+
+    else:
+        reponse["error"] = "mandatory value missing"
+        return jsonify(reponse), 405
 
 
 

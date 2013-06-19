@@ -403,10 +403,74 @@ def send_invitation_mail(to_dest, moment_name, user_infos):
 
 
 
-
-
-
 	m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+
+
+#Fonction qui va envoyer un mail d'invitation à chaque participants
+# user_infos (dict)
+#	user_infos.firstname
+#	user_infos.lastname
+#	user_infos.photo
+# to_dest (array)
+#	dest (dict)
+#		dest.name
+#		dest.email
+# moment_name (string)
+
+def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_url):
+
+    m = Mail()
+
+    contenu = unicode('Invitation à','utf-8')
+    subject = "%s %s" % (contenu, moment_name)
+
+    template_name = constants.INVITATION_TEMPLATE
+
+    template_args = []
+
+    #Global Var
+    global_merge_vars = []
+
+    global_firstname = {
+        "name" : "host_firstname",
+        "content" : user_infos["firstname"]
+    }
+
+    global_merge_vars.append(global_firstname)
+
+    global_lastname = {
+        "name" : "host_lastname",
+        "content" : user_infos["lastname"]
+    }
+
+    global_merge_vars.append(global_lastname)
+
+    global_photo = {
+        "name" : "host_photo",
+        "content" : user_infos["photo"]
+    }
+
+    global_merge_vars.append(global_photo)
+
+
+    global_moment = {
+        "name" : "moment_name",
+        "content" : moment_name
+    }
+
+    global_merge_vars.append(global_moment)
+
+
+    global_moment_url = {
+        "name" : "moment_url",
+        "content" : moment_url
+    }
+
+    global_merge_vars.append(global_moment_url)
+
+
+
+    m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
 
 
 
@@ -466,6 +530,55 @@ def send_single_photo_mail(to_dest, moment_name, user_infos, photo_url):
 
 
 	m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+
+
+#Fonction qui va envoyer un mail lorsque une photo est postée
+# photos (array)
+#	user_infos.firstname
+#	user_infos.lastname
+#	user_infos.photo
+# to_dest (array)
+#	dest (dict)
+#		dest.name
+#		dest.email
+# moment_name (string)
+
+def send_single_multiple_mail(to_dest, moment_name, photos):
+
+    m = Mail()
+
+    contenu = unicode(' : 6 Nouvelles Photos !','utf-8')
+    subject = "%s %s" % ( moment_name, contenu)
+
+    template_name = constants.SINGLE_PHOTO_TEMPLATE
+
+    template_args = []
+
+    #Global Var
+    global_merge_vars = []
+
+
+    #For each photo we send the url
+    count = 0
+    for photo in photos:
+        name = "photo_url_%s" % count
+        global_photo = {
+            "name" : name,
+            "content" : photo.url_original
+        }
+
+        global_merge_vars.append(global_photo)
+
+
+    global_moment = {
+        "name" : "moment_name",
+        "content" : moment_name
+    }
+
+    global_merge_vars.append(global_moment)
+
+    m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+
 
 
 

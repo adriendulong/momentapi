@@ -275,7 +275,7 @@ class User(db.Model):
     description = db.Column(db.Text)
     birth_date = db.Column(db.Date)
     sex = db.Column(db.String(1))
-    privacy = db.Column(db.Integer, default = userConstants.OPEN)
+    privacy = db.Column(db.Integer, default = userConstants.PRIVATE)
 
     #Les paramÃ¨tres de notifications
     param_notifs = db.relationship("ParamNotifs", backref="user")
@@ -1337,6 +1337,7 @@ class User(db.Model):
         ##
 
 
+
     def notify_add_photo(self, moment):
         #On envoit la notif que si le user a activÃ© l'envoie par push de nouvelles photos
         #if self.is_push_photo():
@@ -2204,6 +2205,7 @@ class Moment(db.Model):
             if guest.user.id != photo.user.id:
                 guest.user.notify_new_photo(self, photo)
 
+
                 #Si le user accepte les notifs mail pour les photos
                 if guest.user.is_mail_photo():
                     #On le rajoute Ã  la liste des destinaires
@@ -2216,14 +2218,25 @@ class Moment(db.Model):
 
         #### On envoit le mail aux destinataires
 
-        #On met les infos de celui qui a postÃ© la photo dans un dict
-        host_infos = {}
-        host_infos["firstname"] = photo.user.firstname
-        host_infos["lastname"] = photo.user.lastname
-        host_infos["email"] = photo.user.email
-        host_infos["photo"] = photo.user.profile_picture_url
+        ##One mail for the first photo and second photo
+        if len(self.photos) <= 2:
+            #On met les infos de celui qui a postÃ© la photo dans un dict
+            host_infos = {}
+            host_infos["firstname"] = photo.user.firstname
+            host_infos["lastname"] = photo.user.lastname
+            host_infos["email"] = photo.user.email
+            host_infos["photo"] = photo.user.profile_picture_url
 
-        thread.start_new_thread( fonctions.send_single_photo_mail, (to_dests, self.name, host_infos, photo.url_original,) )
+            thread.start_new_thread(fonctions.send_single_photo_mail, (to_dests, self.name, host_infos, photo.url_original,) )
+        ##Each 6 photos we send an email
+        elif len(self.photos) % 6 == 0:
+            photosArray = []
+            lenPhotos = len(self.photos)
+
+            for photo in self.photos[(lenPhotos-7):(lenPhotos-1)]:
+                photos.append(photo)
+
+            thread.start_new_thread( fonctions.send_multiple_photo_mail, (to_dests, self.name, photosArray,) )
 
 
     #Notif sent the day after an event in order to people to think about posting photo
@@ -2262,10 +2275,41 @@ class Moment(db.Model):
         host_infos["email"] = host.email
         host_infos["photo"] = host.profile_picture_url
 
-        print len(to_dests)
-
 
         thread.start_new_thread( fonctions.send_invitation_mail, (to_dests, self.name, host_infos,) )
+
+
+    #Function that send the invitation to the prospects
+    def mail_moment_prospects(self, prospects, host):
+
+        to_dests = []
+
+        for prospect in prospects:
+
+            #Ici condition par rapport au paramtres de notif
+            if prospect.email is not None:
+                dest = {
+                    "email" : prospect.email,
+                    "name" : "%s" % (prospect.firstname)
+                }
+
+
+                to_dests.append(dest)
+
+        #On met les infos de celui qui invite dans un dict
+        host_infos = {}
+        host_infos["firstname"] = host.firstname
+        host_infos["lastname"] = host.lastname
+        host_infos["email"] = host.email
+        host_infos["photo"] = host.profile_picture_url
+
+        if self.unique_code is not None:
+            unique_url = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
+        else:
+            unique_url = constants.WEBSITE
+
+
+        thread.start_new_thread( fonctions.send_invitation_to_prospect_mail, (to_dests, self.name, host_infos, unique_url) )
 
 
     ##
