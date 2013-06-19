@@ -220,7 +220,7 @@ class Feed(db.Model):
 
         if self.type_action == userConstants.ACTION_PHOTO:
             reponse["photos"] = []
-            reponse["moment"] = self.moment.moment_to_send()
+            reponse["moment"] = self.moment.moment_to_send(self.user_id)
 
             for photo in self.photos:
                  reponse["photos"].append(photo.photo_to_send_short())
@@ -229,7 +229,7 @@ class Feed(db.Model):
 
         elif self.type_action == userConstants.ACTION_CHAT:
             reponse["chats"] = []
-            reponse["moment"] = self.moment.moment_to_send()
+            reponse["moment"] = self.moment.moment_to_send(self.user_id)
             reponse["chats"].append(self.chats[len(self.chats)-1].chat_to_send())
             reponse["nb_chats"] = len(self.chats)
 
