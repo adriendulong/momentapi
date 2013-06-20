@@ -121,7 +121,7 @@ INSCRIPTION_TEMPLATE = "Inscription_Moment"
 INVITATION_TEMPLATE = "Invitation_Moment"
 INVITATION_PROSPECT_TEMPLATE = "invitation-event-prospect"
 NEW_PASS_TEMPLATE = "MDP_OUBLIE"
-SINGLE_PHOTO_TEMPLATE = "NouvellePhoto"
+SINGLE_PHOTO_TEMPLATE = "template-photo-x1"
 REPORT_CRON = "reportcrontab"
 MULTIPLE_PHOTO_TEMPLATE = "template-photo-many"
 

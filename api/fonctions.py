@@ -506,48 +506,74 @@ def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_ur
 # moment_name (string)
 # photo_url (string)
 
-def send_single_photo_mail(to_dest, moment_name, user_infos, photo_url):
+def send_single_photo_mail(to_dest, moment_name, user_infos, photo_url, nb_photo_moment, unique_url):
 
-	m = Mail()
+    m = Mail()
 
-	contenu = unicode(' : Nouvelle photo','utf-8')
-	subject = "%s %s" % ( moment_name, contenu)
+    contenu = unicode(' : Nouvelle photo','utf-8')
+    subject = "%s %s" % ( moment_name, contenu)
 
-	template_name = constants.SINGLE_PHOTO_TEMPLATE
+    template_name = constants.SINGLE_PHOTO_TEMPLATE
 
-	template_args = []
+    template_args = []
 
-	#Global Var
-	global_merge_vars = []
+    #Global Var
+    global_merge_vars = []
 
-	global_firstname = {
-		"name" : "fn_user",
-		"content" : user_infos["firstname"]
-	}
+    name = "%s %s" % (user_infos["firstname"], user_infos["lastname"])
 
-	global_merge_vars.append(global_firstname)
+    global_user_name = {
+        "name" : "user_name",
+        "content" : name
+    }
 
-	global_photo = {
-		"name" : "image_moment",
-		"content" : photo_url
-	}
+    global_merge_vars.append(global_user_name)
 
-	global_merge_vars.append(global_photo)
+    global_firstname = {
+        "name" : "fn_user",
+        "content" : user_infos["firstname"]
+    }
+
+    global_merge_vars.append(global_firstname)
+
+    global_user_photo = {
+        "name" : "user_photo",
+        "content" : user_infos["photo"]
+    }
+
+    global_merge_vars.append(global_user_photo)
+
+    global_photo = {
+        "name" : "image_moment",
+        "content" : photo_url
+    }
+
+    global_merge_vars.append(global_photo)
 
 
-	global_moment = {
-		"name" : "moment_name",
-		"content" : moment_name
-	}
+    global_moment = {
+        "name" : "moment_name",
+        "content" : moment_name
+    }
 
-	global_merge_vars.append(global_moment)
+    global_merge_vars.append(global_moment)
+
+    global_nb_photo = {
+        "name" : "nb_photo",
+        "content" : nb_photo_moment
+    }
+
+    global_merge_vars.append(global_nb_photo)
+
+    global_unique_url = {
+        "name" : "unique_url",
+        "content" : unique_url
+    }
+
+    global_merge_vars.append(global_unique_url)
 
 
-
-
-
-
-	m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+    m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
 
 
 #Fonction qui va envoyer un mail lorsque une photo est postée

@@ -2227,7 +2227,7 @@ class Moment(db.Model):
             host_infos["email"] = photo.user.email
             host_infos["photo"] = photo.user.profile_picture_url
 
-            thread.start_new_thread(fonctions.send_single_photo_mail, (to_dests, self.name, host_infos, photo.url_original,) )
+            thread.start_new_thread(fonctions.send_single_photo_mail, (to_dests, self.name, host_infos, photo.url_original, len(self.photos), photo.get_unique_url(), ) )
         ##Each 6 photos we send an email
         elif len(self.photos) % 6 == 0:
             photosArray = []
@@ -2755,6 +2755,11 @@ class Photo(db.Model):
             if photoExist is None:
                 self.unique_code = uuid
                 break
+
+
+    def get_unique_url(self):
+        if self.unique_code is not None:
+            return constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
 
 
 
