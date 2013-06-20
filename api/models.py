@@ -2309,7 +2309,7 @@ class Moment(db.Model):
             unique_url = constants.WEBSITE
 
 
-        thread.start_new_thread( fonctions.send_invitation_to_prospect_mail, (to_dests, self.name, host_infos, unique_url) )
+        thread.start_new_thread( fonctions.send_invitation_to_prospect_mail, (to_dests, self.name, host_infos, unique_url, self.description, self.startDate.day, self.startDate.month, ) )
 
 
     ##

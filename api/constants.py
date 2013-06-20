@@ -119,9 +119,11 @@ FROM_NAME = "Moment"
 #Templates
 INSCRIPTION_TEMPLATE = "Inscription_Moment"
 INVITATION_TEMPLATE = "Invitation_Moment"
+INVITATION_PROSPECT_TEMPLATE = "invitation-event-prospect"
 NEW_PASS_TEMPLATE = "MDP_OUBLIE"
 SINGLE_PHOTO_TEMPLATE = "NouvellePhoto"
 REPORT_CRON = "reportcrontab"
+MULTIPLE_PHOTO_TEMPLATE = "template-photo-many"
 
 
 ################
@@ -144,6 +146,15 @@ PROD_KEY = "/pushCertificates/prod/MomentKey.pem"
 if app.config["TYPE"] == 2:
     CERT_PUSH = PROD_CERT
     KEY_PUSH = PROD_KEY
+    SANDBOX = False
 else:
     CERT_PUSH = DEV_CERT
     KEY_PUSH = DEV_KEY
+    SANDBOX = True
+
+
+
+###########################
+## MONTH OF THE YEAR ######
+##########################
+MONTH_YEAR_FR = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"]

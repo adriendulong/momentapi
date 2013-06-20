@@ -222,7 +222,7 @@ def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
     sock.close()'''
     print app.root_path+constants.CERT_PUSH
 
-    apns = APNs(use_sandbox=True, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
+    apns = APNs(use_sandbox=constants.SANDBOX, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
     # Send a notification
     payload = Payload(alert=message, sound="default", badge=nb_notif_unread, custom={'type_id':type_notif, 'id_moment':id_moment})
@@ -239,7 +239,7 @@ def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
 #Push notification to iOS
 def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat_id, nb_notif_unread):
 
-	apns = APNs(use_sandbox=True, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
+	apns = APNs(use_sandbox=constants.SANDBOX, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
 	#ON limite la taille du message
 	if len(message) > 100:
@@ -259,7 +259,7 @@ def send_ios_notif_chat(id_moment, type_notif, reg_id, message, chat_id, nb_noti
 
 #Push notif ios for a new follower
 def send_ios_follower_notif(reg_id, message, id_user, nb_notif_unread):
-	apns = APNs(use_sandbox=True, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
+	apns = APNs(use_sandbox=constants.SANDBOX, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
 	#ON limite la taille du message
 	if len(message) > 100:
@@ -417,33 +417,30 @@ def send_invitation_mail(to_dest, moment_name, user_infos):
 #		dest.email
 # moment_name (string)
 
-def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_url):
+def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_url, description, moment_day, moment_month):
 
     m = Mail()
 
     contenu = unicode('Invitation à','utf-8')
     subject = "%s %s" % (contenu, moment_name)
 
-    template_name = constants.INVITATION_TEMPLATE
+    template_name = constants.INVITATION_PROSPECT_TEMPLATE
 
     template_args = []
 
     #Global Var
     global_merge_vars = []
 
-    global_firstname = {
-        "name" : "host_firstname",
-        "content" : user_infos["firstname"]
+    user_name = user_infos["firstname"]+" "+user_infos["lastname"]
+    print user_name
+
+    global_name = {
+        "name" : "host_name",
+        "content" :user_name
     }
 
-    global_merge_vars.append(global_firstname)
+    global_merge_vars.append(global_name)
 
-    global_lastname = {
-        "name" : "host_lastname",
-        "content" : user_infos["lastname"]
-    }
-
-    global_merge_vars.append(global_lastname)
 
     global_photo = {
         "name" : "host_photo",
@@ -467,6 +464,27 @@ def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_ur
     }
 
     global_merge_vars.append(global_moment_url)
+
+    global_moment_description = {
+        "name" : "moment_description",
+        "content" : description
+    }
+
+    global_merge_vars.append(global_moment_description)
+
+    global_moment_day = {
+        "name" : "moment_day",
+        "content" : moment_day
+    }
+
+    global_merge_vars.append(global_moment_day)
+
+    global_moment_momth = {
+        "name" : "moment_month",
+        "content" : constants.MONTH_YEAR_FR[moment_month]
+    }
+
+    global_merge_vars.append(global_moment_momth)
 
 
 
@@ -550,7 +568,7 @@ def send_single_multiple_mail(to_dest, moment_name, photos):
     contenu = unicode(' : 6 Nouvelles Photos !','utf-8')
     subject = "%s %s" % ( moment_name, contenu)
 
-    template_name = constants.SINGLE_PHOTO_TEMPLATE
+    template_name = constants.MULTIPLE_PHOTO_TEMPLATE
 
     template_args = []
 
@@ -568,6 +586,13 @@ def send_single_multiple_mail(to_dest, moment_name, photos):
         }
 
         global_merge_vars.append(global_photo)
+
+    global_nb_photos = {
+        "name" : "nb_photos",
+        "content" : len(photos)
+    }
+
+    global_merge_vars.append(global_moment)
 
 
     global_moment = {
