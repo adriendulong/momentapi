@@ -2234,7 +2234,7 @@ class Moment(db.Model):
             lenPhotos = len(self.photos)
 
             for photo in self.photos[(lenPhotos-7):(lenPhotos-1)]:
-                photos.append(photo)
+                photosArray.append(photo)
 
             thread.start_new_thread( fonctions.send_multiple_photo_mail, (to_dests, self.name, photosArray,) )
 
