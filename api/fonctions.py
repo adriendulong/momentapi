@@ -592,7 +592,7 @@ def send_multiple_photo_mail(to_dest, moment_name, photos):
         "content" : len(photos)
     }
 
-    global_merge_vars.append(global_moment)
+    global_merge_vars.append(global_nb_photos)
 
 
     global_moment = {
