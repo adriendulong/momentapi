@@ -577,13 +577,15 @@ def send_multiple_photo_mail(to_dest, moment_name, photos):
 
 
     #For each photo we send the url
-    count = 0
+    count = 1
     for photo in photos:
         name = "photo_url_%s" % count
         global_photo = {
             "name" : name,
             "content" : photo.url_original
         }
+
+        count += 1
 
         global_merge_vars.append(global_photo)
 
