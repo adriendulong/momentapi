@@ -561,7 +561,7 @@ def send_single_photo_mail(to_dest, moment_name, user_infos, photo_url):
 #		dest.email
 # moment_name (string)
 
-def send_single_multiple_mail(to_dest, moment_name, photos):
+def send_multiple_photo_mail(to_dest, moment_name, photos):
 
     m = Mail()
 
