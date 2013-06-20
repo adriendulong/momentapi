@@ -579,10 +579,10 @@ def send_multiple_photo_mail(to_dest, moment_name, photos):
     #For each photo we send the url
     count = 1
     for photo in photos:
-        name = "photo_url_%s" % count
+        print name
         global_photo = {
             "name" : name,
-            "content" : photo.url_original
+            "content" : photo
         }
 
         count += 1
