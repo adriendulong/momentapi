@@ -358,52 +358,79 @@ def send_inscrption_mail(firstname, lastname, mail):
 #		dest.email
 # moment_name (string)
 
-def send_invitation_mail(to_dest, moment_name, user_infos):
+def send_invitation_mail(to_dest, moment_name, user_infos, moment_url, description, moment_day, moment_month):
 
-	m = Mail()
+    m = Mail()
 
-	contenu = unicode('Invitation à','utf-8')
-	subject = "%s %s" % (contenu, moment_name)
+    contenu = unicode('vous invite à','utf-8')
+    subject = "%s %s '%s'" % (user_infos["firstname"], contenu, moment_name)
 
-	template_name = constants.INVITATION_TEMPLATE
+    template_name = constants.INVITATION_TEMPLATE
 
-	template_args = []
+    template_args = []
 
-	#Global Var
-	global_merge_vars = []
+    #Global Var
+    global_merge_vars = []
 
-	global_firstname = {
-		"name" : "host_firstname",
-		"content" : user_infos["firstname"]
-	}
+    user_name = user_infos["firstname"]+" "+user_infos["lastname"]
+    print user_name
 
-	global_merge_vars.append(global_firstname)
+    global_name = {
+        "name" : "host_name",
+        "content" :user_name
+    }
 
-	global_lastname = {
-		"name" : "host_lastname",
-		"content" : user_infos["lastname"]
-	}
-
-	global_merge_vars.append(global_lastname)
-
-	global_photo = {
-		"name" : "host_photo",
-		"content" : user_infos["photo"]
-	}
-
-	global_merge_vars.append(global_photo)
+    global_merge_vars.append(global_name)
 
 
-	global_moment = {
-		"name" : "moment_name",
-		"content" : moment_name
-	}
+    global_photo = {
+        "name" : "host_photo",
+        "content" : user_infos["photo"]
+    }
 
-	global_merge_vars.append(global_moment)
+    global_merge_vars.append(global_photo)
+
+
+    global_moment = {
+        "name" : "moment_name",
+        "content" : moment_name
+    }
+
+    global_merge_vars.append(global_moment)
+
+
+    global_moment_url = {
+        "name" : "moment_url",
+        "content" : moment_url
+    }
+
+    global_merge_vars.append(global_moment_url)
+
+    global_moment_description = {
+        "name" : "moment_descri",
+        "content" : "%s" % description
+    }
+
+    global_merge_vars.append(global_moment_description)
+
+    global_moment_day = {
+        "name" : "moment_day",
+        "content" : moment_day
+    }
+
+    global_merge_vars.append(global_moment_day)
+
+    global_moment_momth = {
+        "name" : "moment_month",
+        "content" : constants.MONTH_YEAR_FR[moment_month]
+    }
+
+    global_merge_vars.append(global_moment_momth)
 
 
 
-	m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+    m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+
 
 
 #Fonction qui va envoyer un mail d'invitation à chaque participants
@@ -421,8 +448,8 @@ def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_ur
 
     m = Mail()
 
-    contenu = unicode('Invitation à','utf-8')
-    subject = "%s %s" % (contenu, moment_name)
+    contenu = unicode('vous invite à','utf-8')
+    subject = "%s %s '%s'" % (user_infos["firstname"], contenu, moment_name)
 
     template_name = constants.INVITATION_PROSPECT_TEMPLATE
 
@@ -466,8 +493,8 @@ def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_ur
     global_merge_vars.append(global_moment_url)
 
     global_moment_description = {
-        "name" : "moment_description",
-        "content" : description
+        "name" : "moment_descri",
+        "content" : "%s" % description
     }
 
     global_merge_vars.append(global_moment_description)

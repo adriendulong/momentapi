@@ -1211,7 +1211,7 @@ class User(db.Model):
             message = "%s %s '%s'" % (user_inviting.firstname, contenu, moment.name)
 
             for device in self.devices:
-                device.notify_simple(moment, userConstants.INVITATION, title, message.encode('utf-8'), self)
+                device.notify_simple(moment, userConstants.INVITATION, title, message, self)
 
 
     ##
@@ -2257,7 +2257,6 @@ class Moment(db.Model):
         to_dests = []
 
         for guest in guests:
-
             #Ici condition par rapport au paramtres de notif
             if guest.is_mail_invit():
                 dest = {
@@ -2275,8 +2274,7 @@ class Moment(db.Model):
         host_infos["email"] = host.email
         host_infos["photo"] = host.profile_picture_url
 
-
-        thread.start_new_thread( fonctions.send_invitation_mail, (to_dests, self.name, host_infos,) )
+        thread.start_new_thread( fonctions.send_invitation_mail, (to_dests, self.name, host_infos, self.get_unique_code(), self.description, self.startDate.day, self.startDate.month, ) )
 
 
     #Function that send the invitation to the prospects
@@ -2303,13 +2301,9 @@ class Moment(db.Model):
         host_infos["email"] = host.email
         host_infos["photo"] = host.profile_picture_url
 
-        if self.unique_code is not None:
-            unique_url = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
-        else:
-            unique_url = constants.WEBSITE
 
 
-        thread.start_new_thread( fonctions.send_invitation_to_prospect_mail, (to_dests, self.name, host_infos, unique_url, self.description, self.startDate.day, self.startDate.month, ) )
+        thread.start_new_thread( fonctions.send_invitation_to_prospect_mail, (to_dests, self.name, host_infos, self.get_unique_code(), self.description, self.startDate.day, self.startDate.month, ) )
 
 
     ##
@@ -2327,6 +2321,15 @@ class Moment(db.Model):
             if momentExist is None:
                 self.unique_code = uuid
                 break
+
+
+    def get_unique_code(self):
+        if self.unique_code is not None:
+            unique_url = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
+        else:
+            unique_url = constants.WEBSITE
+
+        return unique_url
 
 
 
@@ -2745,9 +2748,7 @@ class Photo(db.Model):
     ##
 
     def init_unique_code(self):
-
         while True:
-
             uuid = fonctions.get_uuid()
 
             photoExist = Photo.query.filter_by(unique_code = uuid).first()
