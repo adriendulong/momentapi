@@ -604,17 +604,15 @@ def send_single_photo_mail(to_dest, moment_name, user_infos, photo_url, nb_photo
 
 
 #Fonction qui va envoyer un mail lorsque une photo est postée
-# photos (array)
-#	user_infos.firstname
-#	user_infos.lastname
-#	user_infos.photo
+# photos (array of photos url)
+# photos_unique (array of unique photos url)
 # to_dest (array)
 #	dest (dict)
 #		dest.name
 #		dest.email
 # moment_name (string)
 
-def send_multiple_photo_mail(to_dest, moment_name, photos):
+def send_multiple_photo_mail(to_dest, moment_name, photos, photos_unique):
 
     m = Mail()
 
@@ -641,6 +639,18 @@ def send_multiple_photo_mail(to_dest, moment_name, photos):
         count += 1
 
         global_merge_vars.append(global_photo)
+
+    countUnique = 0
+    for photoUnique in photos_unique:
+        name = "photo_unique_%s" % countUnique
+        global_photo_unique = {
+            "name" : name,
+            "content" : photoUnique
+        }
+
+        countUnique += 1
+
+        global_merge_vars.append(global_photo_unique)
 
     global_nb_photos = {
         "name" : "nb_photos",

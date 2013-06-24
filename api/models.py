@@ -2231,12 +2231,14 @@ class Moment(db.Model):
         ##Each 6 photos we send an email
         elif len(self.photos) % 6 == 0:
             photosArray = []
+            photosUniqueArray = []
             lenPhotos = len(self.photos)
 
             for photo in self.photos[(lenPhotos-7):(lenPhotos-1)]:
                 photosArray.append(photo.url_original)
+                photosUniqueArray.append(photo.get_unique_url())
 
-            thread.start_new_thread( fonctions.send_multiple_photo_mail, (to_dests, self.name, photosArray,) )
+            thread.start_new_thread( fonctions.send_multiple_photo_mail, (to_dests, self.name, photosArray, photosUniqueArray, ) )
 
 
     #Notif sent the day after an event in order to people to think about posting photo
