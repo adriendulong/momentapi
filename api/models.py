@@ -2234,7 +2234,7 @@ class Moment(db.Model):
             photosUniqueArray = []
             lenPhotos = len(self.photos)
 
-            for photo in self.photos[(lenPhotos-7):(lenPhotos-1)]:
+            for photo in self.photos[(lenPhotos-6):(lenPhotos)]:
                 photosArray.append(photo.url_original)
                 photosUniqueArray.append(photo.get_unique_url())
 
@@ -2763,6 +2763,8 @@ class Photo(db.Model):
     def get_unique_url(self):
         if self.unique_code is not None:
             return constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
+        else:
+            return constants.WEBSITE
 
 
 

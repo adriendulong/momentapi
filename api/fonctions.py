@@ -626,10 +626,13 @@ def send_multiple_photo_mail(to_dest, moment_name, photos, photos_unique):
     #Global Var
     global_merge_vars = []
 
+    print "Multiple"
+
 
     #For each photo we send the url
     count = 1
     for photo in photos:
+        print photo
         name = "photo_url_%s" % count
         global_photo = {
             "name" : name,
@@ -640,9 +643,10 @@ def send_multiple_photo_mail(to_dest, moment_name, photos, photos_unique):
 
         global_merge_vars.append(global_photo)
 
-    countUnique = 0
+    countUnique = 1
     for photoUnique in photos_unique:
         name = "photo_unique_%s" % countUnique
+        print photoUnique
         global_photo_unique = {
             "name" : name,
             "content" : photoUnique
