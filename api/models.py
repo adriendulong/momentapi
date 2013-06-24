@@ -2197,7 +2197,7 @@ class Moment(db.Model):
 
     def notify_users_new_photo(self, photo):
 
-        #La liste des destinataires Ã  qui on va envoyer un mail 
+        #La liste des destinataires Ã  qui on va envoyer un mail
         to_dests = []
 
         for guest in self.guests:
@@ -2214,6 +2214,14 @@ class Moment(db.Model):
                         "name" : "%s %s" % (guest.user.firstname, guest.user.lastname)
                     }
                     to_dests.append(dest)
+
+        for prospect in self.prospects:
+            if prospect.email is not None:
+                dest = {
+                    "email" : prospect.email,
+                    "name" : "%s" % prospect.firstname
+                }
+                to_dests.append(dest)
 
 
         #### On envoit le mail aux destinataires
