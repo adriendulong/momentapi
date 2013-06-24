@@ -89,9 +89,9 @@ GCM_APP_KEY = "AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0"
 
 S3_URL = "https://s3-eu-west-1.amazonaws.com"
 
-if app.config["TYPE"] == 1:
+if app.config["TYPE"] == 0:
     S3_BUCKET = "/apimomentdev/"
-else:
+elif app.config["TYPE"] == 1:
     S3_BUCKET = "/apimoment/"
 
 
@@ -143,7 +143,7 @@ DEV_KEY = "/pushCertificates/MomentKey.pem"
 PROD_CERT = "/pushCertificates/prod/MomentCert.pem"
 PROD_KEY = "/pushCertificates/prod/MomentKey.pem"
 
-if app.config["TYPE"] == 2:
+if app.config["TYPE"] == 1:
     CERT_PUSH = PROD_CERT
     KEY_PUSH = PROD_KEY
     SANDBOX = False

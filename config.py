@@ -14,7 +14,7 @@ class DevelopmentConfig(Config):
     NAME_DB = "appmoment"
     #Emplacement de la database
     SQLALCHEMY_DATABASE_URI = 'mysql://'+USER_DB+':'+PASSWORD_DB+'@localhost/'+NAME_DB
-    TYPE = 1
+    TYPE = 0
 
     #SERVER_NAME = "localhost"
 
@@ -26,7 +26,7 @@ class ProductionConfig(Config):
     NAME_DB = "appmoment"
     #Emplacement de la database
     SQLALCHEMY_DATABASE_URI = 'mysql://'+USER_DB+':'+PASSWORD_DB+'@localhost/'+NAME_DB
-    TYPE = 1
+    TYPE = 0
 
 	#SERVER_NAME = "api.appmoment.fr"
 
@@ -40,3 +40,12 @@ class AmazonConfig(Config):
     TYPE = 0
 
 	#SERVER_NAME = "ec2-54-228-139-53.eu-west-1.compute.amazonaws.com"
+
+class AmazonProdConfig(Config):
+    DEBUG = True
+    USER_DB = "appmoment"
+    PASSWORD_DB = "Jar.12626"
+    NAME_DB = "appmoment"
+    #Emplacement de la database
+    SQLALCHEMY_DATABASE_URI = 'mysql://'+USER_DB+':'+PASSWORD_DB+'@apimoment-prod.c3hcodpxa4oj.eu-west-1.rds.amazonaws.com/'+NAME_DB
+    TYPE = 1
