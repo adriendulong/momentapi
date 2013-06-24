@@ -11,7 +11,7 @@ class S3:
         self.s3 = boto.connect_s3()
 
         #Bucket depends on the type of server
-        if app.config["TYPE"] == 1:
+        if app.config["TYPE"] == 0:
             self.bucketName = "apimomentdev"
         else:
             self.bucketName = "apimoment"
