@@ -1319,7 +1319,7 @@ class User(db.Model):
                     message = "%s '%s'" % (contenu, moment.name)
 
                     for device in self.devices:
-                        device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
+                        device.notify_simple(moment, userConstants.NEW_PHOTO,title, message, self)
 
             else:
                 title = "Nouvelle photo"
@@ -1327,7 +1327,7 @@ class User(db.Model):
                 message = "%s '%s'" % (contenu, moment.name)
 
                 for device in self.devices:
-                    device.notify_simple(moment, userConstants.NEW_PHOTO,title, message.encode("utf-8"), self)
+                    device.notify_simple(moment, userConstants.NEW_PHOTO,title, message, self)
 
 
 
