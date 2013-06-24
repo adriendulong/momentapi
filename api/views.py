@@ -110,15 +110,26 @@ def index():
 
 @app.route('/test')
 def test():
-	return '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">\
-			<html>\
-			<head>\
-			<title>Webserver test</title>\
-			</head>\
-			<body>\
-			This is a webserver test page.\
-			</body>\
-			</html>'
+    if app.config["TYPE"] == 0:
+        return '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">\
+                <html>\
+                <head>\
+                <title>Webserver test</title>\
+                </head>\
+                <body>\
+                This is a webserver test page.\
+                </body>\
+                </html>'
+    elif app.config["TYPE"] == 1:
+        return '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">\
+                <html>\
+                <head>\
+                <title>Webserver PRODUCTION</title>\
+                </head>\
+                <body>\
+                This is a webserver test page : PRODUCTION.\
+                </body>\
+                </html>'
 
 
 #################################################################
