@@ -155,6 +155,7 @@ class Notification(db.Model):
 
     def notif_to_send(self):
         notif = {}
+        notif["id"] = self.id
         notif["time"] = self.time.strftime("%s")
         if self.type_notif != userConstants.NEW_FOLLOWER and self.type_notif != userConstants.NEW_REQUEST:
             notif["moment"] = self.moment.moment_to_send(self.user_id)
