@@ -124,6 +124,8 @@ NEW_PASS_TEMPLATE = "MDP_OUBLIE"
 SINGLE_PHOTO_TEMPLATE = "template-photo-x1"
 REPORT_CRON = "reportcrontab"
 MULTIPLE_PHOTO_TEMPLATE = "template-photo-many"
+MAIL_STATS = "mail-stats"
+
 
 
 ################

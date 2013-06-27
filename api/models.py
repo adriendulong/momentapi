@@ -402,8 +402,6 @@ class User(db.Model):
             thread.start_new_thread( fonctions.send_new_pass_mail, (to_dests, new_pass,) )
 
 
-        print new_pass
-
         
 
         db.session.commit()
@@ -870,7 +868,6 @@ class User(db.Model):
             if notif.is_active:
                 count += 1
 
-        print "Nb Notifs : %s" % count
 
         return count
 
@@ -1310,8 +1307,6 @@ class User(db.Model):
                 newTime = moment.photos[nbPhotos-1].creation_datetime
                 delta = newTime - oldTime
 
-                print "Delta : %s" % delta.seconds
-
                 #Send notif only if the last photos was posted more than two minutes or if it was posted by the user
                 if(delta.seconds > constants.DELAY_PUSH_PHOTO) or moment.photos[nbPhotos-2].user.id == self.id:
                     #Titre de la notif
@@ -1459,7 +1454,6 @@ class User(db.Model):
 
     #Actu comme quoi le user a crÃ©Ã© un moment public
     def add_actu_new_moment(self, moment):
-        print "CREATION"
         #On rajoute cette actu que si le moment est public ou ouvert
         if moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
             actu_moment = Actu(moment, self, userConstants.ACTION_CREATION_EVENT)
@@ -1668,6 +1662,7 @@ class User(db.Model):
 class Invitation(db.Model):
     moment_id = db.Column(db.Integer, db.ForeignKey('moment.id'), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    creation_datetime = db.Column(db.DateTime, default = datetime.datetime.now())
 
     # 0 = Owner, 1 = Going, 2 = Maybe, 3 = Not Going
     state = db.Column(db.Integer)
@@ -1676,6 +1671,7 @@ class Invitation(db.Model):
     def __init__(self, state, user):
         self.state = state
         self.user = user
+        self.creation_datetime = datetime.datetime.now()
 
 
 
@@ -1703,7 +1699,7 @@ class Moment(db.Model):
     hashtag = db.Column(db.String(60))
     facebookId = db.Column(db.BigInteger)
     isOpenInvit = db.Column(db.Boolean, default=False)
-    last_modification = db.Column(db.DateTime, default = datetime.datetime.now())
+    creation_datetime = db.Column(db.DateTime, default = datetime.datetime.now())
     cover_picture_url = db.Column(db.String(120))
     cover_picture_path = db.Column(db.String(120))
     owner_facebookId = db.Column(db.BigInteger)
@@ -1729,7 +1725,8 @@ class Moment(db.Model):
 
         self.init_unique_code()
 
-        #self.last_modification = datetime.datetime.now()
+        #We init creation date time
+        self.creation_datetime = datetime.datetime.now()
 
     def __repr__(self):
         return '<Moment name :%r, start date :>' % (self.name)
@@ -2745,7 +2742,6 @@ class Photo(db.Model):
 
     def save_instagram_photo(self, infos):
 
-        print "TEST"
         #self.taken_by = infos.user["full_name"]
         self.time = infos.created_time
         self.url_original = infos.images["standard_resolution"].url
@@ -2800,11 +2796,9 @@ class Device(db.Model):
     def notify_simple(self, moment, type_id, titre, message, user):
         #C'est un Android
         if self.os==1:
-            print "ANDROID"
             thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
         #C'est un iPhone
         if self.os == 0:
-            print "IPHONE"
             nb_notif_unread = user.nb_notif_unread()
             thread.start_new_thread(fonctions.send_ios_notif, (moment.id, type_id, self.notif_id, message, nb_notif_unread, ))
 
@@ -2836,8 +2830,7 @@ class Device(db.Model):
     def notify_from_cron(self, moment, type_id, titre, message, user):
         #C'est un Android
         if self.os==1:
-            print "ANDROID"
-            #thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
+            thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
         #C'est un iPhone
         if self.os == 0:
             nb_notif_unread = user.nb_notif_unread()
@@ -2934,9 +2927,174 @@ class ParamNotifs(db.Model):
 
 
 
+################################
+##### Stats ###########
+################################
+
+class Stat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date)
+
+    ######
+    ## Stats Creation evenements
+    #####
+
+    #Nombre de moments crees dans l'app aujourd'hui
+    nb_moments_today = db.Column(db.Integer)
+    #Nombre total de moment crees dans l'app
+    nb_moments_total = db.Column(db.Integer)
+    #Nombre d evenements FB importes dans l'app aujourd'hui
+    nb_events_fb_today = db.Column(db.Integer)
+    #Nombre d evenements FB total importes
+    nb_events_fb_total = db.Column(db.Integer)
+
+
+    ######
+    ## Stats Inscrits
+    #####
+
+    #Nombre d'inscrits aujourd'hui
+    nb_new_user_today = db.Column(db.Integer)
+    #Nombre de user total
+    nb_user_total = db.Column(db.Integer)
+
+
+    ######
+    ## Stats Invitations
+    #####
+
+    #Nombre d'invitations envoyees aujourd'hui
+    nb_invitations_today = db.Column(db.Integer)
+    #Nombre d'invitations totales
+    nb_invitations_total = db.Column(db.Integer)
+
+
+    ######
+    ## Stats Photos
+    #####
+
+    #Nombre de photos uploadees aujourd'hui
+    nb_photos_today = db.Column(db.Integer)
+    #Nombre de photos totales uploadees
+    nb_photos_total = db.Column(db.Integer)
 
 
 
+
+    def __init__(self):
+        self.date = datetime.date.today() - datetime.timedelta(days=1)
+        #self.date = datetime.date.today()
+
+        #Before we start we make sure there is no stat for today already, otherwise we delete it
+        sameDayStats = Stat.query.filter(Stat.date == self.date).all()
+        for stat in sameDayStats:
+            db.session.delete(stat)
+        db.session.commit()
+
+        #Interval of stat : between 00:00:00 and 23:59:59 yesterday
+        starttime = datetime.datetime(year=self.date.year, month=self.date.month, day= self.date.day, hour=0, minute=0, second=0)
+        endtime = datetime.datetime(year=self.date.year, month=self.date.month, day= self.date.day, hour=23, minute=59, second=59)
+
+
+        #Get stats regarding the moments
+        self.stats_moments(starttime, endtime)
+        #Get the stats concerning the users
+        self.stats_users(starttime, endtime)
+        #Get the stats regarding the invitations
+        self.stats_invitations(starttime, endtime)
+        #Get the stats regarding the photos
+        self.stats_photos(starttime, endtime)
+
+
+
+    ####
+    ## Function which build all the stats related to the moments
+    ####
+
+    def stats_moments(self, starttime, endtime):
+
+        #Stats of moments created in the app
+        today_moments = Moment.query.filter(and_(Moment.creation_datetime>=starttime, Moment.creation_datetime<=endtime, Moment.facebookId==None)).all()
+        self.nb_moments_today = len(today_moments)
+        print "Moment aujourd'hui : %s" % self.nb_moments_today
+
+        all_moments = Moment.query.filter(Moment.facebookId==None).all()
+        self.nb_moments_total = len(all_moments)
+        print "Moment total : %s" % self.nb_moments_total
+
+        #Stats of event imported from FB
+        fb_events_today = Moment.query.filter(and_(Moment.creation_datetime>=starttime, Moment.creation_datetime<=endtime, Moment.facebookId!=None)).all()
+        self.nb_events_fb_today = len(fb_events_today)
+        print "Facebook events aujourd'hui : %s" % self.nb_events_fb_today
+
+        fb_events_total = Moment.query.filter(Moment.facebookId!=None).all()
+        self.nb_events_fb_total = len(fb_events_total)
+        print "Facebook events total : %s" % self.nb_events_fb_total
+
+
+
+
+    ####
+    ## Function which build all the stats related to the users
+    ####
+
+    def stats_users(self, starttime, endtime):
+
+        #Number of new users
+        today_users = User.query.filter(and_(User.creationDateUser >= starttime, User.creationDateUser <= endtime)).all()
+        self.nb_new_user_today = len(today_users)
+        print "Nouveau user : %s " % self.nb_new_user_today
+
+        #Number of users total
+        total_users = User.query.all()
+        self.nb_user_total = len(total_users)
+        print "Total users : %s" % self.nb_user_total
+
+    ####
+    ## Function which build all the stats related to the invitations
+    ####
+
+    def stats_invitations(self, starttime, endtime):
+
+        #Number of invits send today
+        invits_today = Invitation.query.filter(and_(Invitation.creation_datetime >= starttime, Invitation.creation_datetime <= endtime)).all()
+        self.nb_invitations_today = len(invits_today)
+        print "Nouvelles invitations today : %s" % self.nb_invitations_today
+
+        #NUmber total of invits
+        total_invits = Invitation.query.all()
+        self.nb_invitations_total = len(total_invits)
+        print "Total invitations : %s" % self.nb_invitations_total
+
+    ####
+    ## Function which build all the stats related to the photos
+    ####
+
+    def stats_photos(self, starttime, endtime):
+
+        photos_today = Photo.query.filter(and_(Photo.creation_datetime >= starttime, Photo.creation_datetime <= endtime)).all()
+        self.nb_photos_today = len(photos_today)
+        print "Photos today : %s" % self.nb_photos_today
+
+        photos_total = Photo.query.all()
+        self.nb_photos_total = len(photos_total)
+        print "Photos total : %s" % self.nb_photos_total
+
+
+    def get_stats(self):
+        stats = {}
+        stats["new_moments"] = self.nb_moments_today
+        stats["nb_moments_total"] = self.nb_moments_total
+        stats["fb_events"] = self.nb_events_fb_today
+        stats["fb_events_total"] = self.nb_events_fb_total
+        stats["new_users"] = self.nb_new_user_today
+        stats["users_total"] = self.nb_user_total
+        stats["new_invits"] = self.nb_invitations_today
+        stats["total_invits"] = self.nb_invitations_total
+        stats["photos_new"] = self.nb_photos_today
+        stats["photos_total"] = self.nb_photos_total
+
+        return stats
 
 
 

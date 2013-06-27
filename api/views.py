@@ -472,7 +472,6 @@ def new_moment():
 
         #Si on fournit le Facebook Id alors c'est un event importé de Facebook
         if "facebookId" in request.form:
-            print request.form["facebookId"]
             #Il faut vérifier qu'un Moment avec ce facebookId n'existe pas
             momentFb = Moment.query.filter(Moment.facebookId == request.form["facebookId"]).first()
 
@@ -500,7 +499,6 @@ def new_moment():
 
                 #On rajoute le user en invité
                 moment.add_guest(current_user.id, request.form["state"])
-                print "ok"
                 ###############
                 ## On nous fournit un owner
                 ###############
@@ -1126,7 +1124,6 @@ def new_guests(idMoment):
 
                                     if moment.add_myself_to_moment(user_to_add):
                                         count += 1
-                                        print "Add myself"
 
 
                                 else:
@@ -2315,7 +2312,6 @@ def search(search):
 
 		#Puis les users autres classé par gd nb de followers et limité à 20
 		users = User.query.filter(and_(or_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[0]+"%")), User.privacy != userConstants.CLOSED)).limit(20).all()
-		print len(users)
 
 
 	#Sinon on peut avoir nom et prenom
@@ -2775,9 +2771,6 @@ def instagram_tag():
 
 	from instagram import client, subscriptions
 
-	
-
-	print "INSTAGRAM ARRIVE" 
 	
 	if request.method == "GET": 
 

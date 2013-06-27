@@ -220,7 +220,6 @@ def send_ios_notif(id_moment, type_notif, reg_id, message, nb_notif_unread):
     message = struct.pack(fmt, cmd, len(token), token, len(payload), payload)
     sock.write(message)
     sock.close()'''
-    print app.root_path+constants.CERT_PUSH
 
     apns = APNs(use_sandbox=constants.SANDBOX, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
@@ -316,7 +315,6 @@ def upload_file_S3(path, file_name, extension, f, is_public):
 	#If it needs to be readeable
 	myKey.set_acl('public-read')
 
-	print reponse
 
 
 
@@ -373,7 +371,6 @@ def send_invitation_mail(to_dest, moment_name, user_infos, moment_url, descripti
     global_merge_vars = []
 
     user_name = user_infos["firstname"]+" "+user_infos["lastname"]
-    print user_name
 
     global_name = {
         "name" : "host_name",
@@ -459,7 +456,6 @@ def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_ur
     global_merge_vars = []
 
     user_name = user_infos["firstname"]+" "+user_infos["lastname"]
-    print user_name
 
     global_name = {
         "name" : "host_name",
@@ -626,13 +622,10 @@ def send_multiple_photo_mail(to_dest, moment_name, photos, photos_unique):
     #Global Var
     global_merge_vars = []
 
-    print "Multiple"
-
 
     #For each photo we send the url
     count = 1
     for photo in photos:
-        print photo
         name = "photo_url_%s" % count
         global_photo = {
             "name" : name,
@@ -646,7 +639,6 @@ def send_multiple_photo_mail(to_dest, moment_name, photos, photos_unique):
     countUnique = 1
     for photoUnique in photos_unique:
         name = "photo_unique_%s" % countUnique
-        print photoUnique
         global_photo_unique = {
             "name" : name,
             "content" : photoUnique
@@ -751,6 +743,97 @@ def send_report_cron(to_dest, time_spent, nb_moment, nb_users):
     m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
 
 
+#####
+## RAPPORT STATS
+#####
+
+def send_report_stats(to_dest, time_spent, stats):
+
+    m = Mail()
+
+    contenu = unicode("Stats du ",'utf-8')
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    subject = "%s %s" % (contenu, yesterday.strftime("%d/%m/%y"))
+
+    template_name = constants.MAIL_STATS
+
+    template_args = []
+
+    #Global Var
+    global_merge_vars = []
+
+    global_nb_new_moments = {
+        "name" : "new_moments",
+        "content" : stats["new_moments"]
+    }
+
+    global_nb_moments_total = {
+        "name" : "nb_moments_total",
+        "content" : stats["nb_moments_total"]
+    }
+
+    global_nb_fb_events = {
+        "name" : "fb_events",
+        "content" : stats["fb_events"]
+    }
+
+    global_nb_fb_events_total = {
+        "name" : "fb_events_total",
+        "content" : stats["fb_events_total"]
+    }
+
+    global_new_users = {
+        "name" : "new_users",
+        "content" : stats["new_users"]
+    }
+
+    global_users_total = {
+        "name" : "users_total",
+        "content" : stats["users_total"]
+    }
+
+    global_new_invits = {
+        "name" : "new_invits",
+        "content" : stats["new_invits"]
+    }
+
+    global_total_invits = {
+        "name" : "total_invits",
+        "content" : stats["total_invits"]
+    }
+
+    global_photos_new = {
+        "name" : "photos_new",
+        "content" : stats["photos_new"]
+    }
+
+    global_photos_total = {
+        "name" : "photos_total",
+        "content" : stats["photos_total"]
+    }
+
+    global_time_spent = {
+        "name" : "time_spent",
+        "content" : time_spent
+    }
+
+    global_merge_vars.append(global_nb_new_moments)
+    global_merge_vars.append(global_nb_moments_total)
+    global_merge_vars.append(global_nb_fb_events)
+    global_merge_vars.append(global_nb_fb_events_total)
+    global_merge_vars.append(global_new_users)
+    global_merge_vars.append(global_users_total)
+    global_merge_vars.append(global_new_invits)
+    global_merge_vars.append(global_total_invits)
+    global_merge_vars.append(global_photos_new)
+    global_merge_vars.append(global_photos_total)
+    global_merge_vars.append(global_time_spent)
+
+
+
+    m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+
+
 
 
 #######################################
@@ -767,7 +850,6 @@ def update_moment_tag(update):
 	hashtag = update["object_id"]
 
 	moments = models.Moment.query.filter(models.Moment.hashtag == hashtag).all()
-	print len(moments)
 
 	#Instagram API
 	api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
@@ -778,8 +860,6 @@ def update_moment_tag(update):
 
 	for media in medias[0]:
 		photo.save_instagram_photo(media)
-		print media.user.full_name
-		print media.images["standard_resolution"].url
 
 
 	db.session.add(photo)
@@ -788,7 +868,6 @@ def update_moment_tag(update):
 	moments[0].photos.append(photo)
 	db.session.commit()
 
-	print hashtag
 
 
 
@@ -828,11 +907,9 @@ def phone_controll(phone):
 				return numero_tel
 
 			else:
-				print "Numéro invalide"
 				return numero_tel
 
 		except phonenumbers.phonenumberutil.NumberParseException:
-			print "Problème exception"
 			return numero_tel
 
 
@@ -840,8 +917,6 @@ def phone_controll(phone):
 
 	#Sinon on doit donner une localisation
 	else:
-		print "quelle localisation ?"
-
 		try:
 
 			number = phonenumbers.parse(phone, "FR")
@@ -855,12 +930,10 @@ def phone_controll(phone):
 				return numero_tel
 
 			else:
-				print "Numéro invalide"
 				return numero_tel
 
 
 		except phonenumbers.phonenumberutil.NumberParseException:
-			print "Problème exception"
 			return numero_tel
 
 ########
