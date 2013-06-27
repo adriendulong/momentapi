@@ -120,7 +120,7 @@ FROM_NAME = "Moment"
 INSCRIPTION_TEMPLATE = "Inscription_Moment"
 INVITATION_TEMPLATE = "invitation-event"
 INVITATION_PROSPECT_TEMPLATE = "invitation-event-prospect"
-NEW_PASS_TEMPLATE = "MDP_OUBLIE"
+NEW_PASS_TEMPLATE = "motdepasse-oublie-1"
 SINGLE_PHOTO_TEMPLATE = "template-photo-x1"
 REPORT_CRON = "reportcrontab"
 MULTIPLE_PHOTO_TEMPLATE = "template-photo-many"
@@ -159,4 +159,4 @@ else:
 ###########################
 ## MONTH OF THE YEAR ######
 ##########################
-MONTH_YEAR_FR = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"]
+MONTH_YEAR_FR = ["MONTH0", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"]
