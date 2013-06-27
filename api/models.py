@@ -3093,6 +3093,7 @@ class Stat(db.Model):
         stats["total_invits"] = self.nb_invitations_total
         stats["photos_new"] = self.nb_photos_today
         stats["photos_total"] = self.nb_photos_total
+        stats["date"] = self.date.strftime("%d/%m/%y")
 
         return stats
 

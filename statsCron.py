@@ -21,6 +21,11 @@ dest_adri = {
     "name" : "Adrien Dulong"
 }
 to_dests.append(dest_adri)
+dest_remi = {
+    "email" : "remi@appmoment.fr",
+    "name" : "Remi Bardoux"
+}
+to_dests.append(dest_remi)
 
 #Send the report
 fonctions.send_report_stats(to_dests, delta.seconds, s.get_stats())

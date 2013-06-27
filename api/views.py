@@ -9,7 +9,7 @@ from flask import session
 from flask.ext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin, AnonymousUser,
                             confirm_login, fresh_login_required)
-from api.models import User, Moment, Invitation, Prospect, Photo, Device, Chat, Notification, Feed
+from api.models import User, Moment, Invitation, Prospect, Photo, Device, Chat, Notification, Feed, Stat
 from itsdangerous import URLSafeSerializer
 import controller
 import constants
@@ -2928,6 +2928,32 @@ def moment_unique(unique_id):
         reponse["moment"] = moment.moment_to_send_ext()
         return jsonify(reponse), 200
 
+
+#############################################################
+############ REQUETE API STATS ############################
+#############################################################
+
+
+@app.route('/stats/<int:nb_day>', methods=["GET"])
+def stats(nb_day=10):
+    reponse = {}
+    reponse["stats"] = []
+
+    today = datetime.date.today()
+    firstday = today - datetime.timedelta(days=nb_day)
+
+    for i in range(nb_day):
+        print i
+        theDay = firstday + datetime.timedelta(days=i)
+        if theDay > today:
+            break
+
+        dayStat = Stat.query.filter(Stat.date == theDay).first()
+
+        if dayStat is not None:
+            reponse["stats"].append(dayStat.get_stats())
+
+    return jsonify(reponse), 200
 
 
 
