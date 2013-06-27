@@ -3087,6 +3087,8 @@ class Stat(db.Model):
         stats["nb_moments_total"] = self.nb_moments_total
         stats["fb_events"] = self.nb_events_fb_today
         stats["fb_events_total"] = self.nb_events_fb_total
+        stats["nb_events_day"] = self.nb_moments_today + self.nb_events_fb_today
+        stats["nb_events_total"] = self.nb_moments_total + self.nb_events_fb_total
         stats["new_users"] = self.nb_new_user_today
         stats["users_total"] = self.nb_user_total
         stats["new_invits"] = self.nb_invitations_today
