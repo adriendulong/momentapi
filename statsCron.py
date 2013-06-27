@@ -2,7 +2,7 @@ __author__ = 'adriendulong'
 
 from api.models import Stat
 from api import fonctions
-from api import db
+from api import db, app
 from datetime import datetime
 
 starttime = datetime.now()
@@ -27,5 +27,10 @@ dest_remi = {
 }
 to_dests.append(dest_remi)
 
+if app.config["TYPE"] == 0:
+    ENV = "DEV"
+elif app.config["TYPE"] == 1:
+    ENV = "PROD"
+
 #Send the report
-fonctions.send_report_stats(to_dests, delta.seconds, s.get_stats())
+fonctions.send_report_stats(to_dests, delta.seconds, ENV, s.get_stats())

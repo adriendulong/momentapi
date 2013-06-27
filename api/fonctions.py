@@ -747,7 +747,7 @@ def send_report_cron(to_dest, time_spent, nb_moment, nb_users):
 ## RAPPORT STATS
 #####
 
-def send_report_stats(to_dest, time_spent, stats):
+def send_report_stats(to_dest, time_spent, env, stats):
 
     m = Mail()
 
@@ -817,6 +817,11 @@ def send_report_stats(to_dest, time_spent, stats):
         "content" : time_spent
     }
 
+    global_env = {
+        "name" : "env",
+        "content" : env
+    }
+
     global_merge_vars.append(global_nb_new_moments)
     global_merge_vars.append(global_nb_moments_total)
     global_merge_vars.append(global_nb_fb_events)
@@ -828,6 +833,7 @@ def send_report_stats(to_dest, time_spent, stats):
     global_merge_vars.append(global_photos_new)
     global_merge_vars.append(global_photos_total)
     global_merge_vars.append(global_time_spent)
+    global_merge_vars.append(global_env)
 
 
 
