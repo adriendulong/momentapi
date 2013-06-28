@@ -546,8 +546,8 @@ def new_moment():
                 moment.create_paths()
 
 
-                if "photo_url" in request.form:
-                    moment.cover_picture_url = request.form["photo_url"]
+                if "cover_photo_url" in request.form:
+                    moment.cover_picture_url = request.form["cover_photo_url"]
                     db.session.commit()
 
 
