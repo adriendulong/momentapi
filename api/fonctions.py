@@ -283,8 +283,8 @@ def send_ios_simple_message(reg_id, message, nb_notif_unread):
     apns = APNs(use_sandbox=constants.SANDBOX, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
 
     #ON limite la taille du message
-    if len(message) > 200:
-        message = message[0:200]
+    if len(message) > 300:
+        message = message[0:300]
 
     # Send a notification
     token_hex = reg_id
