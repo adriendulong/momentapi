@@ -275,6 +275,27 @@ def send_ios_follower_notif(reg_id, message, id_user, nb_notif_unread):
 	    print token_hex
 	    print fail_time
 
+####
+## Send a simple message
+####
+
+def send_ios_simple_message(reg_id, message, nb_notif_unread):
+    apns = APNs(use_sandbox=constants.SANDBOX, cert_file=app.root_path+constants.CERT_PUSH, key_file=app.root_path+constants.KEY_PUSH)
+
+    #ON limite la taille du message
+    if len(message) > 200:
+        message = message[0:200]
+
+    # Send a notification
+    token_hex = reg_id
+    payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread+1)
+    apns.gateway_server.send_notification(token_hex, payload)
+
+
+    # Get feedback messages
+    for (token_hex, fail_time) in apns.feedback_server.items():
+        print token_hex
+        print fail_time
 
 
 
@@ -986,6 +1007,18 @@ def crossdomain(origin=None, methods=None, headers=None,
         f.provide_automatic_options = False
         return update_wrapper(wrapped_function, f)
     return decorator
+
+
+
+def send_push(phone_type, message):
+
+    allUsers = models.User.query.all()
+
+    for user in allUsers:
+        for device in user.devices:
+            if device.os == phone_type:
+                device.notify_simple_message(message)
+
 
 
 
