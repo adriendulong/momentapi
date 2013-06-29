@@ -2837,6 +2837,7 @@ class Device(db.Model):
             fonctions.send_ios_notif(moment.id, type_id, self.notif_id, message, nb_notif_unread)
 
     def notify_simple_message(self, message):
+        nb_notif_unread = user.nb_notif_unread()
         thread.start_new_thread(fonctions.send_ios_simple_message, (self.notif_id, message, nb_notif_unread, ))
 
 
