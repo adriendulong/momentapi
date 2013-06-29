@@ -1017,6 +1017,7 @@ def send_push(phone_type, message):
     for user in allUsers:
         for device in user.devices:
             if device.os == phone_type:
+                print device.device_id
                 device.notify_simple_message(message)
 
 
