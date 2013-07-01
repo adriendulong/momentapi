@@ -1900,7 +1900,9 @@ class Moment(db.Model):
     #Remove from S3 the cover file
     def delete_cover_file(self):
         s3 = S3()
-        s3.delete_file(self.cover_picture_path)
+
+        if self.cover_picture_path is not None:
+            s3.delete_file(self.cover_picture_path)
 
 
     def modify_cover_photo(self, f):
@@ -2730,8 +2732,10 @@ class Photo(db.Model):
 
         s3 = S3()
 
-        s3.delete_file(self.path_original)
-        s3.delete_file(self.path_thumbnail)
+        if self.path_original is not None:
+            s3.delete_file(self.path_original)
+        if self.path_thumbnail is not None:
+            s3.delete_file(self.path_thumbnail)
 
         '''
         if os.path.exists(self.path_original):

@@ -350,7 +350,7 @@ def send_inscrption_mail(firstname, lastname, mail):
 
 	m = Mail()
 
-	subject = "Confirmation Inscrption"
+	subject = "Confirmation Inscription"
 
 	template_name = constants.INSCRIPTION_TEMPLATE
 
