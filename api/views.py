@@ -1824,25 +1824,28 @@ def photos_moment(moment_id):
 @login_required
 def photos_user(user_id):
 	#On créé la réponse qui sera envoyé
-	reponse = {}
-	reponse["photos"] = []
-	
-	#On recupere le moment en question
-	user = User.query.get(user_id)
+    reponse = {}
+    reponse["photos"] = []
 
-	if user is not None:
+    #On recupere le moment en question
+    user = User.query.get(user_id)
 
-		for photo in user.photos:
-			if photo.moment.privacy==constants.PUBLIC:
-				reponse["photos"].append(photo.photo_to_send())
+    if user is not None:
 
-		return jsonify(reponse), 200
-		
-		
+        for photo in user.photos:
+            if photo.moment.privacy==constants.PUBLIC:
+                reponse["photos"].append(photo.photo_to_send())
+            elif photo.moment.privacy==constants.OPEN:
+                if current_user.is_following(user):
+                    reponse["photos"].append(photo.photo_to_send())
 
-	else:
-		reponse["error"] = "This user does not exist"
-		return jsonify(reponse), 405
+        return jsonify(reponse), 200
+
+
+
+    else:
+        reponse["error"] = "This user does not exist"
+        return jsonify(reponse), 405
 
 
 
