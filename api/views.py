@@ -1655,16 +1655,19 @@ def users_in_moment():
 @login_required
 def favoris():
 	#On créé la réponse qui sera envoyé
-	reponse = {}
-	reponse["favoris"] = []
+    reponse = {}
+    reponse["favoris"] = []
 
-	#On parcourt les favoris du user
-	for fav in current_user.favoris:
-		#Si le favoris a le score suffisant
-		if fav.score > 5:
-			reponse["favoris"].append(fav.the_favoris.user_to_send())
+    #On parcourt les favoris du user
+    for fav in current_user.favoris:
+        #Si le favoris a le score suffisant
+        if fav.score > 5:
+            reponse["favoris"].append(fav.the_favoris.user_to_send())
 
-	return jsonify(reponse), 200
+    for user in current_user.follows:
+        reponse["favoris"].append(user.user_to_send())
+
+    return jsonify(reponse), 200
 
 
 
