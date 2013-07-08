@@ -2800,7 +2800,7 @@ class Device(db.Model):
     def notify_simple(self, moment, type_id, titre, message, user):
         #C'est un Android
         if self.os==1:
-            thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
+            thread.start_new_thread( fonctions.send_message_device_invit, (self.notif_id, titre, message, type_id, moment.id,) )
         #C'est un iPhone
         if self.os == 0:
             nb_notif_unread = user.nb_notif_unread()
@@ -2811,7 +2811,7 @@ class Device(db.Model):
         #C'est un Android
         if self.os==1:
 
-            thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
+            thread.start_new_thread( fonctions.send_message_device_chat, (self.notif_id, titre, message, type_id, moment.id, chat.id, ) )
         #C'est un iPhone
         if self.os == 0:
             #On recupere le nb de notif du user
@@ -2822,9 +2822,8 @@ class Device(db.Model):
 
     def notify_new_follower(self, titre, message, follower):
         #C'est un Android
-        if self.os==1:
-
-            thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
+        #if self.os==1:
+            #thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
         #C'est un iPhone
         if self.os == 0:
             nb_notif_unread = self.user.nb_notif_unread()
@@ -2834,7 +2833,7 @@ class Device(db.Model):
     def notify_from_cron(self, moment, type_id, titre, message, user):
         #C'est un Android
         if self.os==1:
-            thread.start_new_thread( fonctions.send_message_device, (self.notif_id, titre, message,) )
+            thread.start_new_thread( fonctions.send_message_device_invit, (self.notif_id, titre, message, type_id, moment.id) )
         #C'est un iPhone
         if self.os == 0:
             nb_notif_unread = user.nb_notif_unread()

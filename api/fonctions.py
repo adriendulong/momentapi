@@ -168,19 +168,50 @@ def random_pass():
 	return identifier
 
 
+
+#######################################
+#######################################
+###### NOTIFICATIONS ANDROID ###########
+#######################################
+#######################################
+
+
+
 def send_message_device(reg_id, titre, message):
-	gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
-	data = {'titre': titre, 'message': message}
+    gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
+    data = {'titre': titre, 'message': message}
 
-	# Plaintext request
-	gcm.plaintext_request(registration_id=reg_id, data=data)
+    # Plaintext request
+    gcm.plaintext_request(registration_id=reg_id, data=data)
+
+def send_message_device_chat(reg_id, titre, message, type_notif, moment_id, chat_id):
+    gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
+    data = {'titre': titre, 'message': message, "type_notif":type_notif, "moment_id": moment_id, "chat_id":chat_id}
+
+    # Plaintext request
+    gcm.plaintext_request(registration_id=reg_id, data=data)
+
+def send_message_device_photo(reg_id, titre, message, type_notif, moment_id, photo_id):
+    gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
+    data = {'titre': titre, 'message': message, "type_notif":type_notif, "moment_id": moment_id, "photo_id":photo_id}
+
+    # Plaintext request
+    gcm.plaintext_request(registration_id=reg_id, data=data)
+
+def send_message_device_invit(reg_id, titre, message, type_notif, moment_id):
+    gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
+    data = {'titre': titre, 'message': message, "type_notif":type_notif, "moment_id": moment_id}
+
+    # Plaintext request
+    gcm.plaintext_request(registration_id=reg_id, data=data)
+
 
 
 
 
 #######################################
 #######################################
-########## NOTIFICATIONS ##############
+########## NOTIFICATIONS IOS ##############
 #######################################
 #######################################
 
@@ -266,7 +297,7 @@ def send_ios_follower_notif(reg_id, message, id_user, nb_notif_unread):
 
 	# Send a notification
 	token_hex = reg_id
-	payload = Payload(alert=unicode(message, "utf-8"), sound="default", badge=nb_notif_unread, custom={'type_id': userConstants.NEW_FOLLOWER, 'user_id' : id_user})
+	payload = Payload(alert=message, sound="default", badge=nb_notif_unread, custom={'type_id': userConstants.NEW_FOLLOWER, 'user_id' : id_user})
 	apns.gateway_server.send_notification(token_hex, payload)
 
 
