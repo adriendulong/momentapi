@@ -140,8 +140,8 @@ INSTAGRAM_CALLBACK_URL = "http://api.appmoment.fr/updateinstagram/tag"
 ######################
 ## PUSH CERTIFICATE ##
 ######################
-DEV_CERT = "/pushCertificates/dev/MomentCert.pem"
-DEV_KEY = "/pushCertificates/dev/MomentKey.pem"
+DEV_CERT = "/pushCertificates/dev/PushDevMomentCert.pem"
+DEV_KEY = "/pushCertificates/dev/PushDevMomentKey.pem"
 PROD_CERT = "/pushCertificates/prod/MomentCert.pem"
 PROD_KEY = "/pushCertificates/prod/MomentKey.pem"
 
