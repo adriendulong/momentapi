@@ -1839,7 +1839,9 @@ def photos_user(user_id):
     if user is not None:
 
         for photo in user.photos:
-            if photo.moment.privacy==constants.PUBLIC:
+            if user.id == current_user.id:
+                reponse["photos"].append(photo.photo_to_send())
+            elif photo.moment.privacy==constants.PUBLIC:
                 reponse["photos"].append(photo.photo_to_send())
             elif photo.moment.privacy==constants.OPEN:
                 if current_user.is_following(user):
