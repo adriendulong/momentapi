@@ -180,30 +180,34 @@ def random_pass():
 def send_message_device(reg_id, titre, message):
     gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
     data = {"data":[{'titre': titre, 'message': message}]}
+    reg_ids = [reg_id]
 
-    # Plaintext request
-    gcm.plaintext_request(registration_id=reg_id, data=data)
+    # JSON request
+    gcm.json_request(registration_ids=reg_ids, data=data)
 
 def send_message_device_chat(reg_id, titre, message, type_notif, moment_id, chat_id):
     gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
     data = {"data":[{'titre': titre, 'message': message, "type_notif":type_notif, "moment_id": moment_id, "chat_id":chat_id}]}
+    reg_ids = [reg_id]
 
-    # Plaintext request
-    gcm.plaintext_request(registration_id=reg_id, data=data)
+    # JSON request
+    gcm.json_request(registration_ids=reg_ids, data=data)
 
 def send_message_device_photo(reg_id, titre, message, type_notif, moment_id, photo_id):
     gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
     data = {"data":[{'titre': titre, 'message': message, "type_notif":type_notif, "moment_id": moment_id, "photo_id":photo_id}]}
+    reg_ids = [reg_id]
 
-    # Plaintext request
-    gcm.plaintext_request(registration_id=reg_id, data=data)
+    # JSON request
+    gcm.json_request(registration_ids=reg_ids, data=data)
 
 def send_message_device_invit(reg_id, titre, message, type_notif, moment_id):
     gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
     data = {"data":[{'titre': titre, 'message': message, "type_notif":type_notif, "moment_id": moment_id}]}
+    reg_ids = [reg_id]
 
-    # Plaintext request
-    gcm.plaintext_request(registration_id=reg_id, data=data)
+    # JSON request
+    gcm.json_request(registration_ids=reg_ids, data=data)
 
 
 
