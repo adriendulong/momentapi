@@ -496,6 +496,9 @@ def new_moment():
                 facebookId = request.form["facebookId"]
                 moment.facebookId = facebookId
 
+                #Facebook events are openInvit
+                moment.isOpenInvit = True
+
 
                 #On rajoute le user en invité
                 moment.add_guest(current_user.id, request.form["state"])
