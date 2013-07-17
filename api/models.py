@@ -1242,6 +1242,7 @@ class User(db.Model):
             hasConnected = False
             nb_chats = len(moment.chats)
 
+            '''
             if nb_chats > 1:
                 last_connection = self.lastConnection
                 lastchatTime = moment.chats[nb_chats-2].time
@@ -1259,13 +1260,13 @@ class User(db.Model):
                     for device in self.devices:
                         device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
 
-            else:
-                #Titre de la notif
-                title = "Nouveau Message de %s" % (chat.user.firstname)
-                contenu = "%s : %s" % (chat.user.firstname, chat.message)
+            else:'''
+            #Titre de la notif
+            title = "Nouveau Message de %s" % (chat.user.firstname)
+            contenu = "%s : %s" % (chat.user.firstname, chat.message)
 
-                for device in self.devices:
-                    device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
+            for device in self.devices:
+                device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
 
 
 
