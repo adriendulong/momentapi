@@ -1153,7 +1153,6 @@ def new_guests(idMoment):
                                     prospect.init_from_dict(user)
                                     moment.prospects.append(prospect)
                                     count += 1
-                                    print "Nouveau prospect"
                                     moment_prospects.append(prospect)
 
                                 #Le prospect existe
@@ -1161,7 +1160,6 @@ def new_guests(idMoment):
                                     prospect.update(user)
                                     if moment.add_prospect(prospect):
                                         count += 1
-                                        print "Prospect déjà là"
                                         moment_prospects.append(prospect)
 
                             #Si il esicte on le recupere
@@ -1174,7 +1172,6 @@ def new_guests(idMoment):
 
                                     #On rajoute ce user à la liste des invités
                                     moment_guests.append(moment_user)
-                                    print "Déhà connu"
 
 
                 #On enregistre en base
