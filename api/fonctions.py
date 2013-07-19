@@ -567,7 +567,7 @@ def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_ur
 
 
 
-    m.send_template(subject, template_name, template_args, to_dest, global_merge_vars)
+    m.send_template_with_from_name(subject, user_name, template_name, template_args, to_dest, global_merge_vars)
 
 
 
