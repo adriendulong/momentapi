@@ -417,7 +417,7 @@ def send_invitation_mail(to_dest, moment_name, user_infos, moment_url, descripti
     m = Mail()
 
     contenu = unicode('vous invite à','utf-8')
-    subject = "%s %s '%s'" % (user_infos["firstname"], contenu, moment_name)
+    subject = "%s" % (moment_name)
 
     template_name = constants.INVITATION_TEMPLATE
 
@@ -502,7 +502,7 @@ def send_invitation_to_prospect_mail(to_dest, moment_name, user_infos, moment_ur
     m = Mail()
 
     contenu = unicode('vous invite à','utf-8')
-    subject = "%s %s '%s'" % (user_infos["firstname"], contenu, moment_name)
+    subject = "%s" % (moment_name)
 
     template_name = constants.INVITATION_PROSPECT_TEMPLATE
 
