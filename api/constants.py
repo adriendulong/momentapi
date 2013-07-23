@@ -60,7 +60,10 @@ TEMP_PATH = "/static/data/tmp"
 
 UNIQUE_PHOTO_URL = "/p/"
 
-UNIQUE_MOMENT_URL = "/mo/"
+if app.config["TYPE"] == 0:
+    UNIQUE_MOMENT_URL = "/dev/mo/"
+elif app.config["TYPE"] == 1:
+    UNIQUE_MOMENT_URL = "/mo/"
 
 #Nombre de chat par page
 CHATS_PAGINATION = 20
