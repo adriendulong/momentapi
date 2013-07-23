@@ -61,7 +61,7 @@ TEMP_PATH = "/static/data/tmp"
 UNIQUE_PHOTO_URL = "/p/"
 
 if app.config["TYPE"] == 0:
-    UNIQUE_MOMENT_URL = "/dev/mo/"
+    UNIQUE_MOMENT_URL = "/devmo/"
 elif app.config["TYPE"] == 1:
     UNIQUE_MOMENT_URL = "/mo/"
 
