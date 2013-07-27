@@ -1665,7 +1665,7 @@ def favoris():
     #On parcourt les favoris du user
     for fav in current_user.favoris:
         #Si le favoris a le score suffisant
-        if fav.score > 5:
+        if fav.score > constants.FAVORITE:
             reponse["favoris"].append(fav.the_favoris.user_to_send())
             user_ids.append(fav.the_favoris.id)
 
@@ -2299,91 +2299,90 @@ def privacy_moment(id_moment):
 @app.route('/search/<search>', methods=["GET"])
 @login_required
 def search(search):
-	reponse = {}
+    reponse = {}
 
 
-	########
-	## Recherche des Users
-	########
+    ########
+    ## Recherche des Users
+    ########
 
-	#On recherche des user dont le prénom ou le nom corresponde
-	#Pour les noms on decompose car la premiere partie correspondra à nom ou prénom et l'autre à nom ou prenom
+    #On recherche des user dont le prénom ou le nom corresponde
+    #Pour les noms on decompose car la premiere partie correspondra à nom ou prénom et l'autre à nom ou prenom
 
-	decSearch = search.split(" ", 2)
+    decSearch = search.split(" ", 2)
 
+    '''
+    #Si le texte est composé d'un seul mot
+    if len(decSearch)==1:
 
-	#Si le texte est composé d'un seul mot
-	if len(decSearch)==1:
+        #on recupere d'abord les users qu'il follow
+        usersPerso = []
 
-		#on recupere d'abord les users qu'il follow
-		usersPerso = []
+        for user in current_user.follows:
+            if user.firstname.lower().startswith(decSearch[0].lower()):
+                usersPerso.append(user)
+            elif user.lastname.lower().startswith(decSearch[0].lower()):
+                usersPerso.append(user)
 
-		for user in current_user.follows:
-			if user.firstname.lower().startswith(decSearch[0].lower()):
-				usersPerso.append(user)
-			elif user.lastname.lower().startswith(decSearch[0].lower()):
-				usersPerso.append(user)
-
-		#Puis les users autres classé par gd nb de followers et limité à 20
-		users = User.query.filter(and_(or_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[0]+"%")), User.privacy != userConstants.CLOSED)).limit(20).all()
-
-
-	#Sinon on peut avoir nom et prenom
-	else:
-		#on recupere d'abord les users qu'il follow
-		usersPerso = []
-
-		for user in current_user.follows:
-			if user.firstname.lower().startswith(decSearch[0].lower()) and user.lastname.lower().startswith(decSearch[1].lower()):
-				usersPerso.append(user)
-			elif user.lastname.lower().startswith(decSearch[0].lower()) and user.firstname.lower().startswith(decSearch[1].lower()):
-				usersPerso.append(user)
+        #Puis les users autres classé par gd nb de followers et limité à 20
+        users = User.query.filter(and_(or_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[0]+"%")), User.privacy != userConstants.CLOSED)).limit(20).all()
 
 
-		users = User.query.filter(and_(or_(and_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[1]+"%")), and_(User.lastname.ilike(decSearch[0]+"%"), User.firstname.ilike(decSearch[1]+"%"))), User.privacy != userConstants.CLOSED)).limit(20).all()
+    #Sinon on peut avoir nom et prenom
+    else:
+        #on recupere d'abord les users qu'il follow
+        usersPerso = []
+
+        for user in current_user.follows:
+            if user.firstname.lower().startswith(decSearch[0].lower()) and user.lastname.lower().startswith(decSearch[1].lower()):
+                usersPerso.append(user)
+            elif user.lastname.lower().startswith(decSearch[0].lower()) and user.firstname.lower().startswith(decSearch[1].lower()):
+                usersPerso.append(user)
 
 
-	#On envoie tous les users trouvés
-	reponse["users"] = []
-
-	#On met d'abord les user qui sont suivis
-	for user in usersPerso:
-		reponse["users"].append(user.user_to_send_social(current_user))
+        users = User.query.filter(and_(or_(and_(User.firstname.ilike(decSearch[0]+"%"), User.lastname.ilike(decSearch[1]+"%")), and_(User.lastname.ilike(decSearch[0]+"%"), User.firstname.ilike(decSearch[1]+"%"))), User.privacy != userConstants.CLOSED)).limit(20).all()
 
 
-	#Puis les autres
-	for user in users:
-		if not current_user.is_following(user):
-			reponse["users"].append(user.user_to_send_social(current_user))
+    #On envoie tous les users trouvés
+    reponse["users"] = []
+
+    #On met d'abord les user qui sont suivis
+    for user in usersPerso:
+        reponse["users"].append(user.user_to_send_social(current_user))
 
 
-	#######
-	## REcherche des moments persos
-	######
+    #Puis les autres
+    for user in users:
+        if not current_user.is_following(user):
+            reponse["users"].append(user.user_to_send_social(current_user))
+    '''
+    #######
+    ## REcherche des moments persos
+    ######
 
-	reponse["user_moments"] = []
-	momentsPerso = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== current_user.id).filter(Moment.name.ilike("%"+search+"%")).order_by(Moment.startDate.asc()).all()
+    reponse["user_moments"] = []
+    momentsPerso = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== current_user.id).filter(Moment.name.ilike("%"+search+"%")).order_by(Moment.startDate.asc()).all()
 
-	for moment in momentsPerso:
-		reponse["user_moments"].append(moment.moment_to_send(current_user.id))
-
-
-	#######
-	## Recherche des moments publics
-	######
-
-	reponse["public_moments"] = []
-	momentsPublic = Moment.query.filter(and_(Moment.name.ilike("%"+search+"%"), Moment.privacy == constants.PUBLIC)).all()
-
-	for moment in momentsPublic:
-		if not moment.is_in_guests(current_user.id):
-			reponse["public_moments"].append(moment.moment_to_send(current_user.id))
+    for moment in momentsPerso:
+        reponse["user_moments"].append(moment.moment_to_send(current_user.id))
 
 
+    #######
+    ## Recherche des moments publics
+    ######
+
+    reponse["public_moments"] = []
+    momentsPublic = Moment.query.filter(and_(Moment.name.ilike("%"+search+"%"), Moment.privacy == constants.PUBLIC)).all()
+
+    for moment in momentsPublic:
+        if not moment.is_in_guests(current_user.id):
+            reponse["public_moments"].append(moment.moment_to_send(current_user.id))
 
 
+    print "coucou"
 
-	return jsonify(reponse), 200
+
+    return jsonify(reponse), 200
 
 
 

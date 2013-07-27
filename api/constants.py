@@ -163,3 +163,9 @@ else:
 ## MONTH OF THE YEAR ######
 ##########################
 MONTH_YEAR_FR = ["MONTH0", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"]
+
+
+########################################
+### Score before to be among favorites #########
+########################################
+FAVORITE = 2
