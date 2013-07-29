@@ -2924,7 +2924,8 @@ def photo_unique(unique_id):
 #############################################################
 
 
-@app.route('/mo/<unique_id>/<with_photos>', methods=["GET"])
+@app.route('/mo/<unique_id>/<int:with_photos>', methods=["GET"])
+@app.route('/mo/<unique_id>', methods=["GET"])
 @fonctions.crossdomain(origin='*')
 def moment_unique(unique_id, with_photos = 0):
     reponse = {}
@@ -2937,7 +2938,7 @@ def moment_unique(unique_id, with_photos = 0):
     else:
         reponse["moment"] = moment.moment_to_send_ext()
         if with_photos == 1:
-            photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
+            photos = Photo.query.filter(Photo.moment_id == moment.id).order_by(desc(Photo.creation_datetime)).all()
             reponse["photos"] = []
             for photo in photos:
                 reponse["photos"].append(photo.photo_to_send())
