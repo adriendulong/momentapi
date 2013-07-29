@@ -2379,9 +2379,6 @@ def search(search):
             reponse["public_moments"].append(moment.moment_to_send(current_user.id))
 
 
-    print "coucou"
-
-
     return jsonify(reponse), 200
 
 
@@ -2927,9 +2924,9 @@ def photo_unique(unique_id):
 #############################################################
 
 
-@app.route('/mo/<unique_id>', methods=["GET"])
+@app.route('/mo/<unique_id>/<with_photos>', methods=["GET"])
 @fonctions.crossdomain(origin='*')
-def moment_unique(unique_id):
+def moment_unique(unique_id, with_photos = 0):
     reponse = {}
 
     moment = Moment.query.filter(Moment.unique_code == unique_id).first()
@@ -2939,7 +2936,15 @@ def moment_unique(unique_id):
         return jsonify(reponse), 405
     else:
         reponse["moment"] = moment.moment_to_send_ext()
+        if with_photos == 1:
+            photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
+            reponse["photos"] = []
+            for photo in photos:
+                reponse["photos"].append(photo.photo_to_send())
+
+
         return jsonify(reponse), 200
+
 
 
 #############################################################
