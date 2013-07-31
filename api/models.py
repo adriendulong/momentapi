@@ -488,7 +488,7 @@ class User(db.Model):
             #Si on a recupÃ©rÃ© des moments
             if len(moments) > 0:
 
-                last_moment = moments[0]
+                last_moment = moments[len(moments)-1]
 
                 #Si il y en a on recupere aussi les moments de la derniere journÃ©e
                 moments_day = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate == last_moment.startDate).order_by(Moment.startDate.desc()).all()
