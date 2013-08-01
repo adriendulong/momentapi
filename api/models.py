@@ -26,32 +26,32 @@ invitations_prospects = db.Table('invitations_prospect',
 )
 
 
-likes_table = db.Table('likes', 
+likes_table = db.Table('likes',
     db.Column('photo_id', db.Integer, db.ForeignKey('photo.id')),
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
 )
 
-followers_table = db.Table("followers_table", 
+followers_table = db.Table("followers_table",
     db.Column("follower_id", db.Integer, db.ForeignKey("user.id"), primary_key=True),
     db.Column("followed_id", db.Integer, db.ForeignKey("user.id"), primary_key=True)
 )
 
-waiting_followers_table = db.Table("waiting_followers_table", 
+waiting_followers_table = db.Table("waiting_followers_table",
     db.Column("follower_id", db.Integer, db.ForeignKey("user.id"), primary_key=True),
     db.Column("followed_id", db.Integer, db.ForeignKey("user.id"), primary_key=True)
 )
 
-feed_photos = db.Table("feed_photos", 
+feed_photos = db.Table("feed_photos",
     db.Column("feed", db.Integer, db.ForeignKey("feed.id"), primary_key=True),
     db.Column("photo", db.Integer, db.ForeignKey("photo.id"), primary_key=True)
 )
 
-feed_chats = db.Table("feed_chats", 
+feed_chats = db.Table("feed_chats",
     db.Column("feed", db.Integer, db.ForeignKey("feed.id"), primary_key=True),
     db.Column("chat", db.Integer, db.ForeignKey("chat.id"), primary_key=True)
 )
 
-feed_follows = db.Table("feed_follows", 
+feed_follows = db.Table("feed_follows",
     db.Column("feed", db.Integer, db.ForeignKey("feed.id"), primary_key=True),
     db.Column("user", db.Integer, db.ForeignKey("user.id"), primary_key=True)
 )
@@ -68,7 +68,7 @@ class Favoris(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     favoris_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
 
-    
+
     score = db.Column(db.Integer)
 
     def __init__(self, user):
@@ -136,7 +136,7 @@ class Notification(db.Model):
     #Definit si la notif est en cours ou si elle est passÃ©e dans l'historique (False)
     is_active = db.Column(db.Boolean, default=True)
 
-    
+
 
 
     def __init__(self, concerned, user, type_notif):
@@ -217,7 +217,7 @@ class Feed(db.Model):
         reponse["user"] = self.followed.user_to_send()
         reponse["time"] = self.time.strftime("%s")
         reponse["type_action"] = self.type_action
-        
+
 
         if self.type_action == userConstants.ACTION_PHOTO:
             reponse["photos"] = []
@@ -242,7 +242,7 @@ class Feed(db.Model):
 
         else:
             reponse["moment"] = self.moment.moment_to_send_short()
-            
+
 
         return reponse
 
@@ -362,14 +362,14 @@ class User(db.Model):
           return -1
         elif self.id > other.id:
           return 1
-        else: return 0 
+        else: return 0
 
 
     def __repr__(self):
         return '<User %r>' % self.email
 
 
-    #Fonction qui renvoit les nb_moments futurs du user 
+    #Fonction qui renvoit les nb_moments futurs du user
     def get_moments(self, nb_moments):
 
         moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.email== self.email).limit(nb_moments).all()
@@ -402,7 +402,7 @@ class User(db.Model):
             thread.start_new_thread( fonctions.send_new_pass_mail, (to_dests, new_pass,) )
 
 
-        
+
 
         db.session.commit()
 
@@ -431,7 +431,7 @@ class User(db.Model):
                     if not isPresent:
                         moments.append(moment)
 
-            
+
         else:
             moments = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== self.id).filter(Moment.startDate > date).order_by(Moment.startDate.asc()).limit(nb_moments).all()
 
@@ -507,7 +507,7 @@ class User(db.Model):
 
     #Fonction qui met en forme un user pour le renvoyÃ©
     def user_to_send(self):
-        
+
         user = {}
 
         # Valeurs obligatoire donc toujours prÃ©sentes
@@ -554,7 +554,7 @@ class User(db.Model):
         user_to_send["request_follow_me"] = False
         user_to_send["privacy"] = self.privacy
 
-        
+
 
         #On pourcours les gens qui suivent ce user pour voir si y en a un qui correpond au user connectÃ©
         for follow in user.follows:
@@ -575,13 +575,13 @@ class User(db.Model):
                 if waitingFollow.id == user.id:
                     user_to_send["request_follow_me"] = True
 
-                
+
 
         return user_to_send
-                
 
 
-        
+
+
 
 
 
@@ -648,7 +648,7 @@ class User(db.Model):
 
     #fonctions qui crÃ©Ã© un favoris si il n'existe pas, ou increment son score si il existe
     def increment_favoris(self, user, score):
-        
+
         #On regarde si c'est dÃ©jÃ  un favoris
         for favoris_user in self.favoris:
             #Si on le trouve on augmente son score
@@ -657,7 +657,7 @@ class User(db.Model):
                 return True
 
 
-        #Sinon on en crÃ©Ã© un nouveau 
+        #Sinon on en crÃ©Ã© un nouveau
         new_fav = Favoris(user)
         new_fav.score += score
         self.favoris.append(new_fav)
@@ -829,7 +829,7 @@ class User(db.Model):
 
         else:
             return False
-                
+
 
 
     ####
@@ -975,7 +975,7 @@ class User(db.Model):
 
         #On crÃ©Ã© l'invitation qui le lie Ã  ce Moment
         # Il est owner, donc state Ã  0
-        invitation = Invitation(userConstants.OWNER, self) 
+        invitation = Invitation(userConstants.OWNER, self)
 
         #On ratache cette invitations aux guests du nouveau Moment
         moment.guests.append(invitation)
@@ -1230,7 +1230,7 @@ class User(db.Model):
         else:
             notif.time = datetime.datetime.now()
 
-        
+
 
         ##
         ## PUSH NOTIF
@@ -1291,7 +1291,7 @@ class User(db.Model):
         else:
             notif.time = datetime.datetime.now()
 
-        
+
 
         ##
         ## PUSH NOTIF
@@ -1356,13 +1356,13 @@ class User(db.Model):
     def notify_new_follower(self, follower):
 
         notification = Notification(follower, self, userConstants.NEW_FOLLOWER)
-        
+
         #On enregistre en base
         db.session.add(notification)
         db.session.commit()
         #On enregistre la notif en base (si pas dÃ©jÃ  n'existe pas dÃ©jÃ  pour ce moment)
 
-        
+
 
         ##
         ## PUSH NOTIF
@@ -1385,12 +1385,12 @@ class User(db.Model):
     def notify_new_request(self, follower):
 
         notification = Notification(follower, self, userConstants.NEW_REQUEST)
-        
+
         #On enregistre en base
         db.session.add(notification)
         db.session.commit()
 
-        
+
 
         ##
         ## PUSH NOTIF
@@ -1518,7 +1518,7 @@ class User(db.Model):
     #Fonction qui va recuperer les actus de tous les users suivis et va construire la suite du feed
     def update_feed(self):
 
-        #On parcours l'actualitÃ© de tous les follows 
+        #On parcours l'actualitÃ© de tous les follows
         for follow in self.follows:
             #On recupere les actus de ce user qui sont sup Ã  last_feed_update
             actus = Actu.query.filter(and_(Actu.time > self.last_feed_update, Actu.user_id == follow.id)).all()
@@ -1595,9 +1595,9 @@ class User(db.Model):
                     feed = Feed(actu.time, actu.user, actu.type_action, actu.moment_id)
                     db.session.add(feed)
                     feedsFollow.append(feed)
-                
-                
-                #Actu de type : a suivi quelqu'un 
+
+
+                #Actu de type : a suivi quelqu'un
                 elif actu.type_action == userConstants.ACTION_FOLLOW:
 
                     #Boolean pour savoir si on rajoute Ã  un feed ou en crÃ©Ã© un
@@ -1616,7 +1616,7 @@ class User(db.Model):
                             for follow in feedFollow.follows:
                                 if follow.id == actu.follow.id:
                                     already_follow = True
-                                    
+
                             #Si c est pas le cas on le rajoute
                             if not already_follow:
                                 feedFollow.follows.append(actu.follow)
@@ -1631,8 +1631,8 @@ class User(db.Model):
                         db.session.add(feed)
                         #On le rajoute Ã  la liste des feed
                         feedsFollow.append(feed)
-                        
-                
+
+
 
             #On ajoute les feeds qu'on a construit dans les feeds du user
             self.feeds.extend(feedsFollow)
@@ -1644,11 +1644,11 @@ class User(db.Model):
         #On sauvegarde
         db.session.commit()
 
-        
 
 
 
-        
+
+
 
 
 
@@ -1751,13 +1751,13 @@ class Moment(db.Model):
         moment["privacy"] = self.privacy
         if self.unique_code is not None:
             moment["unique_url"] = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
-        
+
         if self.description is not None:
             moment["description"] = self.description
 
         if self.placeInformations is not None:
             moment["placeInformations"] = self.placeInformations
-        
+
         if self.hashtag is not None:
             moment["hashtag"] = self.hashtag
 
@@ -1772,6 +1772,11 @@ class Moment(db.Model):
 
         if self.cover_picture_url is not None:
             moment["cover_photo_url"] = self.cover_picture_url
+
+        if self.photos is not None:
+            moment["nb_photos"] = len(self.photos)
+        else:
+            moment["nb_photos"] = 0
 
 
         #On recupere le Owner
@@ -1789,7 +1794,7 @@ class Moment(db.Model):
                 #Si il y en a bien un
                 if ownerProspect is not None:
                     moment["owner"] = ownerProspect.prospect_to_send()
-                   
+
 
         #Si il est sponsorisÃ©
         moment["is_sponso"] = self.is_sponso
@@ -1959,7 +1964,7 @@ class Moment(db.Model):
 
 
     # Fonction qui rajoute un user en invitÃ©
-    # Renvoit True si rajoutÃ© correctement 
+    # Renvoit True si rajoutÃ© correctement
     # False sinon
     def add_guest(self, user_id, state):
 
@@ -1981,7 +1986,7 @@ class Moment(db.Model):
 
 
     # Fonction qui rajoute un user en invitÃ© Ã  partir d'un objet user
-    # Renvoit True si rajoutÃ© correctement 
+    # Renvoit True si rajoutÃ© correctement
     # False sinon
     def add_guest_user(self, user, user_inviting, state):
 
@@ -1993,7 +1998,7 @@ class Moment(db.Model):
 
                 #On le notifie (dans un thread different pour pas ralentir la requete)
                 user.notify_new_moment(self, user_inviting)
-                
+
 
 
                 #ON increment egalement leur compteur favoris respectif
@@ -2176,7 +2181,7 @@ class Moment(db.Model):
     #Fonction qui prend en charge de notifier tout le monde qu'il y a un nouveau message
     def notify_users_new_chat(self, chat):
 
-        #La liste des destinataires Ã  qui on va envoyer un mail 
+        #La liste des destinataires Ã  qui on va envoyer un mail
         to_dests = []
 
         for guest in self.guests:
@@ -2274,7 +2279,7 @@ class Moment(db.Model):
                     "email" : guest.email,
                     "name" : "%s %s" % (guest.firstname, guest.lastname)
                 }
-                
+
 
                 to_dests.append(dest)
 
@@ -2442,7 +2447,7 @@ class Prospect(db.Model):
 
 
 
-    #On update les champs 
+    #On update les champs
     def update(self, user):
 
         #Si le mail n'est pas remplie
@@ -2453,7 +2458,7 @@ class Prospect(db.Model):
                 self.email = user["email"]
 
 
-        #Si le secondEmail n'est pas rempli 
+        #Si le secondEmail n'est pas rempli
         if self.secondEmail is None:
 
             #Si le premier email n'est pas le meme que celui enregistrÃ©
@@ -2480,7 +2485,7 @@ class Prospect(db.Model):
                     phone = fonctions.phone_controll(user["phone"])
                     self.phone = phone["number"]
 
-         #Si le secondPhone n'est pas rempli 
+         #Si le secondPhone n'est pas rempli
         if self.secondPhone is None:
 
             #Si le premier email n'est pas le meme que celui enregistrÃ©
@@ -2597,7 +2602,7 @@ class Photo(db.Model):
         moment.photos.append(self)
         user.photos.append(self)
 
-        
+
         ######################
         ####### THUMBNAIL #####
         #######################
@@ -2845,7 +2850,7 @@ class Device(db.Model):
         thread.start_new_thread(fonctions.send_ios_simple_message, (self.notif_id, message, nb_notif_unread, ))
 
 
-            
+
 
 
 
@@ -2878,8 +2883,8 @@ class Chat(db.Model):
 
         #Si l'evÃ¨nement est PUBLIC ou OPEN on enregistre cette actu
         user.add_actu_chat(self, moment)
-    
-        
+
+
 
 
     def chat_to_send(self):
