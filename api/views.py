@@ -2310,6 +2310,7 @@ def search(search):
     #Pour les noms on decompose car la premiere partie correspondra à nom ou prénom et l'autre à nom ou prenom
 
     decSearch = search.split(" ", 2)
+    reponse["users"] = []
 
     '''
     #Si le texte est composé d'un seul mot
