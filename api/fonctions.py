@@ -188,6 +188,7 @@ def send_message_device(reg_id, titre, message):
 def send_message_device_chat(reg_id, titre, message, type_notif, moment_id, chat_id):
     gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
     data = {"data":[{'titre': titre, 'message': message, "type_notif":type_notif, "moment_id": moment_id, "chat_id":chat_id}]}
+    print data
     reg_ids = [reg_id]
 
     # JSON request
@@ -204,6 +205,7 @@ def send_message_device_photo(reg_id, titre, message, type_notif, moment_id, pho
 def send_message_device_invit(reg_id, titre, message, type_notif, moment_id):
     gcm = GCM("AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0")
     data = {"data":[{'titre': titre, 'message': message, "type_notif":type_notif, "moment_id": moment_id}]}
+    print data
     reg_ids = [reg_id]
 
     # JSON request
