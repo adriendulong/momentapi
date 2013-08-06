@@ -2041,7 +2041,7 @@ def chat(chat_id):
 	#On créé la réponse qui sera envoyé
 	reponse = {}
 	
-	
+	current_user.update_last_connection()
 
 	chat = Chat.query.filter(Chat.id==chat_id).first()
 
