@@ -1739,33 +1739,35 @@ def guests_moment(id_moment):
 @app.route('/addphoto/<int:moment_id>', methods=["POST"])
 @login_required
 def new_photos(moment_id):
-	#On créé la réponse qui sera envoyé
-	reponse = {}
-	
-	#On recupere le moment en question
-	moment = Moment.query.get(moment_id)
+    #On créé la réponse qui sera envoyé
+    reponse = {}
+
+    #On recupere le moment en question
+    moment = Moment.query.get(moment_id)
+
+    print "DEBUT"
+
+    if "photo" in request.files:
+        print "IMAGE"
+        image = Image.open(request.files["photo"])
 
 
-	if "photo" in request.files:
-		image = Image.open(request.files["photo"])
+        photo = Photo()
 
+        #On enregistre en base l'objet photo
+        db.session.add(photo)
+        db.session.commit()
 
-		photo = Photo()
+        #Puis on enregistre en disque la photo
+        photo.save_photo(image, moment, current_user)
 
-		#On enregistre en base l'objet photo
-		db.session.add(photo)
-		db.session.commit()
+        reponse["success"] = photo.photo_to_send()
 
-		#Puis on enregistre en disque la photo
-		photo.save_photo(image, moment, current_user)
+        return jsonify(reponse), 200
 
-		reponse["success"] = photo.photo_to_send()
-
-		return jsonify(reponse), 200
-
-	else:
-		reponse["error"] = "no photo received"
-		return jsonify(reponse), 405
+    else:
+        reponse["error"] = "no photo received"
+        return jsonify(reponse), 405
 
 
 #####################################################################
