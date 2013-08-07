@@ -1745,10 +1745,7 @@ def new_photos(moment_id):
     #On recupere le moment en question
     moment = Moment.query.get(moment_id)
 
-    print "DEBUT"
-
     if "photo" in request.files:
-        print "IMAGE"
         image = Image.open(request.files["photo"])
 
 
