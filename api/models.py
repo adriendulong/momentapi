@@ -1243,7 +1243,7 @@ class User(db.Model):
             hasConnected = False
             nb_chats = len(moment.chats)
 
-
+            """
             if nb_chats > 1:
                 last_connection = self.lastConnection
                 lastchatTime = moment.chats[nb_chats-2].time
@@ -1254,12 +1254,14 @@ class User(db.Model):
 
                 #If the user has connected since the last time we send a push, otherwise no because he didn't even read the last one
                 if hasConnected:
-                    #Titre de la notif
-                    title = "Nouveau Message de %s" % (chat.user.firstname)
-                    contenu = "%s : %s" % (chat.user.firstname, chat.message)
+                """
+            #Titre de la notif
+            title = "Nouveau Message de %s" % (chat.user.firstname)
+            contenu = "%s : %s" % (chat.user.firstname, chat.message)
 
-                    for device in self.devices:
-                        device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
+            for device in self.devices:
+                device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
+
 
             else:
                 #Titre de la notif
@@ -1841,11 +1843,21 @@ class Moment(db.Model):
             moment["cover_photo_url"] = self.cover_picture_url
 
         #On recupere le Owner
+        nb_guests = 0
+        moment["guests_photo"] = []
         for guest in self.guests:
+
             if guest.state == 0:
                 moment["owner_name"] = "%s %s" % (guest.user.firstname, guest.user.lastname)
                 moment["owner_photo_url"] = guest.user.profile_picture_url
                 has_owner = True
+
+            if nb_guests<6:
+                print guest.user.profile_picture_url
+                if guest.user.profile_picture_url is not None:
+                    moment["guests_photo"].append(guest.user.profile_picture_url)
+                    nb_guests += 1
+
 
         if not has_owner:
             #Si on a associÃ© un facebook Id au owner alors on devrait le retrouver dans les prospect
@@ -1859,7 +1871,6 @@ class Moment(db.Model):
 
         if self.unique_code is not None:
             moment["unique_url"] = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
-
 
         return moment
 

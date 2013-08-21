@@ -74,6 +74,9 @@ NOTIFS_PAGINATION = 20
 #Nombre de chat par page
 FEED_PAGINATION = 10
 
+#Number of photos per page
+PHOTOS_PAGINATION = 30
+
 #Nombre de moments futurs ou passés renvoyés au max
 MAX_MOMENTS = 20
 
