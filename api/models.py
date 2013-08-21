@@ -1262,7 +1262,7 @@ class User(db.Model):
             for device in self.devices:
                 device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
 
-
+            '''
             else:
                 #Titre de la notif
                 title = "Nouveau Message de %s" % (chat.user.firstname)
@@ -1270,6 +1270,7 @@ class User(db.Model):
 
                 for device in self.devices:
                     device.notify_chat(moment, userConstants.NEW_CHAT,title, contenu, chat, self)
+            '''
 
 
 
