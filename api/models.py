@@ -1711,6 +1711,7 @@ class Moment(db.Model):
     privacy = db.Column(db.Integer)
     is_sponso = db.Column(db.Boolean, default= False, nullable = False)
     unique_code = db.Column(db.String(10))
+    is_assos_competition = db.Column(db.Boolean, default=False, nullable=False)
 
     guests = db.relationship("Invitation", backref="moment")
     prospects = db.relationship("Prospect",
@@ -1876,6 +1877,52 @@ class Moment(db.Model):
         return moment
 
 
+    #Moment sent when requested from the external website
+    def moment_to_send_assos(self):
+        moment = {}
+        has_owner = False
+
+        moment["name"] = self.name
+        moment["guests_number"] = len(self.guests) + len(self.prospects)
+        moment["address"] = self.address
+        moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
+        moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
+        if self.description is not None:
+            moment["description"] = self.description
+        if self.cover_picture_url is not None:
+            moment["cover_photo_url"] = self.cover_picture_url
+
+        #On recupere le Owner
+        nb_guests = 0
+        moment["guests_photo"] = []
+        for guest in self.guests:
+
+            if guest.state == 0:
+                moment["owner_name"] = "%s %s" % (guest.user.firstname, guest.user.lastname)
+                moment["owner_photo_url"] = guest.user.profile_picture_url
+                has_owner = True
+
+            if nb_guests<6:
+                    nb_guests += 1
+
+
+        if not has_owner:
+            #Si on a associÃ© un facebook Id au owner alors on devrait le retrouver dans les prospect
+            if self.owner_facebookId is not None:
+                ownerProspect = Prospect.query.filter(Prospect.facebookId == self.owner_facebookId).first()
+
+                #Si il y en a bien un
+                if ownerProspect is not None:
+                    moment["owner_name"] = "%s %s" % (ownerProspect.firstname, ownerProspect.lastname)
+                    moment["owner_photo_url"] = ownerProspect.profile_picture_url
+
+        if self.unique_code is not None:
+            moment["unique_url"] = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
+
+        return moment
+
+
+
 
     def add_cover_photo(self, f, name):
         name = "cover"
@@ -1996,6 +2043,22 @@ class Moment(db.Model):
 
         else:
             return False
+
+    # Fonction qui enleve un invité de la liste des invités du moment
+    #Sauf si c'est le owner, il doit alors supprimé le moment
+
+    def remove_guest(self, user_id):
+
+        for guest in self.guests:
+            if guest.user.id == user_id:
+                if guest.state != userConstants.OWNER:
+                    self.guests.remove(guest)
+
+                    db.session.delete(guest)
+                    db.session.commit()
+                    return True
+
+        return False
 
 
     # Fonction qui rajoute un user en invitÃ© Ã  partir d'un objet user
@@ -2368,6 +2431,7 @@ class Moment(db.Model):
 
 
 
+
 ################################
 ##### Un prospect ###########
 ################################
@@ -2721,10 +2785,12 @@ class Photo(db.Model):
 
         photo["url_original"] = self.url_original
         photo["nb_like"] = len(self.likes)
-        photo["time"] = "%s/%s à %s:%s" % (self.creation_datetime.day, self.creation_datetime.month, self.creation_datetime.hour, self.creation_datetime.minute)
+        photo["time"] = self.creation_datetime.strftime("%s")
         if self.user is not None:
             photo["taken_by"] = "%s %s" % (self.user.firstname, self.user.lastname)
         photo["moment_name"] = self.moment.name
+        photo["moment_url"] = self.moment.get_unique_code()
+        photo["moment_time"] = fonctions.get_timestamp(self.moment.startDate, self.moment.startTime)
         if self.unique_code is not None:
             photo["unique_url"] = constants.WEBSITE + constants.UNIQUE_PHOTO_URL + self.unique_code
 
@@ -3124,8 +3190,6 @@ class Stat(db.Model):
         stats["date"] = self.date.strftime("%d/%m/%y")
 
         return stats
-
-
 
 
 

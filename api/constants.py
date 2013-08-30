@@ -89,6 +89,13 @@ GCM_APP_KEY = "AIzaSyDDA-TLkhjp-WWYPrVs0DznzQc0b77XGO0"
 
 
 
+############
+# ERRORS ###
+############
+
+NOT_CONNECTED = 0
+
+
 #############
 # AMAZON S3 #
 #############

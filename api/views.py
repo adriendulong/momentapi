@@ -32,6 +32,14 @@ from PIL import Image
 #me option of flask-login
 login_serializer = URLSafeSerializer(app.secret_key)
 
+@login_manager.unauthorized_handler
+def unauthorized():
+    # do stuff
+    response = {}
+    response["error"] = constants.NOT_CONNECTED
+    response["what"] = "User not connected"
+    return jsonify(response), 401
+
 @login_manager.user_loader
 def load_user(userid):
     """
@@ -1213,6 +1221,30 @@ def new_guests(idMoment):
     else:
         reponse["error"] = "mandatory value missing"
         return jsonify(reponse), 405
+
+
+
+
+#############################################################
+############ REMOVE GUEST ############################
+#############################################################
+
+
+@app.route('/removeguest/<int:moment_id>/<int:user_id>', methods=["GET"])
+@login_required
+def remove_guest(moment_id, user_id):
+    response = {}
+
+    #If the user connected wants to remove a moment for himself
+    if user_id == current_user.id:
+        moment = Moment.query.get(moment_id)
+        if moment.remove_guest(user_id):
+            response["success"] = "User removed from the guests of %s" % moment.name
+            return jsonify(response), 200
+
+
+    response["error"] = "The user was not removed from this moment"
+    return jsonify(response), 401
 
 
 
@@ -3029,6 +3061,29 @@ def stats(nb_day=10):
             reponse["stats"].append(dayStat.get_stats())
 
     return jsonify(reponse), 200
+
+
+
+#############################################################
+############ Concours Assos ############################
+#############################################################
+
+
+@app.route('/assosmoments/', methods=["GET"])
+def assos_moments():
+    response = {}
+    response["moments"] = []
+
+    moments_assos = Moment.query.filter(Moment.is_assos_competition == True).all()
+
+    moments_assos = sorted(moments_assos, key=lambda moment: len(moment.guests), reverse = True)
+
+    for moment in moments_assos:
+        response["moments"].append(moment.moment_to_send_assos())
+
+    print len(moments_assos)
+
+    return jsonify(response), 200
 
 
 

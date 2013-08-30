@@ -168,6 +168,13 @@ def random_pass():
 	return identifier
 
 
+def get_timestamp(date, time):
+    if time is None:
+        time = datetime.time(0,0,0)
+    d = datetime.datetime.combine(date, time)
+    return d.strftime("%s")
+
+
 
 #######################################
 #######################################
