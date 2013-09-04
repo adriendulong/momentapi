@@ -10,7 +10,7 @@ from flask.ext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin, AnonymousUser,
                             confirm_login, fresh_login_required)
 from api.models import User, Moment, Invitation, Prospect, Photo, Device, Chat, Notification, Feed, Stat
-from itsdangerous import URLSafeSerializer
+from itsdangerous import URLSafeTimedSerializer
 import controller
 import constants
 import fonctions
@@ -30,7 +30,7 @@ from PIL import Image
 
 #Login_serializer used to encryt and decrypt the cookie token for the remember
 #me option of flask-login
-login_serializer = URLSafeSerializer(app.secret_key)
+login_serializer = URLSafeTimedSerializer(app.secret_key)
 
 @login_manager.unauthorized_handler
 def unauthorized():
@@ -75,10 +75,10 @@ def load_token(token):
     #on the users computer it also has a exipry date, but could be changed by
     #the user, so this feature allows us to enforce the exipry date of the token
     #server side and not rely on the users cookie to exipre. 
-    #max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
+    max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
 
     #Decrypt the Security Token, data = [username, hashpass]
-    data = login_serializer.loads(token)
+    data = login_serializer.loads(token,max_age=max_age)
 
     #Find the User
     user = User.query.filter_by(email = data[0])
@@ -394,7 +394,7 @@ def login():
 						db.session.commit()
 
 
-				if login_user(user):
+				if login_user(user, remember=True):
 					session.permanent = True
 					reponse["success"] = "Logged"
 

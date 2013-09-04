@@ -9,11 +9,16 @@ from PIL import Image
 from gcm import GCM
 import thread
 import StringIO
+from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy import and_, UniqueConstraint
 from aws_S3 import S3
 from mail import Mail
 from bcrypt import hashpw, gensalt
 
+
+#Login_serializer used to encryt and decrypt the cookie token for the remember
+#me option of flask-login
+login_serializer = URLSafeTimedSerializer(app.secret_key)
 
 ##########################################
 ######### HELPER TABLES INVITATION #######
@@ -329,7 +334,7 @@ class User(db.Model):
         """
         Encode a secure token for cookie
         """
-        data = [str(self.email), self.password]
+        data = [str(self.email), self.pwd]
         return login_serializer.dumps(data)
 
 
@@ -1918,6 +1923,9 @@ class Moment(db.Model):
 
         if self.unique_code is not None:
             moment["unique_url"] = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
+            moment["unique_code"] = self.unique_code
+
+
 
         return moment
 
