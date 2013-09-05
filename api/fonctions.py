@@ -904,6 +904,83 @@ def send_report_stats(to_dest, time_spent, env, stats):
 
 
 
+#####
+## SEND INFO BDE
+#####
+
+def send_bde_infos(infos):
+
+    m = Mail()
+
+    subject = "Mail pour concours BDE"
+
+    template_name = "bde-challenge"
+
+    template_args = []
+
+    #Global Var
+    global_merge_vars = []
+
+    global_name_event = {
+        "name" : "name_event",
+        "content" : infos["name_event"]
+    }
+
+    global_email_compte= {
+        "name" : "email_compte",
+        "content" : infos["email_compte"]
+    }
+
+    global_date_event = {
+        "name" : "date_event",
+        "content" : infos["date_event"]
+    }
+
+    global_description_event = {
+        "name" : "description_event",
+        "content" : infos["description_event"]
+    }
+
+    global_student_name = {
+        "name" : "student_name",
+        "content" : infos["student_name"]
+    }
+
+    global_assos_name = {
+        "name" : "assos_name",
+        "content" : infos["assos_name"]
+    }
+
+    global_assos_email = {
+        "name" : "assos_email",
+        "content" : infos["assos_email"]
+    }
+
+    global_tel_assos = {
+        "name" : "tel_assos",
+        "content" : infos["tel_assos"]
+    }
+
+    global_merge_vars.append(global_name_event)
+    global_merge_vars.append(global_email_compte)
+    global_merge_vars.append(global_date_event)
+    global_merge_vars.append(global_description_event)
+    global_merge_vars.append(global_student_name)
+    global_merge_vars.append(global_assos_name)
+    global_merge_vars.append(global_assos_email)
+    global_merge_vars.append(global_tel_assos)
+
+    to_dests = []
+    dest = {
+        "email" : "hello@appmoment.fr",
+        "name" : "Moment"
+    }
+    to_dests.append(dest)
+
+
+
+    m.send_template(subject, template_name, template_args, to_dests, global_merge_vars)
+
 
 #######################################
 #######################################

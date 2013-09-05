@@ -4,6 +4,7 @@ import datetime
 from flask import request, abort, redirect, url_for, jsonify
 from api import app, db, login_manager
 import json
+import thread
 from bcrypt import hashpw, gensalt
 from flask import session
 from flask.ext.login import (LoginManager, current_user, login_required,
@@ -3084,6 +3085,49 @@ def assos_moments():
     print len(moments_assos)
 
     return jsonify(response), 200
+
+
+@app.route('/newassos', methods=["POST"])
+def new_assos():
+    response = {}
+
+    infos = {}
+    infos["name_event"] = ""
+    infos["email_compte"] = ""
+    infos["date_event"] = ""
+    infos["description_event"] = ""
+    infos["student_name"] = ""
+    infos["assos_name"] = ""
+    infos["assos_email"] = ""
+    infos["tel_assos"] = ""
+
+
+    if "name_event" in request.form:
+        infos["name_event"] = request.form["name_event"]
+        if "email_compte" in request.form:
+            infos["email_compte"] = request.form["email_compte"]
+        if "date_event" in request.form:
+            infos["date_event"] = request.form["date_event"]
+        if "description_event" in request.form:
+            infos["description_event"] = request.form["description_event"]
+    elif "student_name" in request.form:
+        infos["student_name"] = request.form["student_name"]
+        if "assos_name" in request.form:
+            infos["assos_name"] = request.form["assos_name"]
+        if "assos_email" in request.form:
+            infos["assos_email"] = request.form["assos_email"]
+        if "tel_assos" in request.form:
+            infos["tel_assos"] = request.form["tel_assos"]
+    else:
+        response["error"] = "Mandatory values missing"
+        return jsonify(response), 401
+
+    thread.start_new_thread(fonctions.send_bde_infos, (infos, ) )
+
+    response["success"] = "Infos sent"
+    return jsonify(response), 200
+
+
 
 
 
