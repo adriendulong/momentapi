@@ -3108,6 +3108,8 @@ def new_assos():
             infos["date_event"] = request.form["date_event"]
         if "description_event" in request.form:
             infos["description_event"] = request.form["description_event"]
+        if "assos_name" in request.form:
+            infos["assos_name"] = request.form["assos_name"]
     elif "student_name" in request.form:
         infos["student_name"] = request.form["student_name"]
         if "assos_name" in request.form:
