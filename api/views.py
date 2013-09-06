@@ -442,29 +442,27 @@ def new_moment():
     reponse = {}
 
     #On verifie que tous les champs sont renseignes
-    if request.method == "POST" and "name" in request.form and "address" in request.form and "startDate" in request.form and "endDate" in request.form:
+    if request.method == "POST" and "name" in request.form and "startDate" in request.form:
         ##
         # Recupération des valeurs obligatoires transmises
         ##
         name = request.form["name"]
-        address = request.form["address"]
 
         #On recupere et met en forme la date (doit être au format "YYYY-MM-DD")
         startDate = fonctions.cast_date(request.form["startDate"])
 
-        endDate = fonctions.cast_date(request.form["endDate"])
-
 
 
         #On créé un nouveau moment
-        moment = Moment(name, address, startDate, endDate)
-        #On enregistre en base
-        #db.session.add(moment)
-        #db.session.commit()
+        moment = Moment(name, startDate)
 
         ##
         # Recuperation des autres valeurs (non obligatoires)
         ##
+        if "address" in request.form:
+            moment.address = request.form["address"]
+        if "endDate" in request.form:
+            moment.endDate = fonctions.cast_date(request.form["endDate"])
         if "placeInformations" in request.form:
             placeInformations = request.form["placeInformations"]
             moment.placeInformations = placeInformations

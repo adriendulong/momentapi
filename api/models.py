@@ -1727,11 +1727,9 @@ class Moment(db.Model):
     actus = db.relationship("Actu", backref="moment", cascade = "delete, delete-orphan")
     feeds = db.relationship("Feed", backref="moment", cascade = "delete, delete-orphan")
 
-    def __init__(self, name, address, startDate, endDate):
+    def __init__(self, name, startDate):
         self.name = name
-        self.address = address
         self.startDate = startDate
-        self.endDate = endDate
         self.privacy = constants.PRIVATE
 
         self.init_unique_code()
@@ -1754,11 +1752,13 @@ class Moment(db.Model):
             moment["user_state"] = self.get_user_state(user_id)
         moment["id"] = self.id
         moment["name"] = self.name
-        moment["address"] = self.address
         moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
-        moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
         moment["isOpenInvit"] = self.isOpenInvit
         moment["privacy"] = self.privacy
+        if self.address is not None:
+            moment["address"] = self.address
+        if self.endDate is not None:
+            moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
         if self.unique_code is not None:
             moment["unique_url"] = constants.WEBSITE + constants.UNIQUE_MOMENT_URL + self.unique_code
 
@@ -1837,9 +1837,11 @@ class Moment(db.Model):
 
         moment["name"] = self.name
         moment["guests_number"] = len(self.guests) + len(self.prospects)
-        moment["address"] = self.address
         moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
-        moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
+        if self.address is not None:
+            moment["address"] = self.address
+        if self.endDate is not None:
+            moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
         if self.description is not None:
             moment["description"] = self.description
         if self.photos is not None:
@@ -1889,9 +1891,11 @@ class Moment(db.Model):
 
         moment["name"] = self.name
         moment["guests_number"] = len(self.guests) + len(self.prospects)
-        moment["address"] = self.address
         moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
-        moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
+        if self.address is not None:
+            moment["address"] = self.address
+        if self.endDate is not None:
+            moment["endDate"] = "%s-%s-%s" %(self.endDate.year, self.endDate.month, self.endDate.day)
         if self.description is not None:
             moment["description"] = self.description
         if self.cover_picture_url is not None:
