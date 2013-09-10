@@ -3086,6 +3086,7 @@ def assos_moments():
 
 
 @app.route('/newassos', methods=["POST"])
+@fonctions.crossdomain(origin='*')
 def new_assos():
     response = {}
 
