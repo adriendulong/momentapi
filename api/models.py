@@ -940,8 +940,10 @@ class User(db.Model):
         start_date = datetime.date.today()
         end_date = datetime.date.today() + datetime.timedelta(days=3)
 
-        moment = Moment(name, address, start_date, end_date)
+        moment = Moment(name, start_date)
 
+        moment.address = address
+        moment.endDate = end_date
         moment.description = constants.FAKE_MOMENT_DESCRIPTION
 
         db.session.add(moment)
