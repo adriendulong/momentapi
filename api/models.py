@@ -1892,7 +1892,7 @@ class Moment(db.Model):
         has_owner = False
 
         moment["name"] = self.name
-        moment["guests_number"] = len(self.guests) + len(self.prospects)
+        moment["guests_number"] = self.nb_guest_coming()
         moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
         if self.address is not None:
             moment["address"] = self.address
