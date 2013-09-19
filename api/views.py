@@ -1237,9 +1237,11 @@ def remove_guest(moment_id, user_id):
     #If the user connected wants to remove a moment for himself
     if user_id == current_user.id:
         moment = Moment.query.get(moment_id)
-        if moment.remove_guest(user_id):
-            response["success"] = "User removed from the guests of %s" % moment.name
-            return jsonify(response), 200
+
+        if moment is not None:
+            if moment.remove_guest(user_id):
+                response["success"] = "User removed from the guests of %s" % moment.name
+                return jsonify(response), 200
 
 
     response["error"] = "The user was not removed from this moment"
@@ -1869,7 +1871,7 @@ def photos_moment_v1(moment_id, nb_page = 1):
                 #filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
                 reponse["photos"] = []
                 if photos.has_next:
-                    response["next_page"] = photos.next_num
+                    reponse["next_page"] = photos.next_num
 
 
                 for photo in photos.items:
@@ -1888,7 +1890,7 @@ def photos_moment_v1(moment_id, nb_page = 1):
             #filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
             reponse["photos"] = []
             if photos.has_next:
-                response["next_page"] = photos.next_num
+                reponse["next_page"] = photos.next_num
 
 
             for photo in photos.items:
