@@ -993,26 +993,41 @@ def send_bde_infos(infos):
 
 def update_moment_tag(update):
 
-	hashtag = update["object_id"]
+    print update
 
-	moments = models.Moment.query.filter(models.Moment.hashtag == hashtag).all()
+    '''
+    hashtag = update["object_id"]
 
-	#Instagram API
-	api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
-	medias = api.tag_recent_media(count =1, tag_name = hashtag)
+    moments = models.Moment.query.filter(models.Moment.hashtag == hashtag).all()
 
-	#On créé une nouvelle photo
-	photo = models.Photo()
+    #Instagram API
+    api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
+    medias = api.tag_recent_media(count =1, tag_name = hashtag)
 
-	for media in medias[0]:
-		photo.save_instagram_photo(media)
+    #On créé une nouvelle photo
+    photo = models.Photo()
+
+    for media in medias[0]:
+        photo.save_instagram_photo(media)
 
 
-	db.session.add(photo)
-	db.session.commit()
+    db.session.add(photo)
+    db.session.commit()
 
-	moments[0].photos.append(photo)
-	db.session.commit()
+    moments[0].photos.append(photo)
+    db.session.commit()
+    '''
+
+
+def create_real_time(hashtag):
+    api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
+
+    if app.config["TYPE"] == 0:
+        callback_url = constants.API_DEV_URL + "updateinstagram/tag"
+    else:
+        callback_url =  constants.API_PROD_URL + "updateinstagram/tag"
+
+    api.create_subscription(object='tag', object_id=hashtag, aspect='media', callback_url=callback_url)
 
 
 

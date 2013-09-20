@@ -45,6 +45,12 @@ FEMALE = "F"
 
 WEBSITE = "http://appmoment.fr"
 
+###
+## API URL
+###
+
+API_DEV_URL = "http://apidev.appmoment.fr/"
+API_PROD_URL = "http://api.appmoment.fr/"
 
 ##
 # DIFFERENT PATHS
