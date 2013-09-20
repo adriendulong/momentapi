@@ -2868,13 +2868,13 @@ def params_notifs_modif(mode, type_notif):
 
 @app.route('/addtag/<tag>', methods=["GET", "POST"])
 def add_tag(tag):
-    foncions.create_real_time(tag)
+    fonctions.create_real_time(tag)
 
     return "ok", 200
 
 @app.route('/removetag/<int:id_tag>', methods=["GET", "POST"])
 def remove_tag(id_tag):
-    foncions.remove_real_time(id_tag)
+    fonctions.remove_real_time(id_tag)
 
     return "ok", 200
 
