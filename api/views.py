@@ -144,13 +144,14 @@ def test():
 #################################################################
 ######## Requete pour ecouter un tag instagram ##################
 ##################################################################
-
+'''
 @app.route("/addtag/<tag>")
 def addtag(tag):
     payload = {'client_id': constants.INTAGRAM_CLIENT_ID, 'client_secret': constants.INSTAGRAM_CLIENT_SECRET, 'object':'tag', 'aspect':'media', 'object_id':tag, 'callback_url':'http://api.appmoment.fr/instagram'}
     r = requests.post("https://api.instagram.com/v1/subscriptions/", data=payload)
 
     return r.text
+'''
 
 
 
