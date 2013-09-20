@@ -995,10 +995,10 @@ def update_moment_tag(update):
 
     print update
 
-    '''
+
     hashtag = update["object_id"]
 
-    moments = models.Moment.query.filter(models.Moment.hashtag == hashtag).all()
+    moment = models.Moment.get(1441)
 
     #Instagram API
     api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
@@ -1014,9 +1014,9 @@ def update_moment_tag(update):
     db.session.add(photo)
     db.session.commit()
 
-    moments[0].photos.append(photo)
+    moment.photos.append(photo)
     db.session.commit()
-    '''
+
 
 
 def create_real_time(hashtag):
@@ -1028,6 +1028,15 @@ def create_real_time(hashtag):
         callback_url =  constants.API_PROD_URL + "updateinstagram/tag"
 
     api.create_subscription(object='tag', object_id=hashtag, aspect='media', callback_url=callback_url)
+
+
+def remove_real_time(id_tag):
+    api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
+    api.delete_subscriptions(id=id_tag)
+
+def list_sub():
+    api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
+    return api.list_subscriptions()
 
 
 

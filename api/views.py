@@ -2865,6 +2865,24 @@ def params_notifs_modif(mode, type_notif):
 #	
 
 
+@app.route('/addtag/<string:tag>', methods=["GET", "POST"])
+def add_tag(tag):
+    foncions.create_real_time(tag)
+
+    return "ok", 200
+
+@app.route('/removetag/<int:id_tag>', methods=["GET", "POST"])
+def remove_tag(id_tag):
+    foncions.remove_real_time(id_tag)
+
+    return "ok", 200
+
+@app.route('/listtags', methods=["GET", "POST"])
+def list_tags():
+
+    return fonctions.list_sub(), 200
+
+
 @app.route('/updateinstagram/tag', methods=["GET", "POST"])
 def instagram_tag():
 

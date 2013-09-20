@@ -154,6 +154,11 @@ INSTAGRAM_CLIENT_ID = "926e99d034a443af9f6a70a1dff69af1"
 INSTAGRAM_CLIENT_SECRET = "d05fe5f51ede4f31b88bc797821fb212"
 INSTAGRAM_CALLBACK_URL = "http://api.appmoment.fr/updateinstagram/tag"
 
+if app.config["TYPE"] == 0:
+    INSTAGRAM_USER = 18
+elif app.config["TYPE"] == 1:
+    INSTAGRAM_USER = 18
+
 
 
 ######################
