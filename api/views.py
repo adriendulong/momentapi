@@ -2866,7 +2866,7 @@ def params_notifs_modif(mode, type_notif):
 #	
 
 
-@app.route('/addtag/<string:tag>', methods=["GET", "POST"])
+@app.route('/addtag/<tag>', methods=["GET", "POST"])
 def add_tag(tag):
     foncions.create_real_time(tag)
 
