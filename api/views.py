@@ -2880,7 +2880,7 @@ def remove_tag(id_tag):
 @app.route('/listtags', methods=["GET", "POST"])
 def list_tags():
 
-    return fonctions.list_sub(), 200
+    return jsonify(fonctions.list_sub()), 200
 
 
 @app.route('/updateinstagram/tag', methods=["GET", "POST"])
