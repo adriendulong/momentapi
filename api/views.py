@@ -3096,7 +3096,7 @@ def assos_moments():
 
     moments_assos = Moment.query.filter(Moment.is_assos_competition == True).all()
 
-    moments_assos = sorted(moments_assos, key=lambda moment: len(moment.guests), reverse = True)
+    moments_assos = sorted(moments_assos, key=lambda moment: len(moment.nb_guest_coming()), reverse = True)
 
     for moment in moments_assos:
         response["moments"].append(moment.moment_to_send_assos())
