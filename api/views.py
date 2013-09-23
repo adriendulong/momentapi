@@ -1233,7 +1233,7 @@ def new_guests(idMoment):
 # Paramètres obligatoires :
 #	- idMoment, array de User
 
-@app.route('/newguestspublic/<int:idMoment>', methods=["POST"])
+@app.route('/newguestspublic', methods=["POST"])
 @fonctions.crossdomain(origin='*')
 def new_guests_public(idMoment):
     #On créé la réponse qui sera envoyé
@@ -1248,7 +1248,7 @@ def new_guests_public(idMoment):
 
     if "users" in request.json:
         # On recupere le Moment en question
-        moment = Moment.query.get(idMoment)
+        moment = Moment.query.get(1484)
 
         if moment is not None:
             if moment.privacy == constants.PUBLIC:
