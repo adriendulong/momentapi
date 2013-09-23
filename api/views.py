@@ -1094,7 +1094,6 @@ def del_photo(id_photo):
 #	- idMoment, array de User 
 
 @app.route('/newguests/<int:idMoment>', methods=["POST"])
-@fonctions.crossdomain(origin='*')
 @login_required
 def new_guests(idMoment):
     #On créé la réponse qui sera envoyé
@@ -1233,7 +1232,7 @@ def new_guests(idMoment):
 # Paramètres obligatoires :
 #	- idMoment, array de User
 
-@app.route('/newguestspublic', methods=["GET"])
+@app.route('/newguestspublic/<int:idMoment>', methods=["POST"])
 @fonctions.crossdomain(origin='*')
 def new_guests_public(idMoment):
     #On créé la réponse qui sera envoyé
@@ -1248,7 +1247,7 @@ def new_guests_public(idMoment):
 
     if "users" in request.json:
         # On recupere le Moment en question
-        moment = Moment.query.get(1484)
+        moment = Moment.query.get(idMoment)
 
         if moment is not None:
             if moment.privacy == constants.PUBLIC:
