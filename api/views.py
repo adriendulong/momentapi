@@ -165,6 +165,7 @@ def addtag(tag):
 #	phone, facebookId, secondEmail, secondPhone
 
 @app.route('/register', methods=["POST"])
+@fonctions.crossdomain(origin='*')
 def register():
 
 	#On créé la réponse qui sera envoyé
@@ -362,6 +363,7 @@ def register():
 #	
 
 @app.route('/login', methods=["POST"])
+@fonctions.crossdomain(origin='*')
 def login():
 	#On créé la réponse qui sera envoyé
 	reponse = {}
