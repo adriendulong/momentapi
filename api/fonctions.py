@@ -998,6 +998,7 @@ def update_moment_tag(update):
 
     hashtag = update["object_id"]
 
+    #Give the id of concerned Moment
     moment = models.Moment.query.get(1441)
 
     #Instagram API

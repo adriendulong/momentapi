@@ -1891,6 +1891,7 @@ class Moment(db.Model):
         moment = {}
         has_owner = False
 
+        moment["id"] = self.id
         moment["name"] = self.name
         moment["guests_number"] = self.nb_guest_coming()
         moment["startDate"] = "%s-%s-%s" %(self.startDate.year, self.startDate.month, self.startDate.day)
@@ -2846,11 +2847,15 @@ class Photo(db.Model):
     def save_instagram_photo(self, infos):
 
         #self.taken_by = infos.user["full_name"]
+        user_instagram = User.query.get(constants.INSTAGRAM_USER)
+
         self.time = infos.created_time
         self.url_original = infos.images["standard_resolution"].url
         self.original_height = infos.images["standard_resolution"].height
         self.original_width = infos.images["standard_resolution"].width
         self.url_thumbnail = infos.images["low_resolution"].url
+
+        user_instagram.photos.append(self)
 
 
     ##
