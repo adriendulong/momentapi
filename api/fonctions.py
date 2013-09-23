@@ -998,7 +998,7 @@ def update_moment_tag(update):
 
     hashtag = update["object_id"]
 
-    moment = models.Moment.query(1441)
+    moment = models.Moment.query.get(1441)
 
     #Instagram API
     api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
