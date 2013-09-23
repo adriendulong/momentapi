@@ -1094,6 +1094,7 @@ def del_photo(id_photo):
 #	- idMoment, array de User 
 
 @app.route('/newguests/<int:idMoment>', methods=["POST"])
+@fonctions.crossdomain(origin='*')
 @login_required
 def new_guests(idMoment):
     #On créé la réponse qui sera envoyé
