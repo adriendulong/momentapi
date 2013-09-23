@@ -1234,7 +1234,7 @@ def new_guests(idMoment):
 #	- idMoment, array de User
 
 @app.route('/newguestspublic/<int:idMoment>', methods=["POST"])
-@fonctions.crossdomain(origin='*', methods="*")
+@fonctions.crossdomain(origin='*')
 def new_guests_public(idMoment):
     #On créé la réponse qui sera envoyé
     reponse = {}
