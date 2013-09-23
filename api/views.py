@@ -1338,7 +1338,7 @@ def new_guests_public(idMoment):
                     return jsonify(reponse), 401
 
             else:
-                response["error"] = "This moment is not public, in order to RSVP you have to be connected"
+                reponse["error"] = "This moment is not public, in order to RSVP you have to be connected"
 
 
         else:
