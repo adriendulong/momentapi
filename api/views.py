@@ -1232,13 +1232,11 @@ def new_guests(idMoment):
 # Paramètres obligatoires :
 #	- idMoment, array de User
 
-@app.route('/publicguests/<int:idMoment>', methods=["POST"])
+@app.route('/newguestspublic/<int:idMoment>', methods=["POST"])
 @fonctions.crossdomain(origin='*')
 def new_guests_public(idMoment):
     #On créé la réponse qui sera envoyé
     reponse = {}
-
-    return jsonify(reponse), 200
 
     #Liste des invités inscrient à Moment (pour envoie mail)
     moment_guests = []
