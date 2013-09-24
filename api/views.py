@@ -1347,6 +1347,7 @@ def new_guests_public(idMoment):
 
     else:
         reponse["error"] = "mandatory value missing"
+        return jsonify(reponse), 405
 
 
 
