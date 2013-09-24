@@ -1238,6 +1238,8 @@ def new_guests_public(idMoment):
     #On créé la réponse qui sera envoyé
     reponse = {}
 
+    return jsonify(reponse), 200
+
     #Liste des invités inscrient à Moment (pour envoie mail)
     moment_guests = []
     moment_prospects = []
