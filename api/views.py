@@ -1232,7 +1232,7 @@ def new_guests(idMoment):
 # Paramètres obligatoires :
 #	- idMoment, array de User
 
-@app.route('/newguestspublic', methods=["POST"])
+@app.route('/newguestspublicdemerde', methods=["GET"])
 @fonctions.crossdomain(origin='*')
 def new_guests_public():
     #On créé la réponse qui sera envoyé
