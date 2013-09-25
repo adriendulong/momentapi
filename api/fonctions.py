@@ -1076,6 +1076,7 @@ def listen_tweets_hashtag(hashtag, moment):
             photo = models.Photo()
             photo.save_twitter_photo(tweet)
             db.session.add(photo)
+            moment.photos.append(photo)
             db.session.commit()
 
         now = datetime.datetime.now()
