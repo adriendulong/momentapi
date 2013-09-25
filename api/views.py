@@ -2914,7 +2914,7 @@ def add_tag(tag, id_moment):
 
     #Twitter
     moment = Moment.query.get(id_moment)
-    fonctions.listen_tweets_hashtag(tag, moment)
+    thread.start_new_thread(fonctions.listen_tweets_hashtag, (tag, moment, ))
 
     return "ok", 200
 
