@@ -1073,6 +1073,7 @@ def listen_tweets_hashtag(hashtag, moment):
     for tweet in iterator:
         print tweet
         if "media" in tweet["entities"]:
+            print "ADD PHOTO nORMALLY"
             photo = models.Photo()
             photo.save_twitter_photo(tweet)
             db.session.add(photo)
