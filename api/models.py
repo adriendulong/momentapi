@@ -2862,7 +2862,7 @@ class Photo(db.Model):
 
         self.time = datetime.datetime.now()
         self.url_original = data["entities"]["media"][0]["media_url"]+":large"
-        self.url_thumbnail = data["entities"]["media"][0]["media_url"]+":thumb"
+        self.url_thumbnail = data["entities"]["media"][0]["media_url"]+":small"
         self.original_height = data["entities"]["media"][0]["sizes"]["large"]["h"]
         self.original_width =data["entities"]["media"][0]["sizes"]["large"]["w"]
 
