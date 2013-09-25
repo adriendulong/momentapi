@@ -177,7 +177,7 @@ def get_timestamp(date, time):
 
 def get_datetime(date, time):
     if time is not None:
-        return datetime.combine(date, time)
+        return datetime.datetime.combine(date, time)
     else:
         return datetime.datetime(date.year, date.month, date.day)
 
