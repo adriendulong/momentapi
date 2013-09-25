@@ -2849,13 +2849,24 @@ class Photo(db.Model):
         #self.taken_by = infos.user["full_name"]
         user_instagram = User.query.get(constants.INSTAGRAM_USER)
 
-        self.time = infos.created_time
+        self.time = datetime.datetime.now()
         self.url_original = infos.images["standard_resolution"].url
         self.original_height = infos.images["standard_resolution"].height
         self.original_width = infos.images["standard_resolution"].width
         self.url_thumbnail = infos.images["low_resolution"].url
 
         user_instagram.photos.append(self)
+
+    def save_twitter_photo(self, data):
+        user_twitter = User.query.get(constants.TWITTER_USER)
+
+        self.time = datetime.datetime.now()
+        self.url_original = data["entities"]["media"][0]["media_url"]+":large"
+        self.url_thumbnail = data["entities"]["media"][0]["media_url"]+":thumb"
+        self.original_height = data["entities"]["media"][0]["sizes"]["large"]["h"]
+        self.original_width =data["entities"]["media"][0]["sizes"]["large"]["w"]
+
+        user_twitter.photos.append(self)
 
 
     ##

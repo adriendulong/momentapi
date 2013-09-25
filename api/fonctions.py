@@ -9,6 +9,7 @@ import json
 import socket
 import struct
 import binascii
+from twitter import TwitterStream, OAuth
 from gcm import GCM
 from apns import APNs, Payload
 from api import app, db
@@ -173,6 +174,12 @@ def get_timestamp(date, time):
         time = datetime.time(0,0,0)
     d = datetime.datetime.combine(date, time)
     return d.strftime("%s")
+
+def get_datetime(date, time):
+    if time is not None:
+        return datetime.combine(date, time)
+    else:
+        return datetime.datetime(date.year, date.month, date.day)
 
 
 
@@ -1039,6 +1046,41 @@ def list_sub():
     api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
     return api.list_subscriptions()
 
+
+
+#######################################
+#######################################
+############# TWITTER ###############
+#######################################
+#######################################
+
+def listen_tweets_hashtag(hashtag, moment):
+
+    twitter_stream = TwitterStream(auth=OAuth(
+        consumer_key=constants.TWITTER_CONSUMER_KEY,
+        consumer_secret=constants.TWITTER_CONSUMER_SECRET,
+        token=constants.TWITTER_ACCESS_TOKEN_KEY,
+        token_secret=constants.TWITTER_ACCESS_TOKEN_SECRET
+    ))
+    iterator = twitter_stream.statuses.filter(track=hashtag)
+
+    if moment.endDate is not None:
+        endtime = get_datetime(moment.endDate, moment.endTime)
+    else:
+        endtime = get_datetime(moment.startDate, moment.startTime) + datetime.timedelta(hours = 12)
+
+
+    for tweet in iterator:
+        print tweet
+        if "media" in tweet["entities"]:
+            photo = models.Photo()
+            photo.save_twitter_photo(tweet)
+            db.session.add(photo)
+            db.session.commit()
+
+        now = datetime.datetime.now()
+        if now > endtime:
+            break
 
 
 

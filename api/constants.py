@@ -160,6 +160,20 @@ elif app.config["TYPE"] == 1:
     INSTAGRAM_USER = 18
 
 
+################
+## TWITTER #####
+################
+
+TWITTER_CONSUMER_KEY = "cRwFsBh6c9iQruAqfE6LIg"
+TWITTER_CONSUMER_SECRET = "ExUexrUAvNHx6mdZootqQBjnjKWngVgPQMCaNb60c"
+TWITTER_ACCESS_TOKEN_KEY = "1898050556-BtKF8g4kxVC4HjRkbmQukhLTVe6MJyILBNv0noG"
+TWITTER_ACCESS_TOKEN_SECRET = "TY3KtJa4o8Xpj9fIbtdZ7qUzXBkJvAkQ6p0d219xM"
+
+if app.config["TYPE"] == 0:
+    TWITTER_USER = 18
+elif app.config["TYPE"] == 1:
+    TWITTER_USER = 18
+
 
 ######################
 ## PUSH CERTIFICATE ##

@@ -2906,9 +2906,15 @@ def params_notifs_modif(mode, type_notif):
 #	
 
 
-@app.route('/addtag/<tag>', methods=["GET", "POST"])
-def add_tag(tag):
+@app.route('/addtag/<tag>/<int:id_moment>', methods=["GET", "POST"])
+def add_tag(tag, id_moment):
+
+    #Instagram
     fonctions.create_real_time(tag)
+
+    #Twitter
+    moment = Moment.query.get(id_moment)
+    fonctions.listen_tweets_hashtag(tag, moment)
 
     return "ok", 200
 
