@@ -1069,6 +1069,7 @@ def listen_tweets_hashtag(hashtag, moment):
     else:
         endtime = get_datetime(moment.startDate, moment.startTime) + datetime.timedelta(hours = 12)
 
+    momentConcerned = models.Moment.query.get(moment.id)
 
     for tweet in iterator:
         print tweet
@@ -1077,7 +1078,7 @@ def listen_tweets_hashtag(hashtag, moment):
             photo = models.Photo()
             photo.save_twitter_photo(tweet)
             db.session.add(photo)
-            moment.photos.append(photo)
+            momentConcerned.photos.append(photo)
             db.session.commit()
 
         now = datetime.datetime.now()
