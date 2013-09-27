@@ -2502,7 +2502,7 @@ def search(search):
     ######
 
     reponse["public_moments"] = []
-    momentsPublic = Moment.query.filter(and_(Moment.name.ilike("%"+search+"%"), Moment.privacy == constants.PUBLIC)).all()
+    momentsPublic = Moment.query.filter(and_(Moment.name.ilike("%"+search+"%"), or_(Moment.privacy == constants.PUBLIC, Moment.privacy == 3, Moment.privacy == 4))).all()
 
     for moment in momentsPublic:
         if not moment.is_in_guests(current_user.id):
