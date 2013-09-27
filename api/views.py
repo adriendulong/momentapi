@@ -1851,45 +1851,45 @@ def new_photos(moment_id):
 @app.route('/photosmoment/<int:moment_id>', methods=["GET"])
 @login_required
 def photos_moment(moment_id):
-	#On créé la réponse qui sera envoyé
-	reponse = {}
-	
-	#On recupere le moment en question
-	moment = Moment.query.get(moment_id)
+    #On créé la réponse qui sera envoyé
+    reponse = {}
 
-	if moment is not None:
-		
-		#Si le moment est privé
-		if moment.privacy == constants.PRIVATE:
-			#On verifie que le user est bien parmis les invites pour acceder aux photos
-			if moment.is_in_guests(current_user.id):
-				photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
-				#filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
-				reponse["photos"] = []
-				for photo in photos:
-					reponse["photos"].append(photo.photo_to_send())
+    #On recupere le moment en question
+    moment = Moment.query.get(moment_id)
 
-				return jsonify(reponse), 200
+    if moment is not None:
 
+        #Si le moment est privé
+        if moment.privacy == constants.PRIVATE:
+            #On verifie que le user est bien parmis les invites pour acceder aux photos
+            if moment.is_in_guests(current_user.id):
+                photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
+                #filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
+                reponse["photos"] = []
+                for photo in photos:
+                    reponse["photos"].append(photo.photo_to_send())
 
-			else:
-				reponse["error"] = "This user does not have access to this Moment"
-				return jsonify(reponse), 401
-
-		#Si le moment est public (ou ouvert pour le moment) on a aps besoin de savoir si le user est invité
-		elif moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
-			photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
-			#filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
-			reponse["photos"] = []
-			for photo in photos:
-				reponse["photos"].append(photo.photo_to_send())
-
-			return jsonify(reponse), 200
+                return jsonify(reponse), 200
 
 
-	else:
-		reponse["error"] = "This moment does not exist"
-		return jsonify(reponse), 405
+            else:
+                reponse["error"] = "This user does not have access to this Moment"
+                return jsonify(reponse), 401
+
+        #Si le moment est public (ou ouvert pour le moment) on a aps besoin de savoir si le user est invité
+        else:
+            photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
+            #filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
+            reponse["photos"] = []
+            for photo in photos:
+                reponse["photos"].append(photo.photo_to_send())
+
+            return jsonify(reponse), 200
+
+
+    else:
+        reponse["error"] = "This moment does not exist"
+        return jsonify(reponse), 405
 
 
 @app.route('/v1/photosmoment/<int:moment_id>', methods=["GET"])
