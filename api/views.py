@@ -1926,7 +1926,7 @@ def photos_moment_v1(moment_id, nb_page = 1):
                 return jsonify(reponse), 401
 
         #Si le moment est public (ou ouvert pour le moment) on a aps besoin de savoir si le user est invité
-        elif moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
+        else:
             photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).paginate(nb_page, constants.PHOTOS_PAGINATION, False)
             #filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
             reponse["photos"] = []
