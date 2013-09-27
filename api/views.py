@@ -82,7 +82,7 @@ def load_token(token):
     data = login_serializer.loads(token,max_age=max_age)
 
     #Find the User
-    user = User.query.filter_by(email = data[0])
+    user = User.query.filter_by(email = data[0]).first()
 
     #Check Password and return user or None
     if user and data[1] == user.pwd:
@@ -2998,24 +2998,26 @@ def lost_pass(email):
 @app.route('/logout/<device_id>', methods=["GET"])
 @login_required
 def logout(device_id):
-	reponse = {}
+    reponse = {}
 
-	deviceRemoved = False
+    deviceRemoved = False
 
-	for device in current_user.devices:
-		if device.device_id == device_id:
-			current_user.devices.remove(device)
-			db.session.commit()
-			deviceRemoved = True
+    for device in current_user.devices:
+        if device.device_id == device_id:
+            current_user.devices.remove(device)
+            db.session.commit()
+            deviceRemoved = True
 
 
 
-	if deviceRemoved:
-		reponse["success"] = "One device removed. See you !"
-		return jsonify(reponse), 200
-	else:
-		reponse["error"] = "No device removed"
-		return jsonify(reponse), 405
+    if deviceRemoved:
+        logout_user()
+        reponse["success"] = "One device removed. See you !"
+        return jsonify(reponse), 200
+    else:
+        logout_user()
+        reponse["error"] = "No device removed"
+        return jsonify(reponse), 405
 
 	
 

@@ -1,4 +1,5 @@
 import os
+import datetime
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
@@ -15,7 +16,8 @@ class DevelopmentConfig(Config):
     #Emplacement de la database
     SQLALCHEMY_DATABASE_URI = 'mysql://'+USER_DB+':'+PASSWORD_DB+'@localhost/'+NAME_DB
     TYPE = 0
-    SESSION_PROTECTION = None
+    PERMANENT_SESSION_LIFETIME = datetime.timedelta(minutes=1)
+    REMEMBER_COOKIE_DURATION = datetime.timedelta(days=365)
 
     #SERVER_NAME = "localhost"
 
@@ -28,7 +30,8 @@ class ProductionConfig(Config):
     #Emplacement de la database
     SQLALCHEMY_DATABASE_URI = 'mysql://'+USER_DB+':'+PASSWORD_DB+'@localhost/'+NAME_DB
     TYPE = 0
-    SESSION_PROTECTION = None
+    PERMANENT_SESSION_LIFETIME = datetime.timedelta(minutes=1)
+    REMEMBER_COOKIE_DURATION = datetime.timedelta(days=365)
 
 	#SERVER_NAME = "api.appmoment.fr"
 
@@ -40,7 +43,8 @@ class AmazonConfig(Config):
     #Emplacement de la database
     SQLALCHEMY_DATABASE_URI = 'mysql://'+USER_DB+':'+PASSWORD_DB+'@apimoment-mysql.c3hcodpxa4oj.eu-west-1.rds.amazonaws.com/'+NAME_DB
     TYPE = 0
-    SESSION_PROTECTION = None
+    PERMANENT_SESSION_LIFETIME = datetime.timedelta(minutes=1)
+    REMEMBER_COOKIE_DURATION = datetime.timedelta(days=365)
 
 	#SERVER_NAME = "ec2-54-228-139-53.eu-west-1.compute.amazonaws.com"
 
@@ -52,4 +56,5 @@ class AmazonProdConfig(Config):
     #Emplacement de la database
     SQLALCHEMY_DATABASE_URI = 'mysql://'+USER_DB+':'+PASSWORD_DB+'@apimoment-prod.c3hcodpxa4oj.eu-west-1.rds.amazonaws.com/'+NAME_DB
     TYPE = 1
-    SESSION_PROTECTION = None
+    PERMANENT_SESSION_LIFETIME = datetime.timedelta(minutes=1)
+    REMEMBER_COOKIE_DURATION = datetime.timedelta(days=365)
