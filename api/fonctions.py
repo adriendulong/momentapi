@@ -9,6 +9,7 @@ import json
 import socket
 import struct
 import binascii
+from sqlalchemy import func
 from twitter import TwitterStream, OAuth
 from gcm import GCM
 from apns import APNs, Payload
@@ -1010,7 +1011,7 @@ def update_moment_tag(update):
         moment = models.Moment.query.get(1592)
     else:
         print "HASHTAG : "+hashtag.lower()
-        moment = models.Moment.query.filter(models.Moment.hashtag.lower() == hashtag).first()
+        moment = models.Moment.query.filter(func.lower(models.Moment.hashtag) == hashtag).first()
 
     #Instagram API
     api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
@@ -1076,7 +1077,6 @@ def listen_tweets_hashtag(hashtag, moment):
     momentConcerned = models.Moment.query.get(moment.id)
 
     for tweet in iterator:
-        print tweet
         if "media" in tweet["entities"]:
             print "ADD PHOTO nORMALLY"
             photo = models.Photo()
