@@ -159,7 +159,7 @@ INSTAGRAM_CALLBACK_URL = "http://api.appmoment.fr/updateinstagram/tag"
 if app.config["TYPE"] == 0:
     INSTAGRAM_USER = 18
 elif app.config["TYPE"] == 1:
-    INSTAGRAM_USER = 18
+    INSTAGRAM_USER = 1507
 
 
 ################
@@ -174,7 +174,7 @@ TWITTER_ACCESS_TOKEN_SECRET = "TY3KtJa4o8Xpj9fIbtdZ7qUzXBkJvAkQ6p0d219xM"
 if app.config["TYPE"] == 0:
     TWITTER_USER = 18
 elif app.config["TYPE"] == 1:
-    TWITTER_USER = 18
+    TWITTER_USER = 1508
 
 
 ######################
