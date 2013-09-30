@@ -398,7 +398,7 @@ def login():
 						db.session.commit()
 
 
-				if login_user(user, remember=True):
+				if login_user(user, remember=False):
 					session.permanent = True
 					reponse["success"] = "Logged"
 
