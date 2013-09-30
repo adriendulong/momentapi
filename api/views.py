@@ -76,10 +76,10 @@ def load_token(token):
     #on the users computer it also has a exipry date, but could be changed by
     #the user, so this feature allows us to enforce the exipry date of the token
     #server side and not rely on the users cookie to exipre. 
-    max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
+    #max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
 
     #Decrypt the Security Token, data = [username, hashpass]
-    data = login_serializer.loads(token,max_age=max_age)
+    data = login_serializer.loads(token)
 
     #Find the User
     user = User.query.filter_by(email = data[0]).first()
