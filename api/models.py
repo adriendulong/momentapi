@@ -2006,6 +2006,29 @@ class Moment(db.Model):
         return False
 
 
+    #Fonction qui nous dit si le user peut enoyer un chat
+    def can_add_chat(self, user):
+        if self.privacy == constants.PRIVATE or self.privacy == constants.PUBLIC or self.privacy == constants.OPEN:
+            return True
+        elif self.is_owner(user) or self.is_admin(user):
+            return True
+        else:
+            return False
+
+
+    #Fonction qui nous dit si le user peut enoyer un chat
+    def can_add_photo(self, user):
+        if self.privacy == constants.PRIVATE or self.privacy == constants.PUBLIC or self.privacy == constants.OPEN or self.privacy == constants.SPECIAL_EVENT_LIVE:
+            return True
+        elif self.privacy == constants.SPECIAL_EVENT:
+            if self.is_admin(user) or self.is_owner(user):
+                return True
+            else:
+                return False
+        else:
+            return False
+
+
     #Fonction qui dit si ce user peut modifier ce Moment
     def can_be_modified_by(self, user_id):
 

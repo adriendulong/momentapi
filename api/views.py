@@ -1819,25 +1819,29 @@ def new_photos(moment_id):
     #On recupere le moment en question
     moment = Moment.query.get(moment_id)
 
-    if "photo" in request.files:
-        image = Image.open(request.files["photo"])
+    if moment.can_add_photo(current_user):
+        if "photo" in request.files:
+            image = Image.open(request.files["photo"])
 
 
-        photo = Photo()
+            photo = Photo()
 
-        #On enregistre en base l'objet photo
-        db.session.add(photo)
-        db.session.commit()
+            #On enregistre en base l'objet photo
+            db.session.add(photo)
+            db.session.commit()
 
-        #Puis on enregistre en disque la photo
-        photo.save_photo(image, moment, current_user)
+            #Puis on enregistre en disque la photo
+            photo.save_photo(image, moment, current_user)
 
-        reponse["success"] = photo.photo_to_send()
+            reponse["success"] = photo.photo_to_send()
 
-        return jsonify(reponse), 200
+            return jsonify(reponse), 200
 
+        else:
+            reponse["error"] = "no photo received"
+            return jsonify(reponse), 405
     else:
-        reponse["error"] = "no photo received"
+        reponse["error"] = "The user cannot add photo to this moment"
         return jsonify(reponse), 405
 
 
@@ -2040,55 +2044,42 @@ def like_photo(photo_id):
 @app.route('/newchat/<int:moment_id>', methods=["POST"])
 @login_required
 def new_chat(moment_id):
-	#On créé la réponse qui sera envoyé
-	reponse = {}
-	
-	moment = Moment.query.get(moment_id)
+    #On créé la réponse qui sera envoyé
+    reponse = {}
 
-	#Si le moment existe
-	if moment is not None:
-		#On verifie que le user fait partie des invités
-		if moment.is_in_guests(current_user.id):
-			#Si un message est envoyé
-			if "message" in request.form:
-				#On créé un nouveau chat lié au user en question et au Moment
-				chat = Chat(request.form["message"], current_user, moment)
-				
+    moment = Moment.query.get(moment_id)
 
-				reponse["success"] = "message added to the chat"
-				reponse["chat"] = chat.chat_to_send()
-				return jsonify(reponse), 200
-
-			else:
-				reponse["error"] = "Mandatory value missing"
-				return jsonify(reponse), 405
-
-		#Si le user fait pas partie des invités, on voit si le moment est public (ou open pour le moment)
-		elif moment.privacy == constants.PUBLIC or moment.privacy == constants.OPEN:
-			#Si un message est envoyé
-			if "message" in request.form:
-				#On créé un nouveau chat lié au user en question et au Moment
-				chat = Chat(request.form["message"], current_user, moment)
-				
-
-				reponse["success"] = "message added to the chat"
-				reponse["chat"] = chat.chat_to_send()
-				return jsonify(reponse), 200
-
-			else:
-				reponse["error"] = "Mandatory value missing"
-				return jsonify(reponse), 405
+    #Si le moment existe
+    if moment is not None:
+        #On verifie que le user fait partie des invités
+        if moment.is_in_guests(current_user.id):
+            if moment.can_add_chat(current_user):
+                #Si un message est envoyé
+                if "message" in request.form:
+                    #On créé un nouveau chat lié au user en question et au Moment
+                    chat = Chat(request.form["message"], current_user, moment)
 
 
-		else:
-			reponse["error"] = "The user is not a guest of this moment"
-			return jsonify(reponse), 401
+                    reponse["success"] = "message added to the chat"
+                    reponse["chat"] = chat.chat_to_send()
+                    return jsonify(reponse), 200
 
-		
+                else:
+                    reponse["error"] = "Mandatory value missing"
+                    return jsonify(reponse), 405
+            else:
+                reponse["error"] = "This user cannot post a chat in this moment"
+                return jsonify(reponse), 405
 
-	else:
-		reponse["error"] = "This moment does not exist"
-		return jsonify(reponse), 405
+        else:
+            reponse["error"] = "The user is not a guest of this moment"
+            return jsonify(reponse), 401
+
+
+
+    else:
+        reponse["error"] = "This moment does not exist"
+        return jsonify(reponse), 405
 
 
 #####################################################################

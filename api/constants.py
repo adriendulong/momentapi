@@ -10,6 +10,8 @@ import fonctions
 PRIVATE = 0
 OPEN = 1
 PUBLIC = 2
+SPECIAL_EVENT = 3
+SPECIAL_EVENT_LIVE = 4
 
 
 ##########
