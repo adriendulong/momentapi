@@ -1006,7 +1006,10 @@ def update_moment_tag(update):
     hashtag = update["object_id"]
 
     #Give the id of concerned Moment
-    moment = models.Moment.query.get(1592)
+    if hashtag == "nb2013":
+        moment = models.Moment.query.get(1592)
+    else:
+        moment = models.Moment.query.filter(Moment.hashtag == hashtag).first()
 
     #Instagram API
     api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
