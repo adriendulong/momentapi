@@ -1009,6 +1009,7 @@ def update_moment_tag(update):
     if hashtag == "nb2013":
         moment = models.Moment.query.get(1592)
     else:
+        print "HASHTAG : "+hashtag
         moment = models.Moment.query.filter(Moment.hashtag == hashtag).first()
 
     #Instagram API
