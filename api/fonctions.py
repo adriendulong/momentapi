@@ -1010,7 +1010,7 @@ def update_moment_tag(update):
         moment = models.Moment.query.get(1592)
     else:
         print "HASHTAG : "+hashtag
-        moment = models.Moment.query.filter(Moment.hashtag == hashtag).first()
+        moment = models.Moment.query.filter(models.Moment.hashtag.lower() == hashtag).first()
 
     #Instagram API
     api = InstagramAPI(client_id=constants.INSTAGRAM_CLIENT_ID, client_secret=constants.INSTAGRAM_CLIENT_SECRET)
