@@ -1819,29 +1819,25 @@ def new_photos(moment_id):
     #On recupere le moment en question
     moment = Moment.query.get(moment_id)
 
-    if moment.can_add_photo(current_user):
-        if "photo" in request.files:
-            image = Image.open(request.files["photo"])
+    if "photo" in request.files:
+        image = Image.open(request.files["photo"])
 
 
-            photo = Photo()
+        photo = Photo()
 
-            #On enregistre en base l'objet photo
-            db.session.add(photo)
-            db.session.commit()
+        #On enregistre en base l'objet photo
+        db.session.add(photo)
+        db.session.commit()
 
-            #Puis on enregistre en disque la photo
-            photo.save_photo(image, moment, current_user)
+        #Puis on enregistre en disque la photo
+        photo.save_photo(image, moment, current_user)
 
-            reponse["success"] = photo.photo_to_send()
+        reponse["success"] = photo.photo_to_send()
 
-            return jsonify(reponse), 200
+        return jsonify(reponse), 200
 
-        else:
-            reponse["error"] = "no photo received"
-            return jsonify(reponse), 405
     else:
-        reponse["error"] = "The user cannot add photo to this moment"
+        reponse["error"] = "no photo received"
         return jsonify(reponse), 405
 
 

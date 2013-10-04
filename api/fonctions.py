@@ -1008,7 +1008,7 @@ def update_moment_tag(update):
 
     #Give the id of concerned Moment
     if hashtag == "nb2013":
-        moment = models.Moment.query.get(1592)
+        moment = models.Moment.query.get(1746)
     else:
         print "HASHTAG : "+hashtag.lower()
         moment = models.Moment.query.filter(func.lower(models.Moment.hashtag) == hashtag).first()
