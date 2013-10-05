@@ -3092,7 +3092,7 @@ def moment_unique(unique_id, with_photos = 0):
     else:
         reponse["moment"] = moment.moment_to_send_ext()
         if with_photos == 1:
-            photos = Photo.query.filter(Photo.moment_id == moment.id).order_by(desc(Photo.creation_datetime)).all()
+            photos = Photo.query.filter(Photo.moment_id == moment.id).order_by(desc(Photo.creation_datetime)).limit(500)
             reponse["photos"] = []
             for photo in photos:
                 reponse["photos"].append(photo.photo_to_send())
