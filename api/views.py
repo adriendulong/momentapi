@@ -1879,7 +1879,10 @@ def photos_moment(moment_id):
         #Si le moment est public (ou ouvert pour le moment) on a aps besoin de savoir si le user est invité
         else:
             if moment.id == 1746:
-                photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).limit(120)
+                if current_user.id == 1 or current_user.id == 3:
+                    photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
+                else:
+                    photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).limit(120)
             else:
                 photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
             #filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
