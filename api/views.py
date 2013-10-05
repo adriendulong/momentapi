@@ -1880,7 +1880,7 @@ def photos_moment(moment_id):
         else:
             if moment.id == 1746:
                 if current_user.id == 1 or current_user.id == 3 or current_user.id == 2075:
-                    photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).limit(300)
+                    photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).limit(200)
                 else:
                     photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).limit(120)
             else:
