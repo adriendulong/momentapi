@@ -1880,9 +1880,9 @@ def photos_moment(moment_id):
         else:
             if moment.id == 1746:
                 if current_user.id == 1 or current_user.id == 3 or current_user.id == 2075:
-                    photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).limit(200)
-                else:
                     photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).limit(120)
+                else:
+                    photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).limit(80)
             else:
                 photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
             #filter_by(moment_id=moment_id).order_by(desc(Chat.time)).order_by(asc(Chat.id)).paginate(nb_page, constants.CHATS_PAGINATION, False)
