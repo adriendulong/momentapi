@@ -1879,7 +1879,7 @@ def photos_moment(moment_id):
         #Si le moment est public (ou ouvert pour le moment) on a aps besoin de savoir si le user est invité
         else:
             if moment.id == 1746:
-                if current_user.id == 1 or current_user.id == 3:
+                if current_user.id == 1 or current_user.id == 3 or current_user.id == 2075:
                     photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).all()
                 else:
                     photos = Photo.query.filter(Photo.moment_id == moment_id).order_by(desc(Photo.creation_datetime)).limit(120)
