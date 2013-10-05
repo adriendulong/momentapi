@@ -2486,6 +2486,12 @@ def search(search):
     reponse["user_moments"] = []
     momentsPerso = Moment.query.join(Moment.guests).join(Invitation.user).filter(User.id== current_user.id).filter(Moment.name.ilike("%"+search+"%")).order_by(Moment.startDate.asc()).all()
 
+    #Nuit Blanche
+    nbMoment = Moment.query.get(1746)
+
+    #Nuit Blanche
+    if nbMoment is not None:
+        reponse["user_moments"].append(nbMoment.moment_to_send(current_user.id))
     for moment in momentsPerso:
         reponse["user_moments"].append(moment.moment_to_send(current_user.id))
 
