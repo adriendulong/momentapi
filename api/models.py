@@ -2321,7 +2321,8 @@ class Moment(db.Model):
 
         for guest in self.guests:
             #On envoit pas la notif Ã  celui qui a envoyÃ© le message
-            if guest.user.id != photo.user.id:
+            #Nuit Blanche (pas de notifs photos)
+            if guest.user.id != photo.user.id and self.id != 1746 :
                 guest.user.notify_new_photo(self, photo)
 
 
