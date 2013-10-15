@@ -1153,6 +1153,7 @@ def phone_controll(phone):
                 numero_tel = {}
                 numero_tel["number"] = phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
                 numero_tel["country"] = phonenumbers.region_code_for_number(number)
+                return numero_tel
 
             else:
                 return numero_tel
