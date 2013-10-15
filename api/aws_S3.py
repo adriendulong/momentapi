@@ -8,7 +8,6 @@ class S3:
 
     def __init__(self):
         #Connect to S3
-        boto.set_stream_logger('boto')
         self.s3 = boto.connect_s3()
 
         #Bucket depends on the type of server

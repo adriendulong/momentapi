@@ -1108,53 +1108,58 @@ def listen_tweets_hashtag(hashtag, moment):
 
 def phone_controll(phone):
 
-	numero_tel = None
+    numero_tel = None
 
-	#On controlle qu'il y a un plus au début, sinon il faut donner la localisation
-	if phone[0] == "+":
+    #On controlle qu'il y a un plus au début, sinon il faut donner la localisation
+    if phone[0] == "+":
 
-		#Si jamais il y a un pb avec le parsage
-		try:
-			number = phonenumbers.parse(phone, None)
-
-
-			#On vérifie que le nombre est valide
-			if phonenumbers.is_valid_number(number):
-				numero_tel = {}
-				numero_tel["number"] = phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
-				numero_tel["country"] = region_code_for_number(number)
-
-				return numero_tel
-
-			else:
-				return numero_tel
-
-		except phonenumbers.phonenumberutil.NumberParseException:
-			return numero_tel
+        #Si jamais il y a un pb avec le parsage
+        try:
+            number = phonenumbers.parse(phone, None)
 
 
-		
+            #On vérifie que le nombre est valide
+            if phonenumbers.is_valid_number(number):
+                numero_tel = {}
+                numero_tel["number"] = phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
+                numero_tel["country"] = phonenumbers.region_code_for_number(number)
 
-	#Sinon on doit donner une localisation
-	else:
-		try:
+                return numero_tel
 
-			number = phonenumbers.parse(phone, "FR")
+            else:
+                return numero_tel
 
-			#On vérifie que le nombre est valide
-			if phonenumbers.is_valid_number(number):
-				numero_tel = {}
-				numero_tel["number"] = phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
-				numero_tel["country"] = region_code_for_number(number)
-
-				return numero_tel
-
-			else:
-				return numero_tel
+        except phonenumbers.phonenumberutil.NumberParseException:
+            return numero_tel
 
 
-		except phonenumbers.phonenumberutil.NumberParseException:
-			return numero_tel
+
+
+    #Sinon on doit donner une localisation
+    else:
+        try:
+
+            number = phonenumbers.parse(phone, "FR")
+
+            #On vérifie que le nombre est valide
+            if phonenumbers.is_valid_number(number):
+                numero_tel = {}
+                numero_tel["number"] = phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
+                numero_tel["country"] = phonenumbers.region_code_for_number(number)
+
+                return numero_tel
+
+            elif phone.startswith("07"):
+                numero_tel = {}
+                numero_tel["number"] = phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.E164)
+                numero_tel["country"] = phonenumbers.region_code_for_number(number)
+
+            else:
+                return numero_tel
+
+
+        except phonenumbers.phonenumberutil.NumberParseException:
+            return numero_tel
 
 ########
 ## Cross Domain decorator

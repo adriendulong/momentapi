@@ -2144,12 +2144,14 @@ class Moment(db.Model):
                     self.guests.append(invitation)
 
                     #On increment le compteur pour chaque invitÃ© egalement
+                    '''
                     for guest in self.guests:
                         if guest.user.id != user.id:
                             guest.user.increment_favoris(user, userConstants.MOMENT)
+                    '''
 
                     #On rajoute dans l'actu de la personne
-                    user.add_actu_going(self)
+                    #user.add_actu_going(self)
 
                     return True
                 else:
