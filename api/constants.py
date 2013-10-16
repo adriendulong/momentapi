@@ -195,6 +195,16 @@ else:
     SANDBOX = True
 
 
+#####################
+### BIG MOUSTACHE ###
+#####################
+if app.config["TYPE"] == 0:
+    BIGMOUSTACHE_USER = 1
+    BIGMOUSTACHE_MOMENT = 97
+elif app.config["TYPE"] == 1:
+    BIGMOUSTACHE_USER = 7477
+    BIGMOUSTACHE_MOMENT = 8364
+
 
 ###########################
 ## MONTH OF THE YEAR ######

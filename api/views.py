@@ -1842,6 +1842,49 @@ def new_photos(moment_id):
 
 
 #####################################################################
+############ Poster une nouvelle photo sur un Moment SANS USER (CROSS DOMAIN) ###################
+######################################################################
+# Methode acceptées : POST
+# Paramètres obligatoires :
+#	- Une photo
+
+@app.route('/addphotopublic/<int:moment_id>', methods=["POST"])
+@fonctions.crossdomain(origin='*')
+def new_photos_without_user(moment_id):
+    #On créé la réponse qui sera envoyé
+    reponse = {}
+
+    #On recupere le moment en question
+    moment = Moment.query.get(moment_id)
+    user = User.query.get(constants.BIGMOUSTACHE_USER)
+
+    if moment.privacy != constants.PRIVATE:
+        if "photo" in request.files:
+            image = Image.open(request.files["photo"])
+
+
+            photo = Photo()
+
+            #On enregistre en base l'objet photo
+            db.session.add(photo)
+            db.session.commit()
+
+            #Puis on enregistre en disque la photo
+            photo.save_photo(image, moment, user, False)
+
+            reponse["success"] = photo.photo_to_send()
+
+            return jsonify(reponse), 200
+
+        else:
+            reponse["error"] = "no photo received"
+            return jsonify(reponse), 405
+    else:
+        reponse["error"] = "You must be logged in order to post a photo on this Moment"
+        return jsonify(reponse), 405
+
+
+#####################################################################
 ############ Retourne la liste des photos prises pour un moment ###################
 ######################################################################
 # Methode acceptées : GET

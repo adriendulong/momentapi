@@ -2679,7 +2679,7 @@ class Photo(db.Model):
     unique_code = db.Column(db.String(10))
 
 
-    def save_photo(self, f, moment, user):
+    def save_photo(self, f, moment, user, notif=True):
 
         name = "%s" %(self.id)
 
@@ -2753,9 +2753,11 @@ class Photo(db.Model):
             print "TRUE PHOTO"
 
         # Le Moment s'occupe de notifier tous les invitÃ©s qu'une nouvelle photo a Ã©tÃ© ajoutÃ©e
-        moment.notify_users_new_photo(self)
+        if notif:
+            print "notif"
+            moment.notify_users_new_photo(self)
 
-        user.add_actu_photo(self, moment)
+        #user.add_actu_photo(self, moment)
 
         return True
 
