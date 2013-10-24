@@ -3068,7 +3068,7 @@ def logout(device_id):
 #####################################################################
 ############ FACEBOOK REAL TIME ############################
 ######################################################################
-'''
+
 
 @app.route('/realtime/fb', methods=["GET", "POST"])
 def fb_real_time():
@@ -3091,7 +3091,6 @@ def fb_real_time():
 	elif request.method == "POST":
 		print "FACEBOOK : %s" % request.json
 
-'''
 
 
 
