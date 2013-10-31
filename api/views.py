@@ -1858,6 +1858,9 @@ def new_photos_without_user(moment_id):
     moment = Moment.query.get(moment_id)
     user = User.query.get(constants.BIGMOUSTACHE_USER)
 
+    if "email" in request.form:
+        print request.form["email"]
+
     if moment.privacy != constants.PRIVATE:
         if "photo" in request.files:
             image = Image.open(request.files["photo"])
